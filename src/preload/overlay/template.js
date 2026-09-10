@@ -399,9 +399,11 @@ const OVERLAY_CSS = [
 '.cuckoo-first-time-box .cuckoo-btn { flex: 0 0 auto; min-width: 150px; }',
 // ========== CSS-переменные (управляются из настроек Cuckoo Code) ==========
 ':root {',
-'  --cuckoo-bg-blur: 0px;',       // размытие самой картинки фона
-'  --cuckoo-header-blur: 12px;',  // стекло шапки
-'  --cuckoo-sidebar-blur: 12px;', // стекло сайдбара
+'  --cuckoo-bg-blur: 0px;',           // размытие самой картинки фона
+'  --cuckoo-header-blur: 12px;',      // стекло шапки
+'  --cuckoo-sidebar-blur: 12px;',     // стекло сайдбара
+'  --cuckoo-header-opacity: 45%;',    // плотность фона шапки (0 = прозрачно)
+'  --cuckoo-sidebar-opacity: 45%;',   // плотность фона сайдбара (0 = прозрачно)
 '}',
 // ========== 页面背景：базовый цвет + стили (картинка ставится через JS) ==========
 'html, body {',
@@ -428,10 +430,11 @@ const OVERLAY_CSS = [
 '  z-index: -1;',
 '}',
 // ========== 页面顶部标题栏毛玻璃（DeepSeek） ==========
+// Прозрачность управляется переменной --cuckoo-header-opacity (0% — полностью прозрачно).
 '.the-header {',
 '  backdrop-filter: blur(var(--cuckoo-header-blur)) saturate(140%) !important;',
 '  -webkit-backdrop-filter: blur(var(--cuckoo-header-blur)) saturate(140%) !important;',
-'  background: rgba(15, 18, 32, 0.45) !important;',
+'  background: rgba(15, 18, 32, var(--cuckoo-header-opacity)) !important;',
 '}',
 // ========== 去掉输入框底部的深色渐变，让背景图透出 ==========
 // DeepSeek 在 _871cbca 与其空的子层 d72636e2 上画了从上到下的
@@ -454,14 +457,17 @@ const OVERLAY_CSS = [
 '.b8812f16.a2f3d50e ._77cdc67,',
 '.b8812f16.a2f3d50e ._7b40dad,',
 '.b8812f16.a2f3d50e ._8a693f3,',
-'.b8812f16.a2f3d50e ._1d72f01 {',
+'.b8812f16.a2f3d50e ._1d72f01,',
+'.b8812f16.a2f3d50e .f3d18f6a,',
+'.b8812f16.a2f3d50e ._3098d02 {',
 '  background: transparent !important;',
 '  backdrop-filter: none !important;',
 '  -webkit-backdrop-filter: none !important;',
 '}',
 // Стекло применяем один раз — на корень сайдбара.
+// Прозрачность — переменная --cuckoo-sidebar-opacity (0% — полностью прозрачно).
 '.b8812f16.a2f3d50e {',
-'  background: rgba(15, 18, 32, 0.45) !important;',
+'  background: rgba(15, 18, 32, var(--cuckoo-sidebar-opacity)) !important;',
 '  backdrop-filter: blur(var(--cuckoo-sidebar-blur)) saturate(140%) !important;',
 '  -webkit-backdrop-filter: blur(var(--cuckoo-sidebar-blur)) saturate(140%) !important;',
 '}',

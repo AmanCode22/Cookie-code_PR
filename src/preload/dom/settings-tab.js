@@ -132,6 +132,17 @@ function buildContentHTML() {
     '  </div>' +
     '</div>' +
     '<div>' +
+    '  <div class="cuckoo-section-title">Прозрачность панелей</div>' +
+    '  <div class="cuckoo-blur-row">' +
+    '    <div class="cuckoo-blur-label"><span>Прозрачность шапки</span><span class="cuckoo-blur-value" id="cuckoo-op-header-val">45 %</span></div>' +
+    '    <input type="range" id="cuckoo-op-header" class="cuckoo-blur-slider" min="0" max="100" step="5" value="45">' +
+    '  </div>' +
+    '  <div class="cuckoo-blur-row">' +
+    '    <div class="cuckoo-blur-label"><span>Прозрачность сайдбара</span><span class="cuckoo-blur-value" id="cuckoo-op-sidebar-val">45 %</span></div>' +
+    '    <input type="range" id="cuckoo-op-sidebar" class="cuckoo-blur-slider" min="0" max="100" step="5" value="45">' +
+    '  </div>' +
+    '</div>' +
+    '<div>' +
     '  <div class="cuckoo-section-title">Фон страницы</div>' +
     '  <div class="cuckoo-bg-grid">' + items + '</div>' +
     '</div>' +
@@ -189,6 +200,8 @@ function bindBlurSliders() {
     { inputId: 'cuckoo-blur-bg',      valId: 'cuckoo-blur-bg-val',      key: 'backgroundBlur', def: 0 },
     { inputId: 'cuckoo-blur-header',  valId: 'cuckoo-blur-header-val',  key: 'headerBlur',     def: 12 },
     { inputId: 'cuckoo-blur-sidebar', valId: 'cuckoo-blur-sidebar-val', key: 'sidebarBlur',    def: 12 },
+    { inputId: 'cuckoo-op-header',    valId: 'cuckoo-op-header-val',    key: 'headerOpacity',  def: 45 },
+    { inputId: 'cuckoo-op-sidebar',   valId: 'cuckoo-op-sidebar-val',   key: 'sidebarOpacity', def: 45 },
   ];
 
   sliders.forEach(({ inputId, valId, key, def }) => {
@@ -205,6 +218,8 @@ function bindBlurSliders() {
         backgroundBlur: Number((document.getElementById('cuckoo-blur-bg') || {}).value) || 0,
         headerBlur:     Number((document.getElementById('cuckoo-blur-header') || {}).value),
         sidebarBlur:    Number((document.getElementById('cuckoo-blur-sidebar') || {}).value),
+        headerOpacity:  Number((document.getElementById('cuckoo-op-header') || {}).value),
+        sidebarOpacity: Number((document.getElementById('cuckoo-op-sidebar') || {}).value),
       };
       background.applyBlur(settings);
     });
@@ -260,6 +275,8 @@ async function refreshBlurValues() {
     setSlider('cuckoo-blur-bg',      'cuckoo-blur-bg-val',      Number(s && s.backgroundBlur) || 0);
     setSlider('cuckoo-blur-header',  'cuckoo-blur-header-val',  Number(s && s.headerBlur != null ? s.headerBlur : 12));
     setSlider('cuckoo-blur-sidebar', 'cuckoo-blur-sidebar-val', Number(s && s.sidebarBlur != null ? s.sidebarBlur : 12));
+    setSlider('cuckoo-op-header',    'cuckoo-op-header-val',    Number(s && s.headerOpacity != null ? s.headerOpacity : 45));
+    setSlider('cuckoo-op-sidebar',   'cuckoo-op-sidebar-val',   Number(s && s.sidebarOpacity != null ? s.sidebarOpacity : 45));
   } catch (err) {
     console.error('[Cuckoo Code] Не удалось загрузить значения блюра:', err.message);
   }

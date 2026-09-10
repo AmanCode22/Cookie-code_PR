@@ -94,18 +94,28 @@ function apply(id) {
 }
 
 /**
- * Применить настройки размытия (background, header, sidebar).
- * Значения — числа в px. Записываются как CSS-переменные на :root.
+ * Применить настройки размытия и прозрачности.
+ * Числовые значения — px, прозрачность — % (0–100).
  */
 function applyBlur(settings) {
   const root = document.documentElement;
   const bg = Number(settings && settings.backgroundBlur) || 0;
   const hd = Number(settings && settings.headerBlur);
   const sb = Number(settings && settings.sidebarBlur);
+  const hdOp = Number(settings && settings.headerOpacity);
+  const sbOp = Number(settings && settings.sidebarOpacity);
+
+  const hdVal = isNaN(hd) ? 12 : hd;
+  const sbVal = isNaN(sb) ? 12 : sb;
+  const hdOpVal = isNaN(hdOp) ? 45 : hdOp;
+  const sbOpVal = isNaN(sbOp) ? 45 : sbOp;
+
   root.style.setProperty('--cuckoo-bg-blur', bg + 'px');
-  root.style.setProperty('--cuckoo-header-blur', (isNaN(hd) ? 12 : hd) + 'px');
-  root.style.setProperty('--cuckoo-sidebar-blur', (isNaN(sb) ? 12 : sb) + 'px');
-  console.log('[Cuckoo Code] Блюр: фон=' + bg + 'px, шапка=' + (isNaN(hd) ? 12 : hd) + 'px, сайдбар=' + (isNaN(sb) ? 12 : sb) + 'px');
+  root.style.setProperty('--cuckoo-header-blur', hdVal + 'px');
+  root.style.setProperty('--cuckoo-sidebar-blur', sbVal + 'px');
+  root.style.setProperty('--cuckoo-header-opacity', hdOpVal + '%');
+  root.style.setProperty('--cuckoo-sidebar-opacity', sbOpVal + '%');
+  console.log('[Cuckoo Code] Стили: фон-blur=' + bg + 'px, шапка=' + hdVal + 'px / ' + hdOpVal + '%, сайдбар=' + sbVal + 'px / ' + sbOpVal + '%');
 }
 
 /**
@@ -132,6 +142,8 @@ const RESET_DEFAULTS = {
   backgroundBlur: 0,
   headerBlur: 12,
   sidebarBlur: 12,
+  headerOpacity: 45,
+  sidebarOpacity: 45,
 };
 
 /**
