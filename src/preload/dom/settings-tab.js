@@ -58,8 +58,12 @@ function activateCuckooTab() {
     bindBackgroundGrid();
     // Вешаем обработчики на слайдеры размытия
     bindBlurSliders();
+    // Чекбокс RGB-переливания
+    bindRgbCheckbox();
     // Загружаем сохранённые значения блюра в слайдеры
     refreshBlurValues();
+    // Загружаем значение RGB-переливания
+    refreshRgbCheckbox();
     // Подсвечиваем текущий фон
     refreshBackgroundSelection();
     // Кнопка сброса
@@ -149,6 +153,13 @@ function buildContentHTML() {
     '    <div class="cuckoo-blur-label"><span>Блюр tool-блоков (стекло)</span><span class="cuckoo-blur-value" id="cuckoo-blur-toolblock-val">0 px</span></div>' +
     '    <input type="range" id="cuckoo-blur-toolblock" class="cuckoo-blur-slider" min="0" max="30" step="1" value="0">' +
     '  </div>' +
+    '</div>' +
+    '<div>' +
+    '  <div class="cuckoo-section-title">Эффекты</div>' +
+    '  <label class="cuckoo-checkbox-row" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;cursor:pointer;">' +
+    '    <input type="checkbox" id="cuckoo-rgb-username" checked style="width:16px;height:16px;cursor:pointer;">' +
+    '    <span style="font-size:13px;color:#cfd3ff;">RGB-переливание ника</span>' +
+    '  </label>' +
     '</div>' +
     '<div>' +
     '  <div class="cuckoo-section-title">Фон страницы</div>' +
@@ -292,6 +303,37 @@ function bindResetButton() {
       }
     });
   }
+}
+
+/**
+ * Чекбокс RGB-переливания ника.
+ */
+function bindRgbCheckbox() {
+  const cb = document.getElementById('cuckoo-rgb-username');
+  if (!cb) return;
+  cb.addEventListener('change', async () => {
+    const enabled = cb.checked;
+    background.applyRgbUsername(enabled);
+    try {
+      const res = await window.electronAPI.setCuckooSetting('rgbUsername', enabled);
+      if (!res || !res.success) {
+        console.error('[Cuckoo Code] Не удалось сохранить rgbUsername:', res && res.error);
+      }
+    } catch (err) {
+      console.error('[Cuckoo Code] Ошибка сохранения rgbUsername:', err.message);
+    }
+  });
+}
+
+/**
+ * Загрузить сохранённое значение RGB-переливания в чекбокс.
+ */
+async function refreshRgbCheckbox() {
+  try {
+    const s = await window.electronAPI.getCuckooSettings();
+    const cb = document.getElementById('cuckoo-rgb-username');
+    if (cb) cb.checked = s && s.rgbUsername !== false;
+  } catch (_) {}
 }
 
 /**

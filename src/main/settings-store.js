@@ -19,6 +19,7 @@ const DEFAULTS = {
   sidebarOpacity: 45,    // % — плотность фона сайдбара (0 = прозрачно)
   toolBlockOpacity: 55,  // % — плотность фона tool-блоков в чате
   toolBlockBlur: 0,      // px — стекло tool-блоков в чате
+  rgbUsername: true,     // RGB-переливание ника пользователя (по умолчанию вкл)
 };
 
 let cachedPath = null;

@@ -510,7 +510,8 @@ if (!gotSingleInstanceLock) {
   });
 
   app.whenReady().then(() => {
-    setupAppMenu();
+    // Убираем системное меню Electron (Файл / Правка / Вид / ...)
+    Menu.setApplicationMenu(null);
     createWindow(null);
 
     // 后台连接已启用的 MCP server，不阻塞窗口创建

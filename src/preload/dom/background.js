@@ -133,10 +133,12 @@ async function loadAndApply() {
     const bgId = (settings && settings.background) || DEFAULT_ID;
     apply(bgId);
     applyBlur(settings);
+    applyRgbUsername(settings ? settings.rgbUsername : true);
   } catch (err) {
     console.error('[Cuckoo Code] Не удалось загрузить настройки:', err.message);
     apply(DEFAULT_ID);
     applyBlur(null);
+    applyRgbUsername(true);
   }
 }
 
@@ -152,6 +154,7 @@ const RESET_DEFAULTS = {
   sidebarOpacity: 45,
   toolBlockOpacity: 55,
   toolBlockBlur: 0,
+  rgbUsername: true,
 };
 
 /**
@@ -160,6 +163,7 @@ const RESET_DEFAULTS = {
 async function resetAll() {
   apply(RESET_DEFAULTS.background);
   applyBlur(RESET_DEFAULTS);
+  applyRgbUsername(RESET_DEFAULTS.rgbUsername);
   try {
     for (const key of Object.keys(RESET_DEFAULTS)) {
       await window.electronAPI.setCuckooSetting(key, RESET_DEFAULTS[key]);
@@ -167,6 +171,23 @@ async function resetAll() {
     console.log('[Cuckoo Code] Настройки сброшены к дефолтам');
   } catch (err) {
     console.error('[Cuckoo Code] Не удалось сохранить дефолты:', err.message);
+  }
+}
+
+/**
+ * Применить настройку RGB-переливания ника.
+ * Если enabled=false — на <body> вешается класс cuckoo-rgb-off.
+ */
+function applyRgbUsername(enabled) {
+  try {
+    if (enabled === false || enabled === 'false' || enabled === 0) {
+      document.body.classList.add('cuckoo-rgb-off');
+    } else {
+      document.body.classList.remove('cuckoo-rgb-off');
+    }
+    console.log('[Cuckoo Code] RGB-ник:', enabled === false ? 'выкл' : 'вкл');
+  } catch (err) {
+    console.error('[Cuckoo Code] Не удалось применить RGB-ник:', err.message);
   }
 }
 
@@ -195,6 +216,7 @@ function clearLocalStorage() {
 module.exports = {
   apply,
   applyBlur,
+  applyRgbUsername,
   loadAndApply,
   getPreviewUri,
   resetAll,
