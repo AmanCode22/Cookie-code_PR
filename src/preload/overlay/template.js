@@ -592,6 +592,22 @@ const OVERLAY_CSS = [
 '  backdrop-filter: none !important;',
 '  -webkit-backdrop-filter: none !important;',
 '}',
+// ========== Мета-информация под ответом AI (время + токены) ==========
+'.cuckoo-response-meta {',
+'  display: inline-flex; align-items: center; gap: 6px;',
+'  margin-top: 6px; padding: 3px 8px;',
+'  font-size: 11px;',
+'  color: #8a90b8;',
+'  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;',
+'  border-radius: 6px;',
+'  user-select: none;',
+'  opacity: 0.85;',
+'}',
+'.cuckoo-response-meta-item {',
+'  display: inline-flex; align-items: center; gap: 4px;',
+'}',
+'.cuckoo-response-meta-item svg { display: block; }',
+'.cuckoo-response-meta-sep { color: #5d6280; }',
 ].join('\n');
 
 module.exports = { OVERLAY_HTML, OVERLAY_CSS };

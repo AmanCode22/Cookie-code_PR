@@ -177,12 +177,28 @@ function getPreviewUri(file) {
   return getDataUri(file);
 }
 
+/**
+ * Очистить localStorage-хранилища Cuckoo Code:
+ * - cuckoo-response-meta (мета ответов: время + токены)
+ * - cuckoo-errors (сохранённые ошибки tool-блоков)
+ */
+function clearLocalStorage() {
+  try {
+    localStorage.removeItem('cuckoo-response-meta');
+    localStorage.removeItem('cuckoo-errors');
+    console.log('[Cuckoo Code] LocalStorage очищен (мета + ошибки)');
+  } catch (err) {
+    console.error('[Cuckoo Code] Ошибка очистки localStorage:', err.message);
+  }
+}
+
 module.exports = {
   apply,
   applyBlur,
   loadAndApply,
   getPreviewUri,
   resetAll,
+  clearLocalStorage,
   RESET_DEFAULTS,
   BACKGROUNDS,
   DEFAULT_ID,

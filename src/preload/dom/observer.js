@@ -9,9 +9,13 @@ const { scanForCommands } = require('./detector');
 const { tryParseToolCall } = require('./tool-parser');
 const { getJsCodeBlocksFromMarkdown, looksLikeIncompleteCodeError, FENCE } = require('./js-detector');
 const toolRender = require('./tool-render');
+const responseMeta = require('./response-meta');
 
 // Запускаем устойчивый watcher для оборачивания cuckoo-блоков
 try { toolRender.startWatch(); } catch (e) { console.error('[Cuckoo Code] tool-render startWatch failed:', e.message); }
+
+// Watcher меты (время + токены под ответом AI)
+try { responseMeta.startWatch(); } catch (e) { console.error('[Cuckoo Code] response-meta startWatch failed:', e.message); }
 const { sendToolResultToChat, sendCombinedJsResultsToChat, sendMessageToChat } = require('./chat-input');
 const { isAIResponseComplete } = require('./ai-response');
 const { getProviderByUrl } = require('../../../src/providers');
@@ -515,6 +519,7 @@ function startObserver() {
       (async () => {
         try {
           if (await isAIResponseComplete()) {
+            try { responseMeta.finishTimer(responseMeta.findLatestAIMessage()); } catch (_) {}
             processLatestAIResponse();
           }
         } finally {
@@ -539,6 +544,7 @@ function startObserver() {
       (async () => {
         try {
           if (await isAIResponseComplete()) {
+            try { responseMeta.finishTimer(responseMeta.findLatestAIMessage()); } catch (_) {}
             processLatestAIResponse();
           }
         } catch (_) { /* 轮询失败静默，等待下一轮 */ }

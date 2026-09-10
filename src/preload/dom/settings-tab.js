@@ -154,7 +154,12 @@ function buildContentHTML() {
     '  <div class="cuckoo-section-title">Фон страницы</div>' +
     '  <div class="cuckoo-bg-grid">' + items + '</div>' +
     '</div>' +
-    '<div style="display:flex;justify-content:flex-end;margin-top:4px;">' +
+    '<div style="display:flex;justify-content:flex-end;gap:10px;margin-top:4px;">' +
+    '  <button id="cuckoo-btn-clear-storage" style="' +
+    '    padding: 9px 18px; border: 1px solid rgba(139,147,255,0.5); border-radius: 10px;' +
+    '    background: rgba(139,147,255,0.12); color: #a8afff; font-weight: 600; font-size: 13px;' +
+    '    cursor: pointer; transition: all 0.18s;' +
+    '  " title="Очистить сохранённые мета-данные и историю ошибок">Очистить мета-данные</button>' +
     '  <button id="cuckoo-btn-reset" style="' +
     '    padding: 9px 18px; border: 1px solid rgba(255,107,122,0.5); border-radius: 10px;' +
     '    background: rgba(255,107,122,0.15); color: #ff9aa5; font-weight: 600; font-size: 13px;' +
@@ -269,6 +274,24 @@ function bindResetButton() {
       btn.textContent = 'Сбросить настройки';
     }
   });
+
+  // Кнопка «Очистить мета-данные» — чистит localStorage
+  const clearBtn = document.getElementById('cuckoo-btn-clear-storage');
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      clearBtn.disabled = true;
+      const originalText = clearBtn.textContent;
+      clearBtn.textContent = 'Очистка...';
+      try {
+        background.clearLocalStorage();
+      } finally {
+        setTimeout(() => {
+          clearBtn.disabled = false;
+          clearBtn.textContent = originalText;
+        }, 300);
+      }
+    });
+  }
 }
 
 /**
