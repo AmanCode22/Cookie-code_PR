@@ -608,6 +608,21 @@ const OVERLAY_CSS = [
 '}',
 '.cuckoo-response-meta-item svg { display: block; }',
 '.cuckoo-response-meta-sep { color: #5d6280; }',
+// ========== RGB-переливание ника пользователя (Vlad Supermen) ==========
+'._9d8da05 {',
+'  background: linear-gradient(90deg, #ff4d4d, #ffa64d, #ffee4d, #4dff88, #4dd2ff, #8a4dff, #ff4dd2, #ff4d4d);',
+'  background-size: 400% 100%;',
+'  -webkit-background-clip: text;',
+'  background-clip: text;',
+'  -webkit-text-fill-color: transparent;',
+'  color: transparent;',
+'  animation: cuckoo-rgb-username 5s linear infinite;',
+'  font-weight: 600;',
+'}',
+'@keyframes cuckoo-rgb-username {',
+'  0% { background-position: 0% 50%; }',
+'  100% { background-position: 400% 50%; }',
+'}',
 ].join('\n');
 
 module.exports = { OVERLAY_HTML, OVERLAY_CSS };
