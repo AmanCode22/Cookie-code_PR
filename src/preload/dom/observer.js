@@ -8,6 +8,10 @@ const {
 const { scanForCommands } = require('./detector');
 const { tryParseToolCall } = require('./tool-parser');
 const { getJsCodeBlocksFromMarkdown, looksLikeIncompleteCodeError, FENCE } = require('./js-detector');
+const toolRender = require('./tool-render');
+
+// Запускаем устойчивый watcher для оборачивания cuckoo-блоков
+try { toolRender.startWatch(); } catch (e) { console.error('[Cuckoo Code] tool-render startWatch failed:', e.message); }
 const { sendToolResultToChat, sendCombinedJsResultsToChat, sendMessageToChat } = require('./chat-input');
 const { isAIResponseComplete } = require('./ai-response');
 const { getProviderByUrl } = require('../../../src/providers');
@@ -356,6 +360,9 @@ function processLatestAIResponse(retryCount = 0, force = false) {
   }
   console.log('[DEBUG][processLatest] text长度=' + text.length + ' 前60字符=' + JSON.stringify(text.slice(0, 60)));
   console.log(text);
+
+  // Декорируем cuckoo-блоки в чате (раскрывающиеся tool-блоки)
+  try { toolRender.decorate(markdown); } catch (e) { /* не критично */ }
 
   // 是否为疑似工具内容（用于控制详细日志与提示文案）
   const looksToolish = text.includes(FENCE) ||

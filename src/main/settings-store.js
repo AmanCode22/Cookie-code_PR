@@ -17,6 +17,8 @@ const DEFAULTS = {
   sidebarBlur: 12,       // px — стекло левого сайдбара
   headerOpacity: 45,     // % — плотность фона шапки (0 = прозрачно)
   sidebarOpacity: 45,    // % — плотность фона сайдбара (0 = прозрачно)
+  toolBlockOpacity: 55,  // % — плотность фона tool-блоков в чате
+  toolBlockBlur: 0,      // px — стекло tool-блоков в чате
 };
 
 let cachedPath = null;

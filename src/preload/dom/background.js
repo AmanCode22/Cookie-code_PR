@@ -109,13 +109,19 @@ function applyBlur(settings) {
   const sbVal = isNaN(sb) ? 12 : sb;
   const hdOpVal = isNaN(hdOp) ? 45 : hdOp;
   const sbOpVal = isNaN(sbOp) ? 45 : sbOp;
+  const tbBlur = Number(settings && settings.toolBlockBlur);
+  const tbOp = Number(settings && settings.toolBlockOpacity);
+  const tbBlurVal = isNaN(tbBlur) ? 0 : tbBlur;
+  const tbOpVal = isNaN(tbOp) ? 55 : tbOp;
 
   root.style.setProperty('--cuckoo-bg-blur', bg + 'px');
   root.style.setProperty('--cuckoo-header-blur', hdVal + 'px');
   root.style.setProperty('--cuckoo-sidebar-blur', sbVal + 'px');
   root.style.setProperty('--cuckoo-header-opacity', hdOpVal + '%');
   root.style.setProperty('--cuckoo-sidebar-opacity', sbOpVal + '%');
-  console.log('[Cuckoo Code] Стили: фон-blur=' + bg + 'px, шапка=' + hdVal + 'px / ' + hdOpVal + '%, сайдбар=' + sbVal + 'px / ' + sbOpVal + '%');
+  root.style.setProperty('--cuckoo-toolblock-opacity', tbOpVal + '%');
+  root.style.setProperty('--cuckoo-toolblock-blur', tbBlurVal + 'px');
+  console.log('[Cuckoo Code] Стили: фон=' + bg + 'px, шапка=' + hdVal + 'px/' + hdOpVal + '%, сайдбар=' + sbVal + 'px/' + sbOpVal + '%, tool=' + tbBlurVal + 'px/' + tbOpVal + '%');
 }
 
 /**
@@ -144,6 +150,8 @@ const RESET_DEFAULTS = {
   sidebarBlur: 12,
   headerOpacity: 45,
   sidebarOpacity: 45,
+  toolBlockOpacity: 55,
+  toolBlockBlur: 0,
 };
 
 /**

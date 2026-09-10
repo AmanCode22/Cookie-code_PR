@@ -141,6 +141,14 @@ function buildContentHTML() {
     '    <div class="cuckoo-blur-label"><span>Прозрачность сайдбара</span><span class="cuckoo-blur-value" id="cuckoo-op-sidebar-val">45 %</span></div>' +
     '    <input type="range" id="cuckoo-op-sidebar" class="cuckoo-blur-slider" min="0" max="100" step="5" value="45">' +
     '  </div>' +
+    '  <div class="cuckoo-blur-row">' +
+    '    <div class="cuckoo-blur-label"><span>Прозрачность tool-блоков</span><span class="cuckoo-blur-value" id="cuckoo-op-toolblock-val">55 %</span></div>' +
+    '    <input type="range" id="cuckoo-op-toolblock" class="cuckoo-blur-slider" min="0" max="100" step="5" value="55">' +
+    '  </div>' +
+    '  <div class="cuckoo-blur-row">' +
+    '    <div class="cuckoo-blur-label"><span>Блюр tool-блоков (стекло)</span><span class="cuckoo-blur-value" id="cuckoo-blur-toolblock-val">0 px</span></div>' +
+    '    <input type="range" id="cuckoo-blur-toolblock" class="cuckoo-blur-slider" min="0" max="30" step="1" value="0">' +
+    '  </div>' +
     '</div>' +
     '<div>' +
     '  <div class="cuckoo-section-title">Фон страницы</div>' +
@@ -200,8 +208,10 @@ function bindBlurSliders() {
     { inputId: 'cuckoo-blur-bg',      valId: 'cuckoo-blur-bg-val',      key: 'backgroundBlur', def: 0 },
     { inputId: 'cuckoo-blur-header',  valId: 'cuckoo-blur-header-val',  key: 'headerBlur',     def: 12 },
     { inputId: 'cuckoo-blur-sidebar', valId: 'cuckoo-blur-sidebar-val', key: 'sidebarBlur',    def: 12 },
-    { inputId: 'cuckoo-op-header',    valId: 'cuckoo-op-header-val',    key: 'headerOpacity',  def: 45 },
-    { inputId: 'cuckoo-op-sidebar',   valId: 'cuckoo-op-sidebar-val',   key: 'sidebarOpacity', def: 45 },
+    { inputId: 'cuckoo-op-header',    valId: 'cuckoo-op-header-val',    key: 'headerOpacity',   def: 45 },
+    { inputId: 'cuckoo-op-sidebar',   valId: 'cuckoo-op-sidebar-val',   key: 'sidebarOpacity',  def: 45 },
+    { inputId: 'cuckoo-op-toolblock', valId: 'cuckoo-op-toolblock-val', key: 'toolBlockOpacity', def: 55 },
+    { inputId: 'cuckoo-blur-toolblock', valId: 'cuckoo-blur-toolblock-val', key: 'toolBlockBlur', def: 0 },
   ];
 
   sliders.forEach(({ inputId, valId, key, def }) => {
@@ -215,11 +225,13 @@ function bindBlurSliders() {
       updateLabel(v);
       // Мгновенно применяем — собираем текущие значения и вызываем applyBlur
       const settings = {
-        backgroundBlur: Number((document.getElementById('cuckoo-blur-bg') || {}).value) || 0,
-        headerBlur:     Number((document.getElementById('cuckoo-blur-header') || {}).value),
-        sidebarBlur:    Number((document.getElementById('cuckoo-blur-sidebar') || {}).value),
-        headerOpacity:  Number((document.getElementById('cuckoo-op-header') || {}).value),
-        sidebarOpacity: Number((document.getElementById('cuckoo-op-sidebar') || {}).value),
+        backgroundBlur:   Number((document.getElementById('cuckoo-blur-bg') || {}).value) || 0,
+        headerBlur:       Number((document.getElementById('cuckoo-blur-header') || {}).value),
+        sidebarBlur:      Number((document.getElementById('cuckoo-blur-sidebar') || {}).value),
+        headerOpacity:    Number((document.getElementById('cuckoo-op-header') || {}).value),
+        sidebarOpacity:   Number((document.getElementById('cuckoo-op-sidebar') || {}).value),
+        toolBlockOpacity: Number((document.getElementById('cuckoo-op-toolblock') || {}).value),
+        toolBlockBlur:    Number((document.getElementById('cuckoo-blur-toolblock') || {}).value),
       };
       background.applyBlur(settings);
     });
@@ -277,6 +289,8 @@ async function refreshBlurValues() {
     setSlider('cuckoo-blur-sidebar', 'cuckoo-blur-sidebar-val', Number(s && s.sidebarBlur != null ? s.sidebarBlur : 12));
     setSlider('cuckoo-op-header',    'cuckoo-op-header-val',    Number(s && s.headerOpacity != null ? s.headerOpacity : 45));
     setSlider('cuckoo-op-sidebar',   'cuckoo-op-sidebar-val',   Number(s && s.sidebarOpacity != null ? s.sidebarOpacity : 45));
+    setSlider('cuckoo-op-toolblock', 'cuckoo-op-toolblock-val', Number(s && s.toolBlockOpacity != null ? s.toolBlockOpacity : 55));
+    setSlider('cuckoo-blur-toolblock','cuckoo-blur-toolblock-val', Number(s && s.toolBlockBlur != null ? s.toolBlockBlur : 0));
   } catch (err) {
     console.error('[Cuckoo Code] Не удалось загрузить значения блюра:', err.message);
   }
