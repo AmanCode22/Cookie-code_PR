@@ -13,6 +13,7 @@ const projectDir = require('./overlay/project-dir');
 const bindEvents = require('./overlay/events');
 const observer = require('./dom/observer');
 const chatInput = require('./dom/chat-input');
+const settingsTab = require('./dom/settings-tab');
 const { getProviderByUrl } = require('../providers');
 
 // 注册主进程消息监听（与原 preload.js 顶层注册时机一致）
@@ -44,6 +45,9 @@ function init() {
 
     // 延迟启动观察器，等待页面框架渲染
     setTimeout(observer.startObserver, 2000);
+
+    // 启动设置面板标签注入
+    settingsTab.start();
   } catch (err) {
     console.error('[Cuckoo Code] init() 出错:', err);
     // 兜底：即使出错也强制显示面板
