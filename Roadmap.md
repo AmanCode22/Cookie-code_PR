@@ -1,69 +1,64 @@
 # Cuckoo Code Roadmap
 
-> 本文件记录下阶段工作计划，按优先级排序。
+> This file tracks the next work items, ordered by priority.
 
 ---
 
-## 已完成（截至当前）
+## Completed
 
-- [x] 基础框架：Electron 窗口 + 覆盖层注入
-- [x] 工具调用系统：read/write/edit/glob/grep/bash 等
-- [x] 项目初始化：目录选择 + 目录树 + systemPrompt 注入
-- [x] 多窗口管理：每窗口独立 profile 上下文
-- [x] MCP 支持：配置管理 + SDK 连接 + UI 面板 + mcpCall 工具
-- [x] 自定义 Provider：导入/替换/删除，支持 DeepSeek/Claude 等平台
-
----
-
-## 下阶段计划（按优先级）
-
-### 1. 平台支持
-
-**目标**：逐步接入更多 AI 平台，先让 ChatGPT 达到与 DeepSeek 相同的完整能力。
-
-- [ ] ChatGPT（完整支持现有全部能力，域名：chatgpt.com）
-- [ ] Grok
-- [ ] Gemini
-
-**验收标准**：三个平台均可在应用内正常对话，且项目初始化、工具调用、命令拦截、会话列表、MCP 等现有能力全部可用。
+- [x] Core framework: Electron window + overlay injection
+- [x] Tool call system: read / write / edit / glob / grep / bash, etc.
+- [x] Project initialization: directory picker + directory tree + system prompt
+- [x] Multi-window management: independent profile per window
+- [x] MCP support: config + SDK connection + UI panel + `mcpCall` tool
+- [x] Skills: load and execute custom skills
+- [x] Customizable UI: 27 wallpapers, blur and transparency sliders
+- [x] Inline tool blocks (collapsible, error highlighting)
+- [x] Response meta badge (⏱ time · ~tokens)
+- [x] RGB username animation
+- [x] Settings tab inside DeepSeek's native settings modal
 
 ---
 
-### 2. 优化
+## Next up (in priority order)
 
-**目标**：改善核心使用体验，减少中断和卡顿。
+### 1. Reliability
 
-- [ ] 中途停止思考
-- [ ] 网络异常重试
-- [ ] 工具调用异常时提示手动解析
+**Goal:** reduce interruptions and improve core UX.
 
-**验收标准**：用户可主动中断 AI 思考；网络抖动后自动恢复；工具调用失败时有清晰的手动解析提示。
+- [ ] Stop generation mid-thought
+- [ ] Automatic retry on network failure
+- [ ] Manual-parse hint when a tool call fails
 
----
-
-### 3. 新功能
-
-**目标**：增强 Agent 的可扩展性。
-
-- [x] Skill 支持
-
-**验收标准**：可加载并执行自定义 Skill。
+**Acceptance:** user can abort generation; transient network errors recover automatically; failed tool calls show a clear manual-parse affordance.
 
 ---
 
-### 4. 靠后功能（并列，不分先后）
+### 2. Tool call UX
 
-**目标**：进一步提升长对话和复杂任务能力。
+**Goal:** make the agent loop more transparent.
 
-- [ ] 支持子 Agent
-- [ ] 对话压缩
+- [ ] Per-tool-result viewer (open the full output in a panel)
+- [ ] Copy / re-run individual tool blocks
+- [ ] Inline diff preview for `edit` calls
 
-**验收标准**：根据实际使用情况评估效果后确定。
+**Acceptance:** every tool block exposes its raw output, an easy copy, and a re-run action.
 
 ---
 
-## 备注
+### 3. New capabilities
 
-- 按优先级顺序推进：平台支持 → 优化 → Skill → 子 Agent / 对话压缩
-- 每完成一项，勾选对应条目
-- 如需调整优先级，直接修改本文件
+**Goal:** extend the agent.
+
+- [ ] Sub-agents
+- [ ] Conversation compression for long sessions
+
+**Acceptance:** to be defined after the first real use cases.
+
+---
+
+## Notes
+
+- Priority order: reliability → tool call UX → new capabilities
+- Check off items as they're done
+- To change priorities, edit this file directly
