@@ -15,6 +15,7 @@ const observer = require('./dom/observer');
 const chatInput = require('./dom/chat-input');
 const settingsTab = require('./dom/settings-tab');
 const background = require('./dom/background');
+const i18n = require('./i18n/i18n');
 const { getProviderByUrl } = require('../providers');
 
 // 注册主进程消息监听（与原 preload.js 顶层注册时机一致）
@@ -26,8 +27,11 @@ chatInput.registerIpcListeners();
  * 初始化 Cookie Code 扩展
  * 注入样式、覆盖层 HTML，绑定事件，启动 MutationObserver 和目录监听
  */
-function init() {
+async function init() {
   try {
+    // Загружаем язык до инъекции HTML — тексты в template.js строятся через t()
+    try { await i18n.loadLanguage(); } catch (_) {}
+
     ui.injectCSS();
     ui.injectOverlay();
     projectDir.initProjectDirSection();
@@ -77,7 +81,7 @@ function init() {
 }
 
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
+  document.addEventListener('DOMContentLoaded', () => { init().catch(err => console.error('[Cookie Code] init error:', err)); });
 } else {
-  init();
+  init().catch(err => console.error('[Cookie Code] init error:', err));
 }

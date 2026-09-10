@@ -2,9 +2,21 @@
  * 覆盖层 UI 基础能力：注入、提示、历史记录、徽章、面板显隐与巡检
  * 由原 preload.js 拆分而来，逻辑保持不变。
  */
+const fs = require('fs');
+const path = require('path');
 const { OVERLAY_HTML, OVERLAY_CSS } = require('./template');
 const { getProviderByUrl } = require('../../../src/providers');
 const state = require('../dom/state');
+
+// Инлайн-SVG логотипа DeepSeek (вставляется в круглый бейдж оверлея).
+// Читается один раз при загрузке preload, чтобы не дёргать диск при каждом рендере.
+let DEEPSEEK_LOGO_SVG = '';
+try {
+  const svgPath = path.join(__dirname, '..', '..', 'ui', 'logos', 'deepseek.svg');
+  DEEPSEEK_LOGO_SVG = fs.readFileSync(svgPath, 'utf-8');
+} catch (err) {
+  console.error('[Cookie Code] Не удалось прочитать логотип DeepSeek:', err.message);
+}
 
 // ========== 注入样式 ==========
 /**
@@ -26,6 +38,12 @@ function injectOverlay() {
   container.id = 'cuckoo-root';
   container.innerHTML = OVERLAY_HTML;
   document.body.appendChild(container);
+
+  // Вставляем логотип DeepSeek в круглый бейдж (замена текстовой «C»)
+  if (DEEPSEEK_LOGO_SVG) {
+    const fabIcon = container.querySelector('.cuckoo-fab-icon');
+    if (fabIcon) fabIcon.innerHTML = DEEPSEEK_LOGO_SVG;
+  }
 }
 
 // ========== 覆盖层逻辑 ==========

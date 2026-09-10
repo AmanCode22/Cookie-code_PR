@@ -14,6 +14,7 @@
  *   .d316d158                             ← контейнер кнопок вкладок
  */
 const background = require('./background');
+const { t } = require('../i18n/i18n');
 
 const TAB_BUTTON_ID = 'cuckoo-settings-tab-btn';
 const TAB_CONTENT_ID = 'cuckoo-settings-content';
@@ -60,6 +61,8 @@ function activateCuckooTab() {
     bindBlurSliders();
     // Чекбокс RGB-переливания
     bindRgbCheckbox();
+    // Кнопки выбора языка
+    bindLanguageButtons();
     // Опасные команды
     bindDangerousPatterns();
     // Загружаем сохранённые значения блюра в слайдеры
@@ -120,67 +123,82 @@ function buildContentHTML() {
     '</style>' +
     '<div>' +
     '  <div class="cuckoo-settings-title">Cookie Code</div>' +
-    '  <div class="cuckoo-settings-subtitle">Настройки интерфейса и фонового изображения</div>' +
+    '  <div class="cuckoo-settings-subtitle">' + t('settings.subtitle') + '</div>' +
     '</div>' +
     '<div>' +
-    '  <div class="cuckoo-section-title">Размытие</div>' +
+    '  <div class="cuckoo-section-title">' + t('settings.section.language') + '</div>' +
+    '  <div style="display:flex;gap:8px;">' +
+    '    <button id="cuckoo-lang-ru" class="cuckoo-lang-btn" data-lang="ru" style="' +
+    '      flex:1; padding:9px 14px; border-radius:10px; font-weight:600; font-size:13px; cursor:pointer;' +
+    '      border:1px solid rgba(139,147,255,0.4); background:rgba(139,147,255,0.12); color:#cfd3ff;' +
+    '      transition: all 0.18s;' +
+    '    ">' + t('settings.lang.ru') + '</button>' +
+    '    <button id="cuckoo-lang-en" class="cuckoo-lang-btn" data-lang="en" style="' +
+    '      flex:1; padding:9px 14px; border-radius:10px; font-weight:600; font-size:13px; cursor:pointer;' +
+    '      border:1px solid rgba(139,147,255,0.4); background:rgba(139,147,255,0.12); color:#cfd3ff;' +
+    '      transition: all 0.18s;' +
+    '    ">' + t('settings.lang.en') + '</button>' +
+    '  </div>' +
+    '</div>' +
+    '<div>' +
+    '  <div class="cuckoo-section-title">' + t('settings.section.blur') + '</div>' +
     '  <div class="cuckoo-blur-row">' +
-    '    <div class="cuckoo-blur-label"><span>Блюр фонового изображения</span><span class="cuckoo-blur-value" id="cuckoo-blur-bg-val">0 px</span></div>' +
+    '    <div class="cuckoo-blur-label"><span>' + t('settings.blur.bg') + '</span><span class="cuckoo-blur-value" id="cuckoo-blur-bg-val">0 px</span></div>' +
     '    <input type="range" id="cuckoo-blur-bg" class="cuckoo-blur-slider" min="0" max="30" step="1" value="0">' +
     '  </div>' +
     '  <div class="cuckoo-blur-row">' +
-    '    <div class="cuckoo-blur-label"><span>Блюр шапки (стекло)</span><span class="cuckoo-blur-value" id="cuckoo-blur-header-val">12 px</span></div>' +
+    '    <div class="cuckoo-blur-label"><span>' + t('settings.blur.header') + '</span><span class="cuckoo-blur-value" id="cuckoo-blur-header-val">12 px</span></div>' +
     '    <input type="range" id="cuckoo-blur-header" class="cuckoo-blur-slider" min="0" max="30" step="1" value="12">' +
     '  </div>' +
     '  <div class="cuckoo-blur-row">' +
-    '    <div class="cuckoo-blur-label"><span>Блюр сайдбара (стекло)</span><span class="cuckoo-blur-value" id="cuckoo-blur-sidebar-val">12 px</span></div>' +
+    '    <div class="cuckoo-blur-label"><span>' + t('settings.blur.sidebar') + '</span><span class="cuckoo-blur-value" id="cuckoo-blur-sidebar-val">12 px</span></div>' +
     '    <input type="range" id="cuckoo-blur-sidebar" class="cuckoo-blur-slider" min="0" max="30" step="1" value="12">' +
     '  </div>' +
     '</div>' +
     '<div>' +
-    '  <div class="cuckoo-section-title">Прозрачность панелей</div>' +
+    '  <div class="cuckoo-section-title">' + t('settings.section.opacity') + '</div>' +
     '  <div class="cuckoo-blur-row">' +
-    '    <div class="cuckoo-blur-label"><span>Прозрачность шапки</span><span class="cuckoo-blur-value" id="cuckoo-op-header-val">45 %</span></div>' +
+    '    <div class="cuckoo-blur-label"><span>' + t('settings.opacity.header') + '</span><span class="cuckoo-blur-value" id="cuckoo-op-header-val">45 %</span></div>' +
     '    <input type="range" id="cuckoo-op-header" class="cuckoo-blur-slider" min="0" max="100" step="5" value="45">' +
     '  </div>' +
     '  <div class="cuckoo-blur-row">' +
-    '    <div class="cuckoo-blur-label"><span>Прозрачность сайдбара</span><span class="cuckoo-blur-value" id="cuckoo-op-sidebar-val">45 %</span></div>' +
+    '    <div class="cuckoo-blur-label"><span>' + t('settings.opacity.sidebar') + '</span><span class="cuckoo-blur-value" id="cuckoo-op-sidebar-val">45 %</span></div>' +
     '    <input type="range" id="cuckoo-op-sidebar" class="cuckoo-blur-slider" min="0" max="100" step="5" value="45">' +
     '  </div>' +
     '  <div class="cuckoo-blur-row">' +
-    '    <div class="cuckoo-blur-label"><span>Прозрачность tool-блоков</span><span class="cuckoo-blur-value" id="cuckoo-op-toolblock-val">55 %</span></div>' +
+    '    <div class="cuckoo-blur-label"><span>' + t('settings.opacity.toolblock') + '</span><span class="cuckoo-blur-value" id="cuckoo-op-toolblock-val">55 %</span></div>' +
     '    <input type="range" id="cuckoo-op-toolblock" class="cuckoo-blur-slider" min="0" max="100" step="5" value="55">' +
     '  </div>' +
     '  <div class="cuckoo-blur-row">' +
-    '    <div class="cuckoo-blur-label"><span>Блюр tool-блоков (стекло)</span><span class="cuckoo-blur-value" id="cuckoo-blur-toolblock-val">0 px</span></div>' +
+    '    <div class="cuckoo-blur-label"><span>' + t('settings.blur.toolblock') + '</span><span class="cuckoo-blur-value" id="cuckoo-blur-toolblock-val">0 px</span></div>' +
     '    <input type="range" id="cuckoo-blur-toolblock" class="cuckoo-blur-slider" min="0" max="30" step="1" value="0">' +
     '  </div>' +
     '</div>' +
     '<div>' +
-    '  <div class="cuckoo-section-title">Эффекты</div>' +
+    '  <div class="cuckoo-section-title">' + t('settings.section.effects') + '</div>' +
     '  <label class="cuckoo-checkbox-row" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;cursor:pointer;">' +
     '    <input type="checkbox" id="cuckoo-rgb-username" checked style="width:16px;height:16px;cursor:pointer;">' +
-    '    <span style="font-size:13px;color:#cfd3ff;">RGB-переливание ника</span>' +
+    '    <span style="font-size:13px;color:#cfd3ff;">' + t('settings.effect.rgb') + '</span>' +
     '  </label>' +
     '</div>' +
     '<div>' +
-    '  <div class="cuckoo-section-title">Опасные команды (regex, по одной на строку)</div>' +
+    '  <div class="cuckoo-section-title">' + t('settings.section.dangerous') + '</div>' +
     '  <textarea id="cuckoo-dangerous-patterns" rows="8" spellcheck="false" style="' +
     '    width:100%; box-sizing:border-box; padding:10px 12px; font-family:Consolas,monospace; font-size:12px;' +
     '    background:rgba(15,18,32,0.6); color:#dde1ff; border:1px solid rgba(255,255,255,0.1); border-radius:10px;' +
     '    resize:vertical; line-height:1.5; outline:none;' +
     '  "></textarea>' +
     '  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">' +
-    '    <span style="font-size:11px;color:#8a90b8;">Пустой список = все команды разрешены</span>' +
+    '    <span style="font-size:11px;color:#8a90b8;">' + t('settings.dangerous.hint') + '</span>' +
     '    <button id="cuckoo-btn-save-dangerous" style="' +
     '      padding: 8px 16px; border: 1px solid rgba(139,147,255,0.5); border-radius: 8px;' +
     '      background: rgba(139,147,255,0.15); color: #a8afff; font-weight: 600; font-size: 12px;' +
     '      cursor: pointer; transition: all 0.18s;' +
-    '    ">Сохранить</button>' +
+    '    ">' + t('settings.dangerous.save') + '</button>' +
     '  </div>' +
     '</div>' +
     '<div>' +
-    '  <div class="cuckoo-section-title">Фон страницы</div>' +
+    '  <div class="cuckoo-section-title">' + t('settings.section.background') + '</div>' +
     '  <div class="cuckoo-bg-grid">' + items + '</div>' +
     '</div>' +
     '<div style="display:flex;justify-content:flex-end;gap:10px;margin-top:4px;">' +
@@ -188,12 +206,12 @@ function buildContentHTML() {
     '    padding: 9px 18px; border: 1px solid rgba(139,147,255,0.5); border-radius: 10px;' +
     '    background: rgba(139,147,255,0.12); color: #a8afff; font-weight: 600; font-size: 13px;' +
     '    cursor: pointer; transition: all 0.18s;' +
-    '  " title="Очистить сохранённые мета-данные и историю ошибок">Очистить мета-данные</button>' +
+    '  " title="' + t('settings.btn.clearStorage.title') + '">' + t('settings.btn.clearStorage') + '</button>' +
     '  <button id="cuckoo-btn-reset" style="' +
     '    padding: 9px 18px; border: 1px solid rgba(255,107,122,0.5); border-radius: 10px;' +
     '    background: rgba(255,107,122,0.15); color: #ff9aa5; font-weight: 600; font-size: 13px;' +
     '    cursor: pointer; transition: all 0.18s;' +
-    '  ">Сбросить настройки</button>' +
+    '  ">' + t('settings.btn.reset') + '</button>' +
     '</div>';
 }
 
@@ -292,7 +310,7 @@ function bindResetButton() {
   if (!btn) return;
   btn.addEventListener('click', async () => {
     btn.disabled = true;
-    btn.textContent = 'Сброс...';
+    btn.textContent = t('settings.btn.resetting');
     try {
       await background.resetAll();
       // Обновляем UI: слайдеры + подсветка фона
@@ -300,7 +318,7 @@ function bindResetButton() {
       await refreshBackgroundSelection();
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Сбросить настройки';
+      btn.textContent = t('settings.btn.reset');
     }
   });
 
@@ -310,7 +328,7 @@ function bindResetButton() {
     clearBtn.addEventListener('click', () => {
       clearBtn.disabled = true;
       const originalText = clearBtn.textContent;
-      clearBtn.textContent = 'Очистка...';
+      clearBtn.textContent = t('settings.btn.clearing');
       try {
         background.clearLocalStorage();
       } finally {
@@ -344,6 +362,44 @@ function bindRgbCheckbox() {
 }
 
 /**
+ * Кнопки выбора языка RU/EN.
+ * При клике сохраняем выбор в settings.json и перезагружаем страницу,
+ * чтобы тексты в OVERLAY_HTML пересобрались с новым языком.
+ */
+function bindLanguageButtons() {
+  const buttons = document.querySelectorAll('.cuckoo-lang-btn');
+  if (!buttons.length) return;
+
+  // Подсветить активный
+  const current = (window.__cuckooI18nLang || 'ru');
+  buttons.forEach(btn => {
+    if (btn.getAttribute('data-lang') === current) {
+      btn.style.background = 'rgba(139,147,255,0.35)';
+      btn.style.color = '#fff';
+      btn.style.borderColor = 'rgba(139,147,255,0.8)';
+    } else {
+      btn.style.background = 'rgba(139,147,255,0.12)';
+      btn.style.color = '#cfd3ff';
+      btn.style.borderColor = 'rgba(139,147,255,0.4)';
+    }
+  });
+
+  buttons.forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const lang = btn.getAttribute('data-lang');
+      if (!lang || lang === current) return;
+      try {
+        await window.electronAPI.setCuckooSetting('language', lang);
+      } catch (err) {
+        console.error('[Cookie Code] Не удалось сохранить язык:', err.message);
+      }
+      // Перезагружаем страницу — preload пересоберёт HTML с новым языком
+      location.reload();
+    });
+  });
+}
+
+/**
  * Textarea со списком опасных regex-паттернов + кнопка «Сохранить».
  */
 async function bindDangerousPatterns() {
@@ -365,19 +421,19 @@ async function bindDangerousPatterns() {
 
     btn.disabled = true;
     const original = btn.textContent;
-    btn.textContent = 'Сохранение...';
+    btn.textContent = t('settings.dangerous.saving');
     try {
       const res = await window.electronAPI.setCuckooSetting('dangerousPatterns', patterns);
       if (res && res.success) {
-        btn.textContent = '✅ Сохранено';
+        btn.textContent = t('settings.dangerous.saved');
         setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1200);
       } else {
-        btn.textContent = '❌ Ошибка';
+        btn.textContent = t('settings.dangerous.error');
         setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1500);
       }
     } catch (err) {
       console.error('[Cookie Code] Не удалось сохранить опасные команды:', err.message);
-      btn.textContent = '❌ Ошибка';
+      btn.textContent = t('settings.dangerous.error');
       setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1500);
     }
   });

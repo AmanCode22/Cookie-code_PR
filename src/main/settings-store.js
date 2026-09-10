@@ -33,6 +33,7 @@ const DEFAULTS = {
   toolBlockBlur: 0,      // px — стекло tool-блоков в чате
   rgbUsername: true,     // RGB-переливание ника пользователя (по умолчанию вкл)
   dangerousPatterns: DEFAULT_DANGEROUS_PATTERNS, // список regex-паттернов опасных команд
+  language: 'ru',        // язык UI: 'ru' | 'en'
 };
 
 let cachedPath = null;
