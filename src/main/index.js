@@ -47,12 +47,12 @@ async function flushAllSessions() {
  */
 function createWindow(profile) {
   const profileData = profile || profileManager.getDefaultProfile();
-  const provider = getProvider(profileData.providerId || 'deepseek') || getProvider('deepseek');
+  // Всегда DeepSeek — жёстко, независимо от providerId профиля.
+  // Выбор платформы полностью отключён (см. запрос пользователя).
+  // partition остаётся профильным, чтобы не потерять cookies/сессии.
+  const provider = getProvider('deepseek');
   const storeDir = app.getPath('userData');
   const sessionStore = createSessionStore(profileData.id, storeDir, windowState);
-  const hasExplicitProfile = !!profile;
-  // providerId 已确定 → 直接打开；未确定 → 显示平台选择页
-  const providerChosen = !!profileData.providerId;
 
   const mainWindow = new BrowserWindow({
     width: 1280,
@@ -72,8 +72,8 @@ function createWindow(profile) {
   // 保存 session 引用（窗口销毁后 webContents 不可访问）
   const winSession = mainWindow.webContents.session;
 
-  // 注册窗口上下文（记录 providerId，未确定时为空字符串）
-  windowState.addWindow(mainWindow, profileData.id, profileData.providerId || '', sessionStore);
+  // Регистрируем контекст окна — providerId жёстко 'deepseek'.
+  windowState.addWindow(mainWindow, profileData.id, 'deepseek', sessionStore);
   sessionsToFlush.add(winSession);
 
   // 更新主窗口引用
@@ -110,14 +110,8 @@ function createWindow(profile) {
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36';
   mainWindow.webContents.setUserAgent(userAgent);
 
-  if (providerChosen) {
-    // 平台已确定，直接进入平台首页
-    mainWindow.loadURL(provider.homeUrl);
-  } else {
-    // 平台未确定，显示平台选择页
-    const selectPage = path.join(__dirname, '..', 'ui', 'platform-select.html');
-    mainWindow.loadFile(selectPage);
-  }
+  // Всегда открываем homeUrl провайдера (DeepSeek). Выбор платформы отключён.
+  mainWindow.loadURL(provider.homeUrl);
 
   mainWindow.webContents.on('did-finish-load', () => {
     if (mainWindow && !mainWindow.isDestroyed()) {
@@ -273,8 +267,9 @@ registerIpcHandlers();
 const { ipcMain: ipcMainForProfile } = require('electron');
 ipcMainForProfile.handle('create-profile-window', async (_event, { providerId } = {}) => {
   const profiles = profileManager.readProfiles();
-  // 不指定平台时创建"未确定平台"的 profile，窗口会显示平台选择页
-  const pid = providerId || '';
+  // Выбор платформы отключён: новые окна всегда открывают DeepSeek.
+  // providerId из аргумента игнорируем (кроме случая явного «deepseek» для совместимости).
+  const pid = 'deepseek';
   createWindow(profileManager.createProfile('窗口' + (profiles.length + 1), pid));
   return { success: true };
 });

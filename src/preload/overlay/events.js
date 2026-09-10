@@ -387,15 +387,15 @@ function bindEvents() {
 
 
 
-  // 浮动面板：新建窗口（不指定平台，让窗口显示平台选择页）
+  // 浮动面板：新建窗口（всегда DeepSeek, выбор платформы отключён)
   const wmNewWindowBtn = document.getElementById('cuckoo-wm-new-window');
   wmNewWindowBtn?.addEventListener('click', async () => {
     try {
       await window.electronAPI.createProfileWindow();
-      showToast('已打开平台选择', 2200);
+      showToast('Новое окно DeepSeek создано', 2200);
       await renderWindowList();
     } catch (err) {
-      showToast('创建新窗口失败: ' + (err.message || err), 3000);
+      showToast('Не удалось создать окно: ' + (err.message || err), 3000);
     }
   });
 
