@@ -8,13 +8,13 @@ async function isAIResponseComplete() {
   try {
     const provider = getProviderByUrl(window.location.href);
     if (!provider || typeof provider.isResponseComplete !== 'function') {
-      console.warn('[Cuckoo Code] 当前平台未提供 isResponseComplete 方法');
+      console.warn('[Cookie Code] 当前平台未提供 isResponseComplete 方法');
       return false;
     }
     const result = await provider.isResponseComplete();
     return result;
   } catch (err) {
-    console.error('[Cuckoo Code] ❌ 检测 AI 完成状态出错:', err);
+    console.error('[Cookie Code] ❌ 检测 AI 完成状态出错:', err);
     return false;
   }
 }

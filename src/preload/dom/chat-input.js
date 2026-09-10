@@ -49,7 +49,7 @@ function setInputContent(input, msg) {
     }
     return false;
   } catch (err) {
-    console.error('[Cuckoo Code] 设置输入框内容失败:', err.message);
+    console.error('[Cookie Code] 设置输入框内容失败:', err.message);
     return false;
   }
 }
@@ -64,18 +64,18 @@ function setInputContent(input, msg) {
 function sendToChat(msg, tag, fixedDelay, afterSent) {
   const input = findInputArea();
   if (!input) {
-    console.log('[Cuckoo Code] 找不到输入框，无法发送消息');
+    console.log('[Cookie Code] 找不到输入框，无法发送消息');
     return false;
   }
   if (!setInputContent(input, msg)) {
     return false;
   }
   const sendDelay = fixedDelay !== undefined ? fixedDelay : randomDelay();
-  console.log('[Cuckoo Code] 消息已填入输入框，等待 ' + sendDelay + 'ms 后发送...');
+  console.log('[Cookie Code] 消息已填入输入框，等待 ' + sendDelay + 'ms 后发送...');
   setTimeout(function() {
-    console.log('[Cuckoo Code] 等待结束，开始触发发送');
+    console.log('[Cookie Code] 等待结束，开始触发发送');
     triggerSend(input);
-    console.log('[Cuckoo Code] 已触发发送, ' + (tag || '') + ', 长度=' + msg.length);
+    console.log('[Cookie Code] 已触发发送, ' + (tag || '') + ', 长度=' + msg.length);
     if (typeof afterSent === 'function') afterSent();
   }, sendDelay);
   return true;
@@ -106,7 +106,7 @@ function sendToolResultToChat(toolCall, result) {
       '请根据错误原因修正参数后重新调用工具。';
   }
 
-  console.log('[Cuckoo Code] 回传工具结果, 消息长度=' + msg.length);
+  console.log('[Cookie Code] 回传工具结果, 消息长度=' + msg.length);
   sendMessageToChat(msg, '工具=' + toolCall.toolName);
 }
 /**
@@ -137,7 +137,7 @@ function sendCombinedJsResultsToChat(results) {
     msg += sep + sep;
   }
 
-  console.log('[Cuckoo Code] 回传 JS 汇总执行结果, 消息长度=' + msg.length);
+  console.log('[Cookie Code] 回传 JS 汇总执行结果, 消息长度=' + msg.length);
   sendMessageToChat(msg, 'JS汇总');
 }
 /**
@@ -188,9 +188,9 @@ function sendInitialPromptToInput() {
   }
 
   const sendDelay = randomDelay();
-  console.log('[Cuckoo Code] 初始提示已填入，随机等待 ' + sendDelay + 'ms 后发送...');
+  console.log('[Cookie Code] 初始提示已填入，随机等待 ' + sendDelay + 'ms 后发送...');
   setTimeout(function() {
-    console.log('[Cuckoo Code] 等待结束，开始发送初始提示');
+    console.log('[Cookie Code] 等待结束，开始发送初始提示');
     triggerSend(input);
     state.pendingInitialPrompt = false;
   }, sendDelay);
@@ -231,7 +231,7 @@ function triggerSend(input) {
     if (result && typeof result.then === 'function') {
       result.then(function (ok) {
         if (ok) {
-          console.log('[Cuckoo Code] 已通过站点原生发送触发');
+          console.log('[Cookie Code] 已通过站点原生发送触发');
         } else {
           fallbackSend(provider, input);
         }
@@ -239,7 +239,7 @@ function triggerSend(input) {
       return;
     }
     if (result) {
-      console.log('[Cuckoo Code] 已通过站点原生发送触发');
+      console.log('[Cookie Code] 已通过站点原生发送触发');
       return;
     }
   }
@@ -256,7 +256,7 @@ function fallbackSend(provider, input) {
     const btn = provider.findSendButton();
     if (btn) {
       btn.click();
-      console.log('[Cuckoo Code] 已点击发送按钮');
+      console.log('[Cookie Code] 已点击发送按钮');
       return;
     }
   }
@@ -267,7 +267,7 @@ function fallbackSend(provider, input) {
     input.dispatchEvent(new KeyboardEvent('keydown', opts));
     input.dispatchEvent(new KeyboardEvent('keypress', opts));
     input.dispatchEvent(new KeyboardEvent('keyup', opts));
-    console.log('[Cuckoo Code] 已通过 Enter 键触发发送 (未找到发送按钮)');
+    console.log('[Cookie Code] 已通过 Enter 键触发发送 (未找到发送按钮)');
   }
 }
 /**

@@ -1,5 +1,5 @@
 /**
- * Cuckoo Code 自定义 Provider 接口定义
+ * Cookie Code 自定义 Provider 接口定义
  * 用户编写自定义平台 Provider 时，可参考本文件获得类型提示。
  *
  * 使用方式（在用户 JS 文件顶部）：

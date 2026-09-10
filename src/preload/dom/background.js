@@ -71,7 +71,7 @@ function getDataUri(file) {
     dataUriCache.set(file, uri);
     return uri;
   } catch (err) {
-    console.error('[Cuckoo Code] Не удалось прочитать фон:', file, err.message);
+    console.error('[Cookie Code] Не удалось прочитать фон:', file, err.message);
     return '';
   }
 }
@@ -87,9 +87,9 @@ function apply(id) {
   try {
     document.documentElement.style.setProperty('background-image', value, 'important');
     document.body.style.setProperty('background-image', value, 'important');
-    console.log('[Cuckoo Code] Фон применён:', id, '(' + (uri ? Math.round(uri.length / 1024) + ' КБ' : 'нет') + ')');
+    console.log('[Cookie Code] Фон применён:', id, '(' + (uri ? Math.round(uri.length / 1024) + ' КБ' : 'нет') + ')');
   } catch (err) {
-    console.error('[Cuckoo Code] Не удалось применить фон:', err.message);
+    console.error('[Cookie Code] Не удалось применить фон:', err.message);
   }
 }
 
@@ -121,7 +121,7 @@ function applyBlur(settings) {
   root.style.setProperty('--cuckoo-sidebar-opacity', sbOpVal + '%');
   root.style.setProperty('--cuckoo-toolblock-opacity', tbOpVal + '%');
   root.style.setProperty('--cuckoo-toolblock-blur', tbBlurVal + 'px');
-  console.log('[Cuckoo Code] Стили: фон=' + bg + 'px, шапка=' + hdVal + 'px/' + hdOpVal + '%, сайдбар=' + sbVal + 'px/' + sbOpVal + '%, tool=' + tbBlurVal + 'px/' + tbOpVal + '%');
+  console.log('[Cookie Code] Стили: фон=' + bg + 'px, шапка=' + hdVal + 'px/' + hdOpVal + '%, сайдбар=' + sbVal + 'px/' + sbOpVal + '%, tool=' + tbBlurVal + 'px/' + tbOpVal + '%');
 }
 
 /**
@@ -135,7 +135,7 @@ async function loadAndApply() {
     applyBlur(settings);
     applyRgbUsername(settings ? settings.rgbUsername : true);
   } catch (err) {
-    console.error('[Cuckoo Code] Не удалось загрузить настройки:', err.message);
+    console.error('[Cookie Code] Не удалось загрузить настройки:', err.message);
     apply(DEFAULT_ID);
     applyBlur(null);
     applyRgbUsername(true);
@@ -168,9 +168,9 @@ async function resetAll() {
     for (const key of Object.keys(RESET_DEFAULTS)) {
       await window.electronAPI.setCuckooSetting(key, RESET_DEFAULTS[key]);
     }
-    console.log('[Cuckoo Code] Настройки сброшены к дефолтам');
+    console.log('[Cookie Code] Настройки сброшены к дефолтам');
   } catch (err) {
-    console.error('[Cuckoo Code] Не удалось сохранить дефолты:', err.message);
+    console.error('[Cookie Code] Не удалось сохранить дефолты:', err.message);
   }
 }
 
@@ -185,9 +185,9 @@ function applyRgbUsername(enabled) {
     } else {
       document.body.classList.remove('cuckoo-rgb-off');
     }
-    console.log('[Cuckoo Code] RGB-ник:', enabled === false ? 'выкл' : 'вкл');
+    console.log('[Cookie Code] RGB-ник:', enabled === false ? 'выкл' : 'вкл');
   } catch (err) {
-    console.error('[Cuckoo Code] Не удалось применить RGB-ник:', err.message);
+    console.error('[Cookie Code] Не удалось применить RGB-ник:', err.message);
   }
 }
 
@@ -199,7 +199,7 @@ function getPreviewUri(file) {
 }
 
 /**
- * Очистить localStorage-хранилища Cuckoo Code:
+ * Очистить localStorage-хранилища Cookie Code:
  * - cuckoo-response-meta (мета ответов: время + токены)
  * - cuckoo-errors (сохранённые ошибки tool-блоков)
  */
@@ -207,9 +207,9 @@ function clearLocalStorage() {
   try {
     localStorage.removeItem('cuckoo-response-meta');
     localStorage.removeItem('cuckoo-errors');
-    console.log('[Cuckoo Code] LocalStorage очищен (мета + ошибки)');
+    console.log('[Cookie Code] LocalStorage очищен (мета + ошибки)');
   } catch (err) {
-    console.error('[Cuckoo Code] Ошибка очистки localStorage:', err.message);
+    console.error('[Cookie Code] Ошибка очистки localStorage:', err.message);
   }
 }
 

@@ -21,7 +21,7 @@ function createSessionStore(profileId, storeDir, windowState) {
         return JSON.parse(fs.readFileSync(STORE_FILE, 'utf-8'));
       }
     } catch (err) {
-      console.error('[Cuckoo Code] 读取会话存储失败:', err.message);
+      console.error('[Cookie Code] 读取会话存储失败:', err.message);
     }
     return {};
   }
@@ -29,9 +29,9 @@ function createSessionStore(profileId, storeDir, windowState) {
   function writeSessionStore(store) {
     try {
       fs.writeFileSync(STORE_FILE, JSON.stringify(store, null, 2), 'utf-8');
-      console.log('[Cuckoo Code] 会话存储已保存:', STORE_FILE);
+      console.log('[Cookie Code] 会话存储已保存:', STORE_FILE);
     } catch (err) {
-      console.error('[Cuckoo Code] 写入会话存储失败:', err.message);
+      console.error('[Cookie Code] 写入会话存储失败:', err.message);
     }
   }
 
@@ -82,7 +82,7 @@ function createSessionStore(profileId, storeDir, windowState) {
 
     if (sessionId) {
       state.currentSessionId = sessionId;
-      console.log('[Cuckoo Code][' + profileId + '] 当前会话ID: ' + sessionId);
+      console.log('[Cookie Code][' + profileId + '] 当前会话ID: ' + sessionId);
 
       if (state.pendingProjectDir) {
         saveSessionDirMapping(sessionId, state.pendingProjectDir);
@@ -92,7 +92,7 @@ function createSessionStore(profileId, storeDir, windowState) {
           win.webContents.send('project-dir-updated', state.selectedProjectDir);
           win.webContents.send('session-restored', { sessionId, projectDir: state.selectedProjectDir });
         }
-        console.log('[Cuckoo Code][' + profileId + '] 暂存目录已绑定');
+        console.log('[Cookie Code][' + profileId + '] 暂存目录已绑定');
         return;
       }
 

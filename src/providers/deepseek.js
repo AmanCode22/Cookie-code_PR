@@ -118,7 +118,7 @@ module.exports = {
       const stopBtn = document.querySelector(STOP_BTN_SELECTOR);
       return btnCount >= 2 && !!stopBtn;
     } catch (err) {
-      console.error('[Cuckoo Code] ❌ 检测 AI 完成状态出错:', err);
+      console.error('[Cookie Code] ❌ 检测 AI 完成状态出错:', err);
       return false;
     }
   },

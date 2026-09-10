@@ -378,7 +378,7 @@ function bindEvents() {
         }
         sendToChat(msg, 'MCP信息', 300);
       } catch (err) {
-        console.error('[Cuckoo Code] 发送 MCP 信息失败:', err);
+        console.error('[Cookie Code] 发送 MCP 信息失败:', err);
       }
     } catch (err) {
       showToast('保存失败: ' + (err.message || err), 3000);

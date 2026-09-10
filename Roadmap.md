@@ -1,4 +1,4 @@
-# Cuckoo Code Roadmap
+# Cookie Code Roadmap
 
 > This file tracks the next work items, ordered by priority.
 

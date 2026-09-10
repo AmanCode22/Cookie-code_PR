@@ -15,7 +15,7 @@ function buildRegexps(patterns) {
     try {
       out.push(new RegExp(p, 'i'));
     } catch (err) {
-      console.warn('[Cuckoo Code] Невалидный regex опасной команды:', p, '—', err.message);
+      console.warn('[Cookie Code] Невалидный regex опасной команды:', p, '—', err.message);
     }
   }
   return out;
@@ -39,7 +39,7 @@ function getDangerousCmds() {
     }
     return cachedRegexps;
   } catch (err) {
-    console.error('[Cuckoo Code] BashTool: не удалось прочитать опасные команды:', err.message);
+    console.error('[Cookie Code] BashTool: не удалось прочитать опасные команды:', err.message);
     return buildRegexps(DEFAULT_DANGEROUS_PATTERNS);
   }
 }

@@ -9,7 +9,7 @@
 const OVERLAY_HTML = [
 '<div id="cuckoo-overlay" class="cuckoo-overlay cuckoo-hidden">',
 '  <div class="cuckoo-header">',
-'    <span class="cuckoo-title">Cuckoo Code</span>',
+'    <span class="cuckoo-title">Cookie Code</span>',
 '    <button id="cuckoo-btn-minimize" class="cuckoo-btn-icon" title="收起面板">×</button>',
 '  </div>',
 '  <div class="cuckoo-body">',
@@ -121,7 +121,7 @@ const OVERLAY_HTML = [
 '    </div>',
 '  </div>',
 '</div>',
-'<div id="cuckoo-status-badge" title="Cuckoo Code 运行中">',
+'<div id="cuckoo-status-badge" title="Cookie Code 运行中">',
 '  <span id="cuckoo-status-dot"></span>',
 '  <span class="cuckoo-fab-icon">C</span>',
 '</div>',
@@ -397,7 +397,7 @@ const OVERLAY_CSS = [
 '.cuckoo-first-time-text { margin-bottom: 18px; color: #dde1ff; }',
 '.cuckoo-first-time-box .cuckoo-actions { justify-content: center; }',
 '.cuckoo-first-time-box .cuckoo-btn { flex: 0 0 auto; min-width: 150px; }',
-// ========== CSS-переменные (управляются из настроек Cuckoo Code) ==========
+// ========== CSS-переменные (управляются из настроек Cookie Code) ==========
 ':root {',
 '  --cuckoo-bg-blur: 0px;',           // размытие самой картинки фона
 '  --cuckoo-header-blur: 12px;',      // стекло шапки

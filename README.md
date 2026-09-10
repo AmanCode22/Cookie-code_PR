@@ -1,4 +1,4 @@
-# Cuckoo Code
+# Cookie Code
 
 <p align="center">
   <a href="https://github.com/merfiDEV/Cookie-code/releases/latest"><img src="https://img.shields.io/github/v/release/wangyongpeng90/cuckoo-code?style=flat-square&color=8b93ff" alt="Latest Release"></a>
@@ -12,7 +12,7 @@
   <strong>English</strong> · <a href="README.ru.md">Русский</a>
 </p>
 
-**Cuckoo Code** is a zero-token-cost AI Agent for your desktop.
+**Cookie Code** is a zero-token-cost AI Agent for your desktop.
 
 It embeds the DeepSeek web chat into a native Electron window, injects a side overlay, and turns the chat into a local executor: the AI is prompted to emit tool calls (JavaScript code blocks), which are intercepted, confirmed, executed in a local sandbox, and streamed back to the AI. No API key, no token billing — you use your regular web account.
 
@@ -20,7 +20,7 @@ It embeds the DeepSeek web chat into a native Electron window, injects a side ov
 
 ## Why it exists
 
-Web chats are great at *thinking*, but they cannot *act* on your machine. Cuckoo Code closes that loop:
+Web chats are great at *thinking*, but they cannot *act* on your machine. Cookie Code closes that loop:
 
 - **Zero token cost** — everything goes through the DeepSeek web UI, no API calls.
 - **Real agent loop** — Think → Act → Observe → Repeat. File I/O, code search, shell commands, database queries, MCP tools.
@@ -63,7 +63,7 @@ Under each AI reply you get an automatic badge:
 ### Backgrounds
 
 - 27 hand-picked wallpapers shipped with the app
-- Picked from a preview grid in **Settings → Cuckoo Code**
+- Picked from a preview grid in **Settings → Cookie Code**
 - Change instantly, no reload required
 
 ### Blur & transparency
@@ -79,7 +79,7 @@ All settings persist in `cuckoo-settings.json`.
 
 ### RGB username
 
-The username in the sidebar has an animated rainbow gradient (enabled by default). Toggle it in **Settings → Cuckoo Code → Effects**.
+The username in the sidebar has an animated rainbow gradient (enabled by default). Toggle it in **Settings → Cookie Code → Effects**.
 
 ### Clean window
 
@@ -164,7 +164,7 @@ log(content);
 ```
 ````
 
-Cuckoo Code intercepts it, executes it in a sandbox, and returns the result to the AI.
+Cookie Code intercepts it, executes it in a sandbox, and returns the result to the AI.
 
 ---
 
@@ -215,7 +215,7 @@ User settings live in `cuckoo-settings.json` under the app's userData directory:
 }
 ```
 
-All settings are editable from **Settings → Cuckoo Code** inside the app.
+All settings are editable from **Settings → Cookie Code** inside the app.
 
 ---
 
@@ -240,7 +240,7 @@ src/
 │   │   ├── observer.js       Main reply observer
 │   │   ├── tool-render.js    Inline tool blocks
 │   │   ├── response-meta.js  ⏱ badge under replies
-│   │   ├── settings-tab.js   Cuckoo Code tab in Settings
+│   │   ├── settings-tab.js   Cookie Code tab in Settings
 │   │   ├── background.js     Wallpaper & blur engine
 │   │   └── ...
 │   └── overlay/         Overlay panel UI

@@ -1,4 +1,4 @@
-# Roadmap Cuckoo Code
+# Roadmap Cookie Code
 
 > Этот файл описывает план работ, отсортированный по приоритету.
 

@@ -1,5 +1,5 @@
 /**
- * Cuckoo Code 工具 API（TypeScript 声明）
+ * Cookie Code 工具 API（TypeScript 声明）
  *
  * 本文件描述 ```cuckoo 代码块中可以调用的全部全局函数与数据类型。
  * 运行时由 tools/JsRunner.js 在受限沙箱中注入这些函数；本声明用于帮助

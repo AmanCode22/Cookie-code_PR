@@ -67,7 +67,7 @@ function getDirectoryTree(dir, prefix = '') {
 
     return tree;
   } catch (err) {
-    console.error('[Cuckoo Code] 读取目录失败:', err.message);
+    console.error('[Cookie Code] 读取目录失败:', err.message);
     return `${prefix}└── [无法读取目录: ${dir}]\n`;
   }
 }
@@ -98,12 +98,12 @@ async function initProject(skipPrompt = false, windowContext = null) {
   }
 
   if (!result || result.length === 0) {
-    console.log('[Cuckoo Code] 用户取消了目录选择');
+    console.log('[Cookie Code] 用户取消了目录选择');
     return { success: false, message: '用户取消了目录选择' };
   }
 
   const selectedDir = result[0];
-  console.log('[Cuckoo Code] 用户选择目录:', selectedDir);
+  console.log('[Cookie Code] 用户选择目录:', selectedDir);
 
   // 保存选中的项目目录（若该窗口有独立的 sessionStore）
   if (sessionStore) {
@@ -113,7 +113,7 @@ async function initProject(skipPrompt = false, windowContext = null) {
     // 如果当前有会话ID，保存映射
     if (sessionStore.state.currentSessionId) {
       sessionStore.saveSessionDirMapping(sessionStore.state.currentSessionId, selectedDir);
-      console.log(`[Cuckoo Code] 已保存会话 ${sessionStore.state.currentSessionId} -> ${selectedDir}`);
+      console.log(`[Cookie Code] 已保存会话 ${sessionStore.state.currentSessionId} -> ${selectedDir}`);
     } else {
       // 如果未能获取会话ID，尝试从当前URL提取
       let sessionId = null;
@@ -124,11 +124,11 @@ async function initProject(skipPrompt = false, windowContext = null) {
       if (sessionId) {
         sessionStore.state.currentSessionId = sessionId;
         sessionStore.saveSessionDirMapping(sessionId, selectedDir);
-        console.log(`[Cuckoo Code] 从URL提取会话ID并保存: ${sessionId} -> ${selectedDir}`);
+        console.log(`[Cookie Code] 从URL提取会话ID并保存: ${sessionId} -> ${selectedDir}`);
       } else {
         // 无法获取会话ID，暂存项目目录，等待URL变化后绑定
         sessionStore.state.pendingProjectDir = selectedDir;
-        console.log(`[Cuckoo Code] 暂存项目目录 ${selectedDir}，等待会话ID出现后绑定`);
+        console.log(`[Cookie Code] 暂存项目目录 ${selectedDir}，等待会话ID出现后绑定`);
       }
     }
   }
@@ -160,7 +160,7 @@ async function initProject(skipPrompt = false, windowContext = null) {
         templatePath = '(provider.getPromptTemplate)';
       }
     } catch (err) {
-      console.warn('[Cuckoo Code] 调用 provider.getPromptTemplate 失败:', err.message);
+      console.warn('[Cookie Code] 调用 provider.getPromptTemplate 失败:', err.message);
     }
   }
 
@@ -175,7 +175,7 @@ async function initProject(skipPrompt = false, windowContext = null) {
     try {
       templateContent = fs.readFileSync(templatePath, 'utf-8');
     } catch (err) {
-      console.error('[Cuckoo Code] 读取提示词模板失败:', err.message);
+      console.error('[Cookie Code] 读取提示词模板失败:', err.message);
       return { success: false, message: '读取提示词模板失败: ' + err.message };
     }
   }
@@ -184,21 +184,21 @@ async function initProject(skipPrompt = false, windowContext = null) {
     templatePath = path.join(PROMPT_DIR, 'default.md');
     try {
       templateContent = fs.readFileSync(templatePath, 'utf-8');
-      console.warn('[Cuckoo Code] 未找到平台模板，使用默认模板:', templatePath);
+      console.warn('[Cookie Code] 未找到平台模板，使用默认模板:', templatePath);
     } catch (err) {
-      console.error('[Cuckoo Code] 读取默认模板失败:', err.message);
+      console.error('[Cookie Code] 读取默认模板失败:', err.message);
       return { success: false, message: '读取默认提示词模板失败: ' + err.message };
     }
   }
 
-  console.log('[Cuckoo Code] 已读取提示词模板:', templatePath);
+  console.log('[Cookie Code] 已读取提示词模板:', templatePath);
 
   // 读取工具 API 类型定义（从 d.ts 文件读取，避免与模板重复维护）
   let toolApiTypes = '';
   try {
     toolApiTypes = fs.readFileSync(path.join(__dirname, '..', '..', 'tools', 'cuckoo-tools.d.ts'), 'utf-8');
   } catch (err) {
-    console.error('[Cuckoo Code] 读取 cuckoo-tools.d.ts 失败:', err.message);
+    console.error('[Cookie Code] 读取 cuckoo-tools.d.ts 失败:', err.message);
   }
 
   // 获取工具库描述（JS API 格式：AI 通过生成 JS 代码调用这些函数）
@@ -249,9 +249,9 @@ async function initProject(skipPrompt = false, windowContext = null) {
   if (fs.existsSync(cuckooMdPath)) {
     try {
       projectIntro = fs.readFileSync(cuckooMdPath, 'utf-8');
-      console.log('[Cuckoo Code] 已读取 CUCKOO.md 内容');
+      console.log('[Cookie Code] 已读取 CUCKOO.md 内容');
     } catch (err) {
-      console.error('[Cuckoo Code] 读取 CUCKOO.md 失败:', err.message);
+      console.error('[Cookie Code] 读取 CUCKOO.md 失败:', err.message);
     }
   }
 
@@ -294,7 +294,7 @@ async function initProject(skipPrompt = false, windowContext = null) {
     combined = combined.split(key).join(value);
   }
 
-  console.log('[Cuckoo Code] 准备发送初始提示（不含目录树），长度:', combined.length);
+  console.log('[Cookie Code] 准备发送初始提示（不含目录树），长度:', combined.length);
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('initial-prompt', combined);
   }

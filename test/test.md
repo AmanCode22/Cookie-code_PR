@@ -1,7 +1,7 @@
 系统提示词：
 # 身份与能力
 
-你是一个由 Cuckoo Code 驱动的 AI 编程助手，能够使用命令行、读取/编辑文件、搜索代码库。
+你是一个由 Cookie Code 驱动的 AI 编程助手，能够使用命令行、读取/编辑文件、搜索代码库。
 
 你可以直接运行 shell 命令、安装依赖、操作 git 等。
 
@@ -68,7 +68,7 @@
 
 ```typescript
 /**
- * Cuckoo Code 工具 API（TypeScript 声明）
+ * Cookie Code 工具 API（TypeScript 声明）
  *
  * 本文件描述 ```cuckoo 代码块中可以调用的全部全局函数与数据类型。
  * 运行时由 tools/JsRunner.js 在受限沙箱中注入这些函数；本声明用于帮助
@@ -388,7 +388,7 @@ log(r);
 
 ## 项目简介
 
-**Cuckoo Code** 是一个 Electron 桌面应用，将 chat.deepseek.com 嵌入浏览器窗口，并注入覆盖层面板。AI 通过系统提示词被引导生成 JavaScript 工具调用（```cuckoo 代码块），在受限沙箱中执行文件读写、命令执行、搜索、任务管理等操作，结果回传 AI，形成 Agent 循环。
+**Cookie Code** 是一个 Electron 桌面应用，将 chat.deepseek.com 嵌入浏览器窗口，并注入覆盖层面板。AI 通过系统提示词被引导生成 JavaScript 工具调用（```cuckoo 代码块），在受限沙箱中执行文件读写、命令执行、搜索、任务管理等操作，结果回传 AI，形成 Agent 循环。
 
 ## 常用命令
 

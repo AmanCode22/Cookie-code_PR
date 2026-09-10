@@ -132,7 +132,7 @@ function tryParseToolCall(content) {
 
   // 支持多种字段名：toolName/tool, params/parameters/arguments
   if (!parsed.toolName && !parsed.tool) {
-    console.log('[Cuckoo Code] 缺少 toolName/tool 字段, 完整对象:', JSON.stringify(parsed));
+    console.log('[Cookie Code] 缺少 toolName/tool 字段, 完整对象:', JSON.stringify(parsed));
     return null;
   }
 
@@ -142,7 +142,7 @@ function tryParseToolCall(content) {
     params: parsed.params || parsed.parameters || parsed.arguments || {},
     callId: parsed.callId || `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
   };
-  console.log('[Cuckoo Code] ✅ 解析成功, toolName=' + result.toolName + ', params=' + JSON.stringify(result.params));
+  console.log('[Cookie Code] ✅ 解析成功, toolName=' + result.toolName + ', params=' + JSON.stringify(result.params));
   return result;
 }
 

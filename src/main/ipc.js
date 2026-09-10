@@ -129,7 +129,7 @@ function registerIpcHandlers() {
       }
 
       if (win && !win.isDestroyed()) {
-        let windowName = 'Cuckoo Code';
+        let windowName = 'Cookie Code';
         if (ctx && ctx.profileId) {
           const profile = profileManager.getProfileById(ctx.profileId);
           if (profile && profile.name) windowName = profile.name;
@@ -179,12 +179,12 @@ function registerIpcHandlers() {
       sender.sendInputEvent({ type: 'keyUp', keyCode: 'Return', key: 'Enter' });
       return true;
     } catch (err) {
-      console.error('[Cuckoo Code] ❌ 原生 Enter 发送失败:', err.message);
+      console.error('[Cookie Code] ❌ 原生 Enter 发送失败:', err.message);
       return false;
     }
   });
 
-  // ========== Cuckoo Code 用户设置 (settings.json) ==========
+  // ========== Cookie Code 用户设置 (settings.json) ==========
   ipcMain.handle('cuckoo-settings-get-all', async () => {
     return settingsStore.readSettings();
   });

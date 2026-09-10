@@ -90,9 +90,9 @@ module.exports = {
     // 上一次可见、本次不可见 → 回答刚结束
     if (stopBtnVisible) {
       stopBtnVisible = false;
-      console.log('[' + new Date().toISOString() + '] [Cuckoo Code] Claude 回复完成，等待 500ms 后解析');
+      console.log('[' + new Date().toISOString() + '] [Cookie Code] Claude 回复完成，等待 500ms 后解析');
       await new Promise(resolve => setTimeout(resolve, 500));
-      console.log('[' + new Date().toISOString() + '] [Cuckoo Code] Claude 500ms 等待结束');
+      console.log('[' + new Date().toISOString() + '] [Cookie Code] Claude 500ms 等待结束');
       return true;
     }
 

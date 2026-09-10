@@ -1,9 +1,9 @@
 /**
- * Cuckoo Code preload 入口
+ * Cookie Code preload 入口
  * 原 preload.js 的全部逻辑拆分为本目录下的模块，此处负责组装与初始化，
  * 初始化时序与原文件保持一致。
  */
-console.log('[Cuckoo Code] Preload script 开始执行');
+console.log('[Cookie Code] Preload script 开始执行');
 
 // 暴露 electronAPI 到渲染进程（contextBridge + window 兜底）
 require('./api');
@@ -23,7 +23,7 @@ chatInput.registerIpcListeners();
 // ========== 初始化 ==========
 
 /**
- * 初始化 Cuckoo Code 扩展
+ * 初始化 Cookie Code 扩展
  * 注入样式、覆盖层 HTML，绑定事件，启动 MutationObserver 和目录监听
  */
 function init() {
@@ -53,7 +53,7 @@ function init() {
     // Загружаем настройки и применяем фон
     background.loadAndApply();
   } catch (err) {
-    console.error('[Cuckoo Code] init() 出错:', err);
+    console.error('[Cookie Code] init() 出错:', err);
     // 兜底：即使出错也强制显示面板
     ui.forceShowOverlay();
   }

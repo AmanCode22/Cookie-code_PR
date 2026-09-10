@@ -1,5 +1,5 @@
 /**
- * Внедрение вкладки «Cuckoo Code» в настройки DeepSeek.
+ * Внедрение вкладки «Cookie Code» в настройки DeepSeek.
  * Кнопка в левой панели вкладок + свой контент в правой области.
  *
  * Структура модалки настроек DeepSeek:
@@ -24,7 +24,7 @@ const RIGHT_PANEL_WRAPPER_SELECTOR = '.f2ff50b5';
 const NATIVE_SCROLL_AREA_SELECTOR = '.ds-scroll-area';
 
 /**
- * Открыть вкладку Cuckoo Code — скрыть родной контент и показать наш.
+ * Открыть вкладку Cookie Code — скрыть родной контент и показать наш.
  */
 function activateCuckooTab() {
   const nativeScroll = document.querySelector(
@@ -75,7 +75,7 @@ function activateCuckooTab() {
 }
 
 /**
- * HTML-содержимое вкладки настроек Cuckoo Code.
+ * HTML-содержимое вкладки настроек Cookie Code.
  */
 function buildContentHTML() {
   const items = background.BACKGROUNDS.map(b => {
@@ -119,7 +119,7 @@ function buildContentHTML() {
     '  .cuckoo-blur-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }' +
     '</style>' +
     '<div>' +
-    '  <div class="cuckoo-settings-title">Cuckoo Code</div>' +
+    '  <div class="cuckoo-settings-title">Cookie Code</div>' +
     '  <div class="cuckoo-settings-subtitle">Настройки интерфейса и фонового изображения</div>' +
     '</div>' +
     '<div>' +
@@ -223,10 +223,10 @@ function bindBackgroundGrid() {
       try {
         const res = await window.electronAPI.setCuckooSetting('background', id);
         if (!res || !res.success) {
-          console.error('[Cuckoo Code] Не удалось сохранить фон:', res && res.error);
+          console.error('[Cookie Code] Не удалось сохранить фон:', res && res.error);
         }
       } catch (err) {
-        console.error('[Cuckoo Code] Ошибка сохранения фона:', err.message);
+        console.error('[Cookie Code] Ошибка сохранения фона:', err.message);
       }
     });
   });
@@ -275,10 +275,10 @@ function bindBlurSliders() {
       try {
         const res = await window.electronAPI.setCuckooSetting(key, v);
         if (!res || !res.success) {
-          console.error('[Cuckoo Code] Не удалось сохранить настройку', key, res && res.error);
+          console.error('[Cookie Code] Не удалось сохранить настройку', key, res && res.error);
         }
       } catch (err) {
-        console.error('[Cuckoo Code] Ошибка сохранения настройки', key, err.message);
+        console.error('[Cookie Code] Ошибка сохранения настройки', key, err.message);
       }
     });
   });
@@ -335,10 +335,10 @@ function bindRgbCheckbox() {
     try {
       const res = await window.electronAPI.setCuckooSetting('rgbUsername', enabled);
       if (!res || !res.success) {
-        console.error('[Cuckoo Code] Не удалось сохранить rgbUsername:', res && res.error);
+        console.error('[Cookie Code] Не удалось сохранить rgbUsername:', res && res.error);
       }
     } catch (err) {
-      console.error('[Cuckoo Code] Ошибка сохранения rgbUsername:', err.message);
+      console.error('[Cookie Code] Ошибка сохранения rgbUsername:', err.message);
     }
   });
 }
@@ -376,7 +376,7 @@ async function bindDangerousPatterns() {
         setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1500);
       }
     } catch (err) {
-      console.error('[Cuckoo Code] Не удалось сохранить опасные команды:', err.message);
+      console.error('[Cookie Code] Не удалось сохранить опасные команды:', err.message);
       btn.textContent = '❌ Ошибка';
       setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1500);
     }
@@ -415,7 +415,7 @@ async function refreshBlurValues() {
     setSlider('cuckoo-op-toolblock', 'cuckoo-op-toolblock-val', Number(s && s.toolBlockOpacity != null ? s.toolBlockOpacity : 55));
     setSlider('cuckoo-blur-toolblock','cuckoo-blur-toolblock-val', Number(s && s.toolBlockBlur != null ? s.toolBlockBlur : 0));
   } catch (err) {
-    console.error('[Cuckoo Code] Не удалось загрузить значения блюра:', err.message);
+    console.error('[Cookie Code] Не удалось загрузить значения блюра:', err.message);
   }
 }
 
@@ -434,12 +434,12 @@ async function refreshBackgroundSelection() {
       }
     });
   } catch (err) {
-    console.error('[Cuckoo Code] Не удалось прочитать текущий фон:', err.message);
+    console.error('[Cookie Code] Не удалось прочитать текущий фон:', err.message);
   }
 }
 
 /**
- * Деактивировать вкладку Cuckoo Code — показать родной контент.
+ * Деактивировать вкладку Cookie Code — показать родной контент.
  */
 function deactivateCuckooTab() {
   const nativeScroll = document.querySelector(
@@ -504,7 +504,7 @@ function injectSettingsTab() {
     '    <circle cx="8" cy="8" r="2.4" fill="currentColor"/>' +
     '  </svg>' +
     '</div>' +
-    '<span class="ds-button__content">Cuckoo Code</span>';
+    '<span class="ds-button__content">Cookie Code</span>';
 
   container.appendChild(btn);
 }

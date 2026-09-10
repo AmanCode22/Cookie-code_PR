@@ -46,7 +46,7 @@ async function renderSessions() {
       });
     });
   } catch (err) {
-    console.error('[Cuckoo Code] 渲染会话列表失败:', err);
+    console.error('[Cookie Code] 渲染会话列表失败:', err);
     listContainer.innerHTML = '<div class="cuckoo-session-empty">加载出错</div>';
   }
 }
@@ -65,7 +65,7 @@ async function handleNavigateSession(sessionId) {
 
     const result = await window.electronAPI.navigateSession(sessionId);
     if (result.success) {
-      console.log('[Cuckoo Code] 已导航到会话:', sessionId);
+      console.log('[Cookie Code] 已导航到会话:', sessionId);
       // 导航成功后，覆盖层可以保持打开，但用户可能会看到页面跳转
       // 小延迟后刷新会话列表
       setTimeout(renderSessions, 2000);
@@ -73,7 +73,7 @@ async function handleNavigateSession(sessionId) {
       showToast('导航失败: ' + (result.error || '未知错误'), 3000);
     }
   } catch (err) {
-    console.error('[Cuckoo Code] 导航到会话失败:', err);
+    console.error('[Cookie Code] 导航到会话失败:', err);
     showToast('导航失败: ' + err.message, 3000);
   }
 }
@@ -98,7 +98,7 @@ async function handleInitProject() {
       showToast(result.message || '初始化失败', 3000);
     }
   } catch (err) {
-    console.error('[Cuckoo Code] 初始化项目失败:', err);
+    console.error('[Cookie Code] 初始化项目失败:', err);
     showToast('初始化失败: ' + err.message, 3000);
   } finally {
     if (initBtn) {

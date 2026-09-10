@@ -1,5 +1,5 @@
 /**
- * Пользовательские настройки Cuckoo Code (settings.json в userData).
+ * Пользовательские настройки Cookie Code (settings.json в userData).
  * Простой key-value store с дефолтами.
  *
  * Файл: <userData>/cuckoo-settings.json
@@ -52,7 +52,7 @@ function readSettings() {
     const parsed = JSON.parse(raw);
     return { ...DEFAULTS, ...parsed };
   } catch (err) {
-    console.error('[Cuckoo Code] 读取 settings.json 失败:', err.message);
+    console.error('[Cookie Code] 读取 settings.json 失败:', err.message);
     return { ...DEFAULTS };
   }
 }
@@ -62,10 +62,10 @@ function writeSettings(settings) {
     const file = getSettingsPath();
     const merged = { ...DEFAULTS, ...settings };
     fs.writeFileSync(file, JSON.stringify(merged, null, 2), 'utf-8');
-    console.log('[Cuckoo Code] settings.json 已保存:', file);
+    console.log('[Cookie Code] settings.json 已保存:', file);
     return merged;
   } catch (err) {
-    console.error('[Cuckoo Code] 写入 settings.json 失败:', err.message);
+    console.error('[Cookie Code] 写入 settings.json 失败:', err.message);
     return null;
   }
 }

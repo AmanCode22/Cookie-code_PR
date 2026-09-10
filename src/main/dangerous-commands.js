@@ -17,7 +17,7 @@ function buildRegexps(patterns) {
     try {
       out.push(new RegExp(p, 'i'));
     } catch (err) {
-      console.warn('[Cuckoo Code] Невалидный regex опасной команды:', p, '—', err.message);
+      console.warn('[Cookie Code] Невалидный regex опасной команды:', p, '—', err.message);
     }
   }
   return out;
@@ -37,7 +37,7 @@ function getActivePatterns() {
     // Fallback: дефолтный список
     return buildRegexps(settingsStore.DEFAULT_DANGEROUS_PATTERNS);
   } catch (err) {
-    console.error('[Cuckoo Code] Ошибка чтения опасных команд:', err.message);
+    console.error('[Cookie Code] Ошибка чтения опасных команд:', err.message);
     return buildRegexps(settingsStore.DEFAULT_DANGEROUS_PATTERNS);
   }
 }

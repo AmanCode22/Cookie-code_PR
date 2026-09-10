@@ -32,7 +32,7 @@ function initProjectDirSection() {
         const result = await window.electronAPI.updateProjectDir();
         if (result && result.success) {
           // 主进程会发送 project-dir-updated 事件更新显示
-          console.log('[Cuckoo Code] 目录已更新');
+          console.log('[Cookie Code] 目录已更新');
         } else {
           console.error('修改目录失败:', result?.message);
         }

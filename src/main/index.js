@@ -1,5 +1,5 @@
 /**
- * Cuckoo Code 主进程入口（多窗口多 profile 版）
+ * Cookie Code 主进程入口（多窗口多 profile 版）
  * 由项目根目录 main.js 薄壳加载。
  */
 const { app, BrowserWindow, Menu, dialog } = require('electron');
@@ -15,7 +15,7 @@ const updater = require('./updater');
 // ========== 持久化会话配置 ==========
 const SESSION_DIR = process.env.CUCKOO_SESSION_DIR || 'cuckoo-ai-pro-session';
 app.setPath('userData', path.join(app.getPath('appData'), SESSION_DIR));
-console.log('[Cuckoo Code] Session 数据目录:', app.getPath('userData'));
+console.log('[Cookie Code] Session 数据目录:', app.getPath('userData'));
 
 // 渲染进程日志输出目录（仅开发环境持久化；打包版不写日志文件）
 const RENDERER_LOG_DIR = app.isPackaged
@@ -34,11 +34,11 @@ async function flushAllSessions() {
   const promises = [];
   for (const ses of sessionsToFlush) {
     promises.push(ses.flushStorageData().catch(err => {
-      console.error('[Cuckoo Code] 刷新 session 失败:', err.message);
+      console.error('[Cookie Code] 刷新 session 失败:', err.message);
     }));
   }
   await Promise.all(promises);
-  console.log('[Cuckoo Code] 全部 session 数据已刷新到磁盘');
+  console.log('[Cookie Code] 全部 session 数据已刷新到磁盘');
 }
 
 /**
@@ -57,7 +57,7 @@ function createWindow(profile) {
   const mainWindow = new BrowserWindow({
     width: 1280,
     height: 900,
-    title: 'Cuckoo Code Pro - ' + provider.name + ' - ' + profileData.name,
+    title: 'Cookie Code Pro - ' + provider.name + ' - ' + profileData.name,
     webPreferences: {
       preload: path.join(__dirname, '..', '..', 'preload.js'),
       contextIsolation: true,
@@ -252,7 +252,7 @@ function setupAppMenu() {
           }
         },
         { type: 'separator' },
-        { role: 'about', label: '关于 Cuckoo Code' }
+        { role: 'about', label: '关于 Cookie Code' }
       ]
     }
   ];
@@ -437,7 +437,7 @@ ipcMainForProfile.handle('update-window-name', async (event, { displayName }) =>
   if (!ctx) return { success: false, error: '窗口上下文不存在' };
   const updated = profileManager.updateProfileName(ctx.profileId, displayName);
   if (updated && ctx.win && !ctx.win.isDestroyed()) {
-    ctx.win.setTitle('Cuckoo Code Pro - ' + updated.name);
+    ctx.win.setTitle('Cookie Code Pro - ' + updated.name);
   }
   return { success: !!updated, name: updated ? updated.name : null };
 });

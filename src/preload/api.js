@@ -87,7 +87,7 @@ let electronAPI = {
   replaceProvider: (providerId) => {
     return ipcRenderer.invoke('replace-provider', { providerId });
   },
-  // ========== Cuckoo Code 用户设置 (settings.json) ==========
+  // ========== Cookie Code 用户设置 (settings.json) ==========
   getCuckooSettings: () => {
     return ipcRenderer.invoke('cuckoo-settings-get-all');
   },
@@ -99,7 +99,7 @@ let electronAPI = {
 try {
   contextBridge.exposeInMainWorld('electronAPI', electronAPI);
 } catch (err) {
-  console.error('[Cuckoo Code] contextBridge.exposeInMainWorld 失败:', err);
+  console.error('[Cookie Code] contextBridge.exposeInMainWorld 失败:', err);
 }
 
 // 无论 contextBridge 是否成功，都直接挂载到 window 作为备选

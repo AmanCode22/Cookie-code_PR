@@ -205,7 +205,7 @@ function startWatch() {
   // когда MutationObserver не ловит перерисовку (DeepSeek virtual list).
   setInterval(runAll, 700);
 
-  console.log('[Cuckoo Code] tool-render watch started (mutation + poll)');
+  console.log('[Cookie Code] tool-render watch started (mutation + poll)');
 }
 
 // Очередь ошибок, которые нужно «навесить» на блоки, когда они появятся в DOM.
@@ -229,7 +229,7 @@ function markToolBlockError(code, errorText) {
     localStorage.setItem('cuckoo-errors', JSON.stringify(store));
   } catch (_) {}
 
-  console.log('[Cuckoo Code] tool-render: ошибка поставлена в очередь:', key, '→', String(errorText || '').slice(0, 80));
+  console.log('[Cookie Code] tool-render: ошибка поставлена в очередь:', key, '→', String(errorText || '').slice(0, 80));
 
   // И пробуем применить прямо сейчас (вдруг блок уже в DOM).
   applyPendingErrors();

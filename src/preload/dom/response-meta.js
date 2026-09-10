@@ -203,9 +203,9 @@ function startWatch() {
 function clearStorage() {
   try {
     localStorage.removeItem(STORAGE_KEY);
-    console.log('[Cuckoo Code] Мета-данные очищены');
+    console.log('[Cookie Code] Мета-данные очищены');
   } catch (err) {
-    console.error('[Cuckoo Code] Не удалось очистить мета-данные:', err.message);
+    console.error('[Cookie Code] Не удалось очистить мета-данные:', err.message);
   }
 }
 
