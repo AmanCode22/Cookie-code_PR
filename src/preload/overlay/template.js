@@ -418,6 +418,32 @@ const OVERLAY_CSS = [
 '  background-repeat: no-repeat !important;',
 '  background-attachment: fixed !important;',
 '}',
+// ========== 页面顶部标题栏毛玻璃（DeepSeek） ==========
+'.the-header {',
+'  backdrop-filter: blur(12px) saturate(140%) !important;',
+'  -webkit-backdrop-filter: blur(12px) saturate(140%) !important;',
+'  background: rgba(15, 18, 32, 0.45) !important;',
+'}',
+// ========== 去掉输入框底部的深色渐变，让背景图透出 ==========
+// DeepSeek 在 _871cbca 与其空的子层 d72636e2 上画了从上到下的
+// 线性渐变（底部是不透明的 rgb(21,21,23)），会挡住页面背景图。
+// 用简写 background: transparent !important 一次清掉颜色+渐变。
+'._871cbca,',
+'._871cbca > .d72636e2 {',
+'  background: transparent !important;',
+'}',
+// ========== 左侧边栏毛玻璃（DeepSeek） ==========
+// .b8812f16.a2f3d50e 是 DeepSeek 左侧栏的根容器（组合类名唯一）。
+'.b8812f16.a2f3d50e,',
+'.b8812f16.a2f3d50e > div {',
+'  background: rgba(15, 18, 32, 0.45) !important;',
+'  backdrop-filter: blur(12px) saturate(140%) !important;',
+'  -webkit-backdrop-filter: blur(12px) saturate(140%) !important;',
+'}',
+// ========== 隐藏底部「Сгенерировано ИИ」免责声明 ==========
+'._0fcaa63 {',
+'  display: none !important;',
+'}',
 ].join('\n');
 
 module.exports = { OVERLAY_HTML, OVERLAY_CSS };
