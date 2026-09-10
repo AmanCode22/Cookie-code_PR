@@ -10,6 +10,18 @@ const fs = require('fs');
 const path = require('path');
 const { app } = require('electron');
 
+const DEFAULT_DANGEROUS_PATTERNS = [
+  '^rm\\s+-rf\\s+/',
+  '^format\\s+',
+  '^del\\s+/f',
+  '^rd\\s+/s',
+  '^shutdown\\s+',
+  '^taskkill\\s+',
+  '^diskpart',
+  '^reg\\s+delete',
+  '^cipher\\s+/w',
+];
+
 const DEFAULTS = {
   background: 'miku',
   backgroundBlur: 0,     // px — размытие самой картинки фона
@@ -20,6 +32,7 @@ const DEFAULTS = {
   toolBlockOpacity: 55,  // % — плотность фона tool-блоков в чате
   toolBlockBlur: 0,      // px — стекло tool-блоков в чате
   rgbUsername: true,     // RGB-переливание ника пользователя (по умолчанию вкл)
+  dangerousPatterns: DEFAULT_DANGEROUS_PATTERNS, // список regex-паттернов опасных команд
 };
 
 let cachedPath = null;
@@ -76,6 +89,7 @@ function getSetting(key) {
 
 module.exports = {
   DEFAULTS,
+  DEFAULT_DANGEROUS_PATTERNS,
   readSettings,
   writeSettings,
   getSetting,

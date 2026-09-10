@@ -60,6 +60,8 @@ function activateCuckooTab() {
     bindBlurSliders();
     // Чекбокс RGB-переливания
     bindRgbCheckbox();
+    // Опасные команды
+    bindDangerousPatterns();
     // Загружаем сохранённые значения блюра в слайдеры
     refreshBlurValues();
     // Загружаем значение RGB-переливания
@@ -160,6 +162,22 @@ function buildContentHTML() {
     '    <input type="checkbox" id="cuckoo-rgb-username" checked style="width:16px;height:16px;cursor:pointer;">' +
     '    <span style="font-size:13px;color:#cfd3ff;">RGB-переливание ника</span>' +
     '  </label>' +
+    '</div>' +
+    '<div>' +
+    '  <div class="cuckoo-section-title">Опасные команды (regex, по одной на строку)</div>' +
+    '  <textarea id="cuckoo-dangerous-patterns" rows="8" spellcheck="false" style="' +
+    '    width:100%; box-sizing:border-box; padding:10px 12px; font-family:Consolas,monospace; font-size:12px;' +
+    '    background:rgba(15,18,32,0.6); color:#dde1ff; border:1px solid rgba(255,255,255,0.1); border-radius:10px;' +
+    '    resize:vertical; line-height:1.5; outline:none;' +
+    '  "></textarea>' +
+    '  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">' +
+    '    <span style="font-size:11px;color:#8a90b8;">Пустой список = все команды разрешены</span>' +
+    '    <button id="cuckoo-btn-save-dangerous" style="' +
+    '      padding: 8px 16px; border: 1px solid rgba(139,147,255,0.5); border-radius: 8px;' +
+    '      background: rgba(139,147,255,0.15); color: #a8afff; font-weight: 600; font-size: 12px;' +
+    '      cursor: pointer; transition: all 0.18s;' +
+    '    ">Сохранить</button>' +
+    '  </div>' +
     '</div>' +
     '<div>' +
     '  <div class="cuckoo-section-title">Фон страницы</div>' +
@@ -321,6 +339,46 @@ function bindRgbCheckbox() {
       }
     } catch (err) {
       console.error('[Cuckoo Code] Ошибка сохранения rgbUsername:', err.message);
+    }
+  });
+}
+
+/**
+ * Textarea со списком опасных regex-паттернов + кнопка «Сохранить».
+ */
+async function bindDangerousPatterns() {
+  const ta = document.getElementById('cuckoo-dangerous-patterns');
+  const btn = document.getElementById('cuckoo-btn-save-dangerous');
+  if (!ta || !btn) return;
+
+  // Загружаем текущий список
+  try {
+    const s = await window.electronAPI.getCuckooSettings();
+    const list = Array.isArray(s && s.dangerousPatterns) ? s.dangerousPatterns : [];
+    ta.value = list.join('\n');
+  } catch (_) {}
+
+  btn.addEventListener('click', async () => {
+    const raw = (ta.value || '');
+    // Разбиваем по строкам, убираем пустые и пробелы
+    const patterns = raw.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+
+    btn.disabled = true;
+    const original = btn.textContent;
+    btn.textContent = 'Сохранение...';
+    try {
+      const res = await window.electronAPI.setCuckooSetting('dangerousPatterns', patterns);
+      if (res && res.success) {
+        btn.textContent = '✅ Сохранено';
+        setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1200);
+      } else {
+        btn.textContent = '❌ Ошибка';
+        setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1500);
+      }
+    } catch (err) {
+      console.error('[Cuckoo Code] Не удалось сохранить опасные команды:', err.message);
+      btn.textContent = '❌ Ошибка';
+      setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1500);
     }
   });
 }

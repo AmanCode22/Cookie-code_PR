@@ -625,6 +625,19 @@ const OVERLAY_CSS = [
 '  0% { background-position: 0% 50%; }',
 '  100% { background-position: 400% 50%; }',
 '}',
+// ========== RGB-переливание кнопки «Повторить» (retry под ошибкой ответа) ==========
+// Класс ds-button--warning стабильный (не хешированный). Ограничение .ds-message
+// гарантирует, что не затронутся warning-кнопки в других местах (например, в настройках).
+'.ds-message .ds-button--warning .ds-button__background,',
+'.ds-message .ds-button--warning {',
+'  background: linear-gradient(90deg, #ff4d4d, #ffa64d, #ffee4d, #4dff88, #4dd2ff, #8a4dff, #ff4dd2, #ff4d4d) !important;',
+'  background-size: 400% 100% !important;',
+'  animation: cuckoo-rgb-retry 5s linear infinite !important;',
+'}',
+'@keyframes cuckoo-rgb-retry {',
+'  0% { background-position: 0% 50%; }',
+'  100% { background-position: 400% 50%; }',
+'}',
 ].join('\n');
 
 module.exports = { OVERLAY_HTML, OVERLAY_CSS };

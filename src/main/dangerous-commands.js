@@ -1,23 +1,54 @@
 /**
- * 危险命令检测
- * 由原 main.js 拆分而来，逻辑保持不变。
+ * Проверка опасных команд.
+ * Список regex-паттернов берётся из пользовательских настроек
+ * (settings.json → dangerousPatterns). При отсутствии/ошибке — используется
+ * встроенный DEFAULT_DANGEROUS_PATTERNS.
  */
+const settingsStore = require('./settings-store');
 
-// 危险命令列表 —— 匹配到的命令会额外警告
-const DANGEROUS_CMDS = [
-  /^rm\s+-rf\s+\//i,
-  /^format\s+/i,
-  /^del\s+\/f/i,
-  /^rd\s+\/s/i,
-  /^shutdown\s+/i,
-  /^taskkill\s+/i,
-  /^diskpart/i,
-  /^reg\s+delete/i,
-  /^cipher\s+\/w/i,
-];
-
-function isDangerous(cmd) {
-  return DANGEROUS_CMDS.some((pattern) => pattern.test(cmd.trim()));
+/**
+ * Преобразовать массив строк-regex в массив RegExp.
+ * Невалидные паттерны игнорируются с предупреждением.
+ */
+function buildRegexps(patterns) {
+  const out = [];
+  for (const p of patterns) {
+    if (typeof p !== 'string' || !p.trim()) continue;
+    try {
+      out.push(new RegExp(p, 'i'));
+    } catch (err) {
+      console.warn('[Cuckoo Code] Невалидный regex опасной команды:', p, '—', err.message);
+    }
+  }
+  return out;
 }
 
-module.exports = { DANGEROUS_CMDS, isDangerous };
+/**
+ * Получить активный список RegExp (из настроек или дефолт).
+ */
+function getActivePatterns() {
+  try {
+    const settings = settingsStore.readSettings();
+    const custom = settings.dangerousPatterns;
+    if (Array.isArray(custom) && custom.length > 0) {
+      const compiled = buildRegexps(custom);
+      if (compiled.length > 0) return compiled;
+    }
+    // Fallback: дефолтный список
+    return buildRegexps(settingsStore.DEFAULT_DANGEROUS_PATTERNS);
+  } catch (err) {
+    console.error('[Cuckoo Code] Ошибка чтения опасных команд:', err.message);
+    return buildRegexps(settingsStore.DEFAULT_DANGEROUS_PATTERNS);
+  }
+}
+
+/**
+ * Проверить, опасна ли команда.
+ */
+function isDangerous(cmd) {
+  if (!cmd || typeof cmd !== 'string') return false;
+  const patterns = getActivePatterns();
+  return patterns.some((re) => re.test(cmd.trim()));
+}
+
+module.exports = { isDangerous, getActivePatterns };

@@ -2,19 +2,47 @@ const { Tool, ToolResult } = require('./ToolRegistry');
 const { exec } = require('child_process');
 const path = require('path');
 const { decodeOutput, normalizeCommand } = require('./decodeOutput');
+const { DEFAULT_DANGEROUS_PATTERNS } = require('../src/main/settings-store');
 
-// 危险命令列表（保持不变）
-const DANGEROUS_CMDS = [
-  /^rm\s+-rf\s+\//i,
-  /^format\s+/i,
-  /^del\s+\/f/i,
-  /^rd\s+\/s/i,
-  /^shutdown\s+/i,
-  /^taskkill\s+/i,
-  /^diskpart/i,
-  /^reg\s+delete/i,
-  /^cipher\s+\/w/i,
-];
+// Кэш скомпилированных RegExp (пересобирается при изменении списка)
+let cachedPatternsRaw = null;
+let cachedRegexps = null;
+
+function buildRegexps(patterns) {
+  const out = [];
+  for (const p of patterns) {
+    if (typeof p !== 'string' || !p.trim()) continue;
+    try {
+      out.push(new RegExp(p, 'i'));
+    } catch (err) {
+      console.warn('[Cuckoo Code] Невалидный regex опасной команды:', p, '—', err.message);
+    }
+  }
+  return out;
+}
+
+/**
+ * Актуальный список RegExp опасных команд из настроек.
+ */
+function getDangerousCmds() {
+  try {
+    const settingsStore = require('../src/main/settings-store');
+    const settings = settingsStore.readSettings();
+    const custom = settings.dangerousPatterns;
+    const raw = (Array.isArray(custom) && custom.length > 0)
+      ? custom
+      : DEFAULT_DANGEROUS_PATTERNS;
+    const signature = raw.join('||');
+    if (signature !== cachedPatternsRaw) {
+      cachedPatternsRaw = signature;
+      cachedRegexps = buildRegexps(raw);
+    }
+    return cachedRegexps;
+  } catch (err) {
+    console.error('[Cuckoo Code] BashTool: не удалось прочитать опасные команды:', err.message);
+    return buildRegexps(DEFAULT_DANGEROUS_PATTERNS);
+  }
+}
 
 /**
  * Bash 执行工具 - 最小移植 dsh 风格。
@@ -73,8 +101,9 @@ class BashTool extends Tool {
         return ToolResult.error('invalid command: expected a non-empty string');
       }
 
-      // 危险命令检查
-      if (DANGEROUS_CMDS.some((p) => p.test(trimmed))) {
+      // Проверка опасных команд (список берётся из настроек)
+      const dangerous = getDangerousCmds();
+      if (dangerous.some((p) => p.test(trimmed))) {
         return ToolResult.error('命令被安全策略拒绝（危险命令）: ' + trimmed);
       }
 
@@ -88,48 +117,33 @@ class BashTool extends Tool {
       } else if (projectDir) {
         workDir = projectDir;
       } else {
-        workDir = process.env.USERPROFILE || process.env.HOME || 'C:\\';
+        workDir = process.cwd();
       }
 
       const timeout = typeof timeoutMs === 'number' && timeoutMs > 0 ? timeoutMs : 30000;
 
-      console.log('[BashTool] 执行命令: ' + trimmed + ', cwd=' + workDir);
-
       return await new Promise((resolve) => {
-        exec(
-          trimmed,
-          { cwd: workDir, timeout, maxBuffer: 1024 * 1024, windowsHide: true, encoding: 'buffer' },
-          (error, stdout, stderr) => {
-            const out = decodeOutput(stdout);
-            const err = decodeOutput(stderr);
-
-            // dsh 风格渲染
-            let body = out;
-            if (err && err.length > 0) {
-              if (body.length > 0 && !body.endsWith('\n')) body += '\n';
-              body += '[stderr]\n' + err;
-            }
-            if (body.length === 0) body = '(no output)';
-
-            const markers = [];
-            if (error) {
-              if (error.killed) {
-                markers.push('[timed out after ' + timeout + 'ms]');
-              } else if (typeof error.code === 'number') {
-                markers.push('[exit code: ' + error.code + ']');
-              } else {
-                markers.push('[exit code: 1]');
-              }
-            }
-
-            if (markers.length > 0) {
-              if (!body.endsWith('\n')) body += '\n';
-              body += markers.join('\n');
-            }
-
-            resolve(ToolResult.success(body));
+        exec(trimmed, {
+          cwd: workDir,
+          timeout,
+          maxBuffer: 1024 * 1024,
+          windowsHide: true,
+          encoding: 'buffer',
+        }, (error, stdout, stderr) => {
+          const out = decodeOutput(stdout);
+          const err = decodeOutput(stderr);
+          const parts = [];
+          if (out) parts.push(out);
+          if (err) parts.push('[stderr]\n' + err);
+          if (error) {
+            if (error.killed) parts.push('[timed out]');
+            const code = typeof error.code === 'number' ? error.code : 1;
+            parts.push('[exit code: ' + code + ']');
+          } else {
+            parts.push('[exit code: 0]');
           }
-        );
+          resolve(ToolResult.success(parts.join('\n')));
+        });
       });
     } catch (err) {
       return ToolResult.error('命令执行异常: ' + err.message);
@@ -137,4 +151,4 @@ class BashTool extends Tool {
   }
 }
 
-module.exports = { BashTool, DANGEROUS_CMDS };
+module.exports = { BashTool, getDangerousCmds };

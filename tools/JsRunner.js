@@ -12,7 +12,7 @@
 const vm = require('vm');
 const { exec } = require('child_process');
 const path = require('path');
-const { DANGEROUS_CMDS } = require('./BashTool');
+const { getDangerousCmds } = require('./BashTool');
 const { decodeOutput, normalizeCommand } = require('./decodeOutput');
 
 // 同步执行超时（vm timeout，覆盖无 await 的死循环）
@@ -187,7 +187,8 @@ function resolveDir(dir, projectDir) {
 function runBash(args, projectDir) {
   const command = normalizeCommand(String(args.command || '').trim());
   if (!command) return Promise.resolve({ success: false, error: 'invalid command: expected a non-empty string' });
-  if (DANGEROUS_CMDS.some((pattern) => pattern.test(command))) {
+  const dangerous = getDangerousCmds();
+  if (dangerous.some((pattern) => pattern.test(command))) {
     return Promise.resolve({ success: false, error: '命令被安全策略拒绝（危险命令）: ' + command });
   }
   const timeout = typeof args.timeoutMs === 'number' && args.timeoutMs > 0 ? args.timeoutMs : 30000;
