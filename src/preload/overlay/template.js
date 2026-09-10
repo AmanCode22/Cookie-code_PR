@@ -444,6 +444,24 @@ const OVERLAY_CSS = [
 '._0fcaa63 {',
 '  display: none !important;',
 '}',
+// ========== Модалка «Настройки» (и другие ds-modal) — матовое стекло ==========
+'.ds-modal-content {',
+'  background: rgba(15, 18, 32, 0.55) !important;',
+'  backdrop-filter: blur(16px) saturate(140%) !important;',
+'  -webkit-backdrop-filter: blur(16px) saturate(140%) !important;',
+'}',
+// Приглушаем фон-маску, чтобы под модалкой просвечивала страница
+'.ds-modal-mask {',
+'  background: rgba(0, 0, 0, 0.35) !important;',
+'}',
+// ========== Кнопка «Новый чат» в сайдбаре — матовое стекло ==========
+'._5a8ac7a.a084f19e {',
+'  background: rgba(15, 18, 32, 0.5) !important;',
+'  backdrop-filter: blur(10px) saturate(140%) !important;',
+'  -webkit-backdrop-filter: blur(10px) saturate(140%) !important;',
+'  border: 1px solid rgba(139, 147, 255, 0.2) !important;',
+'  border-radius: 12px !important;',
+'}',
 ].join('\n');
 
 module.exports = { OVERLAY_HTML, OVERLAY_CSS };
