@@ -2,21 +2,9 @@
  * 覆盖层 UI 模板（HTML 与 CSS）
  * 方向 C：悬浮球模式 —— 右下角悬浮球 + 按需弹出小面板
  */
-const path = require('path');
-const fs = require('fs');
-
-// 页面背景图（DeepSeek 页面底层的自定义背景）
-// 直接读成 base64 data-URI 内联进 CSS：
-// 跨 scheme（file:// → https://chat.deepseek.com）的 file:// 资源会被
-// Chromium 以 "Not allowed to load local resource" 拦截，data-URI 不受此限制。
-let PAGE_BACKGROUND_URL = '';
-try {
-  const bgFile = path.join(__dirname, '..', '..', 'ui', 'backgrounds', 'miku-art.webp');
-  const bgBuf = fs.readFileSync(bgFile);
-  PAGE_BACKGROUND_URL = 'data:image/webp;base64,' + bgBuf.toString('base64');
-} catch (err) {
-  console.error('[Cuckoo Code] 背景图读取失败:', err.message);
-}
+// Фон страницы теперь применяется динамически из настроек (см. background.js),
+// через внутренний протокол cuckoo-asset:// — CSS-правило пустое, скрывает
+// только базовый цвет под картинкой.
 
 const OVERLAY_HTML = [
 '<div id="cuckoo-overlay" class="cuckoo-overlay cuckoo-hidden">',
@@ -409,10 +397,9 @@ const OVERLAY_CSS = [
 '.cuckoo-first-time-text { margin-bottom: 18px; color: #dde1ff; }',
 '.cuckoo-first-time-box .cuckoo-actions { justify-content: center; }',
 '.cuckoo-first-time-box .cuckoo-btn { flex: 0 0 auto; min-width: 150px; }',
-// ========== 页面背景图 ==========
+// ========== 页面背景：базовый цвет + стили (картинка ставится через JS) ==========
 'html, body {',
 '  background-color: #0f1220 !important;',
-'  background-image: url("' + PAGE_BACKGROUND_URL + '") !important;',
 '  background-size: cover !important;',
 '  background-position: center center !important;',
 '  background-repeat: no-repeat !important;',

@@ -10,6 +10,7 @@ const profileManager = require('./profile-manager');
 const { toolRegistry, jsRunner } = require('./tool-registry');
 const { initProject } = require('./project-context');
 const { isDangerous } = require('./dangerous-commands');
+const settingsStore = require('./settings-store');
 const { decodeOutput, normalizeCommand } = require('../../tools/decodeOutput');
 
 function registerIpcHandlers() {
@@ -181,6 +182,20 @@ function registerIpcHandlers() {
       console.error('[Cuckoo Code] ❌ 原生 Enter 发送失败:', err.message);
       return false;
     }
+  });
+
+  // ========== Cuckoo Code 用户设置 (settings.json) ==========
+  ipcMain.handle('cuckoo-settings-get-all', async () => {
+    return settingsStore.readSettings();
+  });
+
+  ipcMain.handle('cuckoo-settings-set', async (_event, { key, value }) => {
+    if (!key || typeof key !== 'string') {
+      return { success: false, error: '无效的 key' };
+    }
+    const result = settingsStore.setSetting(key, value);
+    if (!result) return { success: false, error: '写入失败' };
+    return { success: true, settings: result };
   });
 }
 

@@ -1,0 +1,137 @@
+[
+  {
+    "id": "abyssal-light",
+    "label": "Бездна (светлая)",
+    "file": "abyssal-light.webp"
+  },
+  {
+    "id": "abyssal-dark",
+    "label": "Бездна (тёмная)",
+    "file": "abyssal-dark.webp"
+  },
+  {
+    "id": "harbor",
+    "label": "Гавань",
+    "file": "harbor.webp"
+  },
+  {
+    "id": "hologram-light",
+    "label": "Голограмма (светлая)",
+    "file": "hologram-light.webp"
+  },
+  {
+    "id": "hologram-dark",
+    "label": "Голограмма (тёмная)",
+    "file": "hologram-dark.webp"
+  },
+  {
+    "id": "maid-day",
+    "label": "Горничная — день",
+    "file": "maid-day.webp"
+  },
+  {
+    "id": "maid-night",
+    "label": "Горничная — ночь",
+    "file": "maid-night.webp"
+  },
+  {
+    "id": "stellar-light",
+    "label": "Звёздная дива (светлая)",
+    "file": "stellar-light.webp"
+  },
+  {
+    "id": "stellar-dark",
+    "label": "Звёздная дива (тёмная)",
+    "file": "stellar-dark.webp"
+  },
+  {
+    "id": "starry-light",
+    "label": "Звёздная ночь (светлая)",
+    "file": "starry-light.webp"
+  },
+  {
+    "id": "starry-dark",
+    "label": "Звёздная ночь (тёмная)",
+    "file": "starry-dark.webp"
+  },
+  {
+    "id": "cyber-night",
+    "label": "Кибер-ночь",
+    "file": "cyber-night.webp"
+  },
+  {
+    "id": "summer",
+    "label": "Летнее стекло",
+    "file": "summer.jpg"
+  },
+  {
+    "id": "whale-mom",
+    "label": "Мама-кит",
+    "file": "whale-mom.jpg"
+  },
+  {
+    "id": "miku",
+    "label": "Мику",
+    "file": "miku.webp"
+  },
+  {
+    "id": "miku-light",
+    "label": "Мику (светлая)",
+    "file": "miku-light.jpg"
+  },
+  {
+    "id": "dragon-heir-light",
+    "label": "Наследник дракона (светлый)",
+    "file": "dragon-heir-light.webp"
+  },
+  {
+    "id": "dragon-heir-dark",
+    "label": "Наследник дракона (тёмный)",
+    "file": "dragon-heir-dark.webp"
+  },
+  {
+    "id": "whale-song",
+    "label": "Песнь кита",
+    "file": "whale-song.webp"
+  },
+  {
+    "id": "bee-eater",
+    "label": "Синещёкая щурка",
+    "file": "bee-eater.jpg"
+  },
+  {
+    "id": "blue-fantasy",
+    "label": "Синяя фантазия",
+    "file": "blue-fantasy.jpg"
+  },
+  {
+    "id": "tokyo-night",
+    "label": "Токио ночью",
+    "file": "tokyo-night.webp"
+  },
+  {
+    "id": "phoebe-light",
+    "label": "Фиби (светлая)",
+    "file": "phoebe-light.webp"
+  },
+  {
+    "id": "phoebe-dark",
+    "label": "Фиби (тёмная)",
+    "file": "phoebe-dark.webp"
+  },
+  {
+    "id": "furina",
+    "label": "Фурина",
+    "file": "furina.jpg"
+  },
+  {
+    "id": "war-thunder-light",
+    "label": "War Thunder (светлый)",
+    "file": "war-thunder-light.webp"
+  },
+  {
+    "id": "war-thunder-dark",
+    "label": "War Thunder (тёмный)",
+    "file": "war-thunder-dark.webp"
+  }
+]

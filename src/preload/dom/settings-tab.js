@@ -13,6 +13,7 @@
  * Левая панель вкладок:
  *   .d316d158                             ← контейнер кнопок вкладок
  */
+const background = require('./background');
 
 const TAB_BUTTON_ID = 'cuckoo-settings-tab-btn';
 const TAB_CONTENT_ID = 'cuckoo-settings-content';
@@ -49,15 +50,105 @@ function activateCuckooTab() {
       'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; ' +
       'color: #dde1ff;';
 
-    ourContent.innerHTML =
-      '<div style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Cuckoo Code</div>' +
-      '<div style="color: #8a90b8; font-size: 13px; line-height: 1.6;">' +
-      '  Здесь будут настройки Cuckoo Code (проект, MCP, задержка отправки и т.д.).' +
-      '</div>';
+    ourContent.innerHTML = buildContentHTML();
 
     wrapper.appendChild(ourContent);
+
+    // Вешаем обработчики на превью фонов
+    bindBackgroundGrid();
+    // Подсвечиваем текущий фон
+    refreshBackgroundSelection();
   }
   ourContent.style.display = '';
+}
+
+/**
+ * HTML-содержимое вкладки настроек Cuckoo Code.
+ */
+function buildContentHTML() {
+  const items = background.BACKGROUNDS.map(b => {
+    const uri = background.getPreviewUri(b.file);
+    const styleAttr = uri ? ' style="background-image: url(\'' + uri + '\');"' : '';
+    return (
+      '<div class="cuckoo-bg-item" data-bg-id="' + b.id + '" title="' + escapeHtml(b.label) + '">' +
+      '  <div class="cuckoo-bg-preview"' + styleAttr + '></div>' +
+      '  <div class="cuckoo-bg-label">' + escapeHtml(b.label) + '</div>' +
+      '</div>'
+    );
+  }).join('');
+
+  return '' +
+    '<style>' +
+    '  .cuckoo-settings-title { font-size: 20px; font-weight: 700; margin: 0 0 4px; color: #e8eaff; }' +
+    '  .cuckoo-settings-subtitle { color: #8a90b8; font-size: 13px; margin: 0 0 16px; }' +
+    '  .cuckoo-bg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }' +
+    '  .cuckoo-bg-item { cursor: pointer; border: 2px solid rgba(139,147,255,0.2); border-radius: 10px; ' +
+    '                    overflow: hidden; transition: border-color 0.18s, transform 0.15s; background: rgba(0,0,0,0.25); }' +
+    '  .cuckoo-bg-item:hover { border-color: rgba(139,147,255,0.65); transform: translateY(-2px); }' +
+    '  .cuckoo-bg-item.cuckoo-bg-selected { border-color: #8b93ff; box-shadow: 0 0 0 2px rgba(139,147,255,0.35); }' +
+    '  .cuckoo-bg-preview { width: 100%; aspect-ratio: 16/10; background-size: cover; background-position: center; background-color: #0f1220; }' +
+    '  .cuckoo-bg-label { font-size: 11px; padding: 5px 8px; text-align: center; color: #cfd3ff; ' +
+    '                     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }' +
+    '</style>' +
+    '<div>' +
+    '  <div class="cuckoo-settings-title">Cuckoo Code</div>' +
+    '  <div class="cuckoo-settings-subtitle">Выбор фонового изображения страницы</div>' +
+    '</div>' +
+    '<div class="cuckoo-bg-grid">' + items + '</div>';
+}
+
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/**
+ * Обработчики клика по превью: сохраняем фон и применяем.
+ */
+function bindBackgroundGrid() {
+  const grid = document.querySelectorAll('#' + TAB_CONTENT_ID + ' .cuckoo-bg-item');
+  grid.forEach(el => {
+    el.addEventListener('click', async () => {
+      const id = el.getAttribute('data-bg-id');
+      if (!id) return;
+      // Мгновенно применяем
+      background.apply(id);
+      // Подсветка
+      document.querySelectorAll('#' + TAB_CONTENT_ID + ' .cuckoo-bg-item').forEach(x => x.classList.remove('cuckoo-bg-selected'));
+      el.classList.add('cuckoo-bg-selected');
+      // Сохраняем в settings.json
+      try {
+        const res = await window.electronAPI.setCuckooSetting('background', id);
+        if (!res || !res.success) {
+          console.error('[Cuckoo Code] Не удалось сохранить фон:', res && res.error);
+        }
+      } catch (err) {
+        console.error('[Cuckoo Code] Ошибка сохранения фона:', err.message);
+      }
+    });
+  });
+}
+
+/**
+ * Обновить подсветку выбранного фона из settings.json.
+ */
+async function refreshBackgroundSelection() {
+  try {
+    const settings = await window.electronAPI.getCuckooSettings();
+    const current = (settings && settings.background) || background.DEFAULT_ID;
+    document.querySelectorAll('#' + TAB_CONTENT_ID + ' .cuckoo-bg-item').forEach(el => {
+      if (el.getAttribute('data-bg-id') === current) {
+        el.classList.add('cuckoo-bg-selected');
+      } else {
+        el.classList.remove('cuckoo-bg-selected');
+      }
+    });
+  } catch (err) {
+    console.error('[Cuckoo Code] Не удалось прочитать текущий фон:', err.message);
+  }
 }
 
 /**

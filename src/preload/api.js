@@ -87,6 +87,13 @@ let electronAPI = {
   replaceProvider: (providerId) => {
     return ipcRenderer.invoke('replace-provider', { providerId });
   },
+  // ========== Cuckoo Code 用户设置 (settings.json) ==========
+  getCuckooSettings: () => {
+    return ipcRenderer.invoke('cuckoo-settings-get-all');
+  },
+  setCuckooSetting: (key, value) => {
+    return ipcRenderer.invoke('cuckoo-settings-set', { key, value });
+  },
 };
 
 try {
