@@ -220,6 +220,15 @@ function markToolBlockError(code, errorText) {
 
   // Запоминаем: как только блок с таким кодом появится — пометим.
   pendingErrors.set(key, String(errorText || '执行失败'));
+
+  // Сохраняем в localStorage — переживёт Ctrl+R (перезагрузку страницы).
+  try {
+    const raw = localStorage.getItem('cuckoo-errors') || '{}';
+    const store = JSON.parse(raw);
+    store[key] = String(errorText || '执行失败');
+    localStorage.setItem('cuckoo-errors', JSON.stringify(store));
+  } catch (_) {}
+
   console.log('[Cuckoo Code] tool-render: ошибка поставлена в очередь:', key, '→', String(errorText || '').slice(0, 80));
 
   // И пробуем применить прямо сейчас (вдруг блок уже в DOM).
@@ -231,6 +240,17 @@ function markToolBlockError(code, errorText) {
  * Вызывается при каждой обёртке (decorate) и через polling.
  */
 function applyPendingErrors() {
+  // Подтягиваем сохранённые из localStorage (после перезагрузки страницы).
+  try {
+    const raw = localStorage.getItem('cuckoo-errors');
+    if (raw) {
+      const store = JSON.parse(raw);
+      for (const k of Object.keys(store)) {
+        if (!pendingErrors.has(k)) pendingErrors.set(k, store[k]);
+      }
+    }
+  } catch (_) {}
+
   if (pendingErrors.size === 0) return;
   const norm = (s) => String(s || '').replace(/\s+/g, ' ').trim();
   const blocks = document.querySelectorAll('.' + BLOCK_CLASS);
