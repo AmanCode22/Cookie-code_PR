@@ -592,13 +592,25 @@ async function handleJsToolScript(code) {
     const resultOutput = document.getElementById('cuckoo-result-output');
     if (resultSection) resultSection.classList.remove('cuckoo-hidden');
 
+    // Определяем «фактическую ошибку»: result.success=false ИЛИ в выводе ненулевой exit code.
+    const outText = String(result.output || '');
+    const exitMatch = outText.match(/\[exit code:\s*(-?\d+)\]/);
+    const hasBadExit = !!(exitMatch && exitMatch[1] !== '0');
+
     if (result.success) {
       if (resultStatus) {
-        resultStatus.textContent = '✅ JS 脚本执行成功';
-        resultStatus.className = 'cuckoo-result-status success';
+        resultStatus.textContent = hasBadExit
+          ? ('⚠ JS 脚本 завершён с кодом ' + exitMatch[1])
+          : '✅ JS 脚本执行成功';
+        resultStatus.className = hasBadExit ? 'cuckoo-result-status error' : 'cuckoo-result-status success';
       }
       if (resultOutput) {
         resultOutput.textContent = result.output || '(脚本执行完成，无输出)';
+      }
+      if (hasBadExit) {
+        try {
+          toolRender.markToolBlockError(code, 'Команда завершилась с кодом ' + exitMatch[1] + ': ' + outText.slice(0, 300));
+        } catch (_) {}
       }
     } else {
       if (resultStatus) {
@@ -608,12 +620,14 @@ async function handleJsToolScript(code) {
       if (resultOutput) {
         resultOutput.textContent = result.error || '未知错误';
       }
+      // Помечаем tool-блок в чате как ошибочный
+      try { toolRender.markToolBlockError(code, result.error || '执行失败'); } catch (_) {}
     }
 
     addHistory({
       id: callId,
       command: '[JS] ' + truncate((code.split(String.fromCharCode(10))[0] || code), 60),
-      success: result.success,
+      success: result.success && !hasBadExit,
       output: result.success ? (result.output || '') : (result.error || '未知错误'),
       timestamp: Date.now(),
     });
@@ -633,6 +647,7 @@ async function handleJsToolScript(code) {
     if (resultOutput) {
       resultOutput.textContent = err.message || String(err);
     }
+    try { toolRender.markToolBlockError(code, 'Системная ошибка: ' + (err.message || String(err))); } catch (_) {}
     return { code, result: { success: false, error: '系统异常: ' + (err.message || String(err)) } };
   } finally {
     isExecuting = false;
