@@ -155,6 +155,9 @@ function decorate(scope) {
       if (chev) chev.textContent = expanded ? '▸' : '▾';
     });
   });
+
+  // Если есть отложенные ошибки — применить их к свежеобёрнутым блокам.
+  try { applyPendingErrors(); } catch (_) {}
 }
 
 function escapeHtml(s) {
@@ -205,55 +208,64 @@ function startWatch() {
   console.log('[Cuckoo Code] tool-render watch started (mutation + poll)');
 }
 
-/**
- * Пометить tool-блок с указанным кодом как «выполнение не удалось».
- * Ищет .cuckoo-tool-block, внутри которого <pre> содержит подстроку из code,
- * и добавляет класс cuckoo-tool-error + иконку ⚠ + красный текст ошибки.
- * @param {string} code — исходный JS-код блока (для сопоставления)
- * @param {string} errorText — текст ошибки для отображения
- */
+// Очередь ошибок, которые нужно «навесить» на блоки, когда они появятся в DOM.
+// Ключ — нормализованный префикс кода, значение — текст ошибки.
+const pendingErrors = new Map();
+
 function markToolBlockError(code, errorText) {
   if (!code) return;
   const norm = (s) => String(s || '').replace(/\s+/g, ' ').trim();
-  const target = norm(code).slice(0, 80);
-  if (!target) return;
+  const key = norm(code).slice(0, 60);
+  if (!key) return;
 
+  // Запоминаем: как только блок с таким кодом появится — пометим.
+  pendingErrors.set(key, String(errorText || '执行失败'));
+  console.log('[Cuckoo Code] tool-render: ошибка поставлена в очередь:', key, '→', String(errorText || '').slice(0, 80));
+
+  // И пробуем применить прямо сейчас (вдруг блок уже в DOM).
+  applyPendingErrors();
+}
+
+/**
+ * Применить все накопленные ошибки к текущим tool-блокам.
+ * Вызывается при каждой обёртке (decorate) и через polling.
+ */
+function applyPendingErrors() {
+  if (pendingErrors.size === 0) return;
+  const norm = (s) => String(s || '').replace(/\s+/g, ' ').trim();
   const blocks = document.querySelectorAll('.' + BLOCK_CLASS);
   for (const block of blocks) {
     const pre = block.querySelector('pre');
     if (!pre) continue;
     const blockCode = norm(pre.textContent);
-    if (!blockCode.includes(target.slice(0, 60))) continue;
-
-    block.classList.add('cuckoo-tool-error');
-    block.setAttribute('data-error', '1');
-
-    // Добавляем иконку ошибки в шапку (если её ещё нет)
-    const header = block.querySelector('.cuckoo-tool-header');
-    if (header && !header.querySelector('.cuckoo-tool-error-icon')) {
-      const errIcon = document.createElement('span');
-      errIcon.className = 'cuckoo-tool-error-icon';
-      errIcon.textContent = '⚠';
-      errIcon.title = errorText || 'Ошибка выполнения';
-      header.appendChild(errIcon);
+    for (const [key, errText] of pendingErrors) {
+      if (!blockCode.includes(key)) continue;
+      // Помечаем
+      block.classList.add('cuckoo-tool-error');
+      block.setAttribute('data-error', '1');
+      const header = block.querySelector('.cuckoo-tool-header');
+      if (header && !header.querySelector('.cuckoo-tool-error-icon')) {
+        const errIcon = document.createElement('span');
+        errIcon.className = 'cuckoo-tool-error-icon';
+        errIcon.textContent = '⚠';
+        errIcon.title = errText;
+        header.appendChild(errIcon);
+      }
+      block.setAttribute('data-expanded', 'true');
+      const md = block.querySelector('.md-code-block');
+      if (md) md.style.display = 'block';
+      const chev = header && header.querySelector('.cuckoo-tool-chevron');
+      if (chev) chev.textContent = '▾';
+      if (!block.querySelector('.cuckoo-tool-error-msg')) {
+        const errBlock = document.createElement('div');
+        errBlock.className = 'cuckoo-tool-error-msg';
+        errBlock.textContent = errText;
+        block.appendChild(errBlock);
+      }
+      pendingErrors.delete(key); // применили — больше не нужно
+      break;
     }
-
-    // Разворачиваем блок, чтобы пользователь увидел код и ошибку
-    block.setAttribute('data-expanded', 'true');
-    const md = block.querySelector('.md-code-block');
-    if (md) md.style.display = 'block';
-    const chev = header && header.querySelector('.cuckoo-tool-chevron');
-    if (chev) chev.textContent = '▾';
-
-    // Добавляем панель с ошибкой под кодом
-    if (!block.querySelector('.cuckoo-tool-error-msg')) {
-      const errBlock = document.createElement('div');
-      errBlock.className = 'cuckoo-tool-error-msg';
-      errBlock.textContent = errorText || '执行失败';
-      block.appendChild(errBlock);
-    }
-    break;
   }
 }
 
-module.exports = { decorate, detectTool, startWatch, markToolBlockError };
+module.exports = { decorate, detectTool, startWatch, markToolBlockError, applyPendingErrors };
