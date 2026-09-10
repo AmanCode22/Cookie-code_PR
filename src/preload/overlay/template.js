@@ -397,6 +397,12 @@ const OVERLAY_CSS = [
 '.cuckoo-first-time-text { margin-bottom: 18px; color: #dde1ff; }',
 '.cuckoo-first-time-box .cuckoo-actions { justify-content: center; }',
 '.cuckoo-first-time-box .cuckoo-btn { flex: 0 0 auto; min-width: 150px; }',
+// ========== CSS-переменные (управляются из настроек Cuckoo Code) ==========
+':root {',
+'  --cuckoo-bg-blur: 0px;',       // размытие самой картинки фона
+'  --cuckoo-header-blur: 12px;',  // стекло шапки
+'  --cuckoo-sidebar-blur: 12px;', // стекло сайдбара
+'}',
 // ========== 页面背景：базовый цвет + стили (картинка ставится через JS) ==========
 'html, body {',
 '  background-color: #0f1220 !important;',
@@ -405,10 +411,26 @@ const OVERLAY_CSS = [
 '  background-repeat: no-repeat !important;',
 '  background-attachment: fixed !important;',
 '}',
+// ========== Размытие самой фоновой картинки (--cuckoo-bg-blur) ==========
+// Отдельный fixed-слой поверх body, чтобы фильтр не затрагивал контент.
+'html::before {',
+'  content: "";',
+'  position: fixed;',
+'  inset: 0;',
+'  background: inherit;',
+'  background-image: inherit;',
+'  background-size: cover;',
+'  background-position: center center;',
+'  background-attachment: fixed;',
+'  filter: blur(var(--cuckoo-bg-blur));',
+'  transform: scale(1.05);',  // скрываем размытые края по периметру
+'  pointer-events: none;',
+'  z-index: -1;',
+'}',
 // ========== 页面顶部标题栏毛玻璃（DeepSeek） ==========
 '.the-header {',
-'  backdrop-filter: blur(12px) saturate(140%) !important;',
-'  -webkit-backdrop-filter: blur(12px) saturate(140%) !important;',
+'  backdrop-filter: blur(var(--cuckoo-header-blur)) saturate(140%) !important;',
+'  -webkit-backdrop-filter: blur(var(--cuckoo-header-blur)) saturate(140%) !important;',
 '  background: rgba(15, 18, 32, 0.45) !important;',
 '}',
 // ========== 去掉输入框底部的深色渐变，让背景图透出 ==========
@@ -420,12 +442,28 @@ const OVERLAY_CSS = [
 '  background: transparent !important;',
 '}',
 // ========== 左侧边栏毛玻璃（DeepSeek） ==========
-// .b8812f16.a2f3d50e 是 DeepSeek 左侧栏的根容器（组合类名唯一）。
+// .b8812f16.a2f3d50e — корень сайдбара. Внутри много слоёв, каждый со своим
+// фоном (шапка _262baab, список _3586175/_6d215eb/_77cdc67, низ _7b40dad).
+// Делаем прозрачными все промежуточные слои, чтобы стекло работало насквозь.
 '.b8812f16.a2f3d50e,',
-'.b8812f16.a2f3d50e > div {',
+'.b8812f16.a2f3d50e > div,',
+'.b8812f16.a2f3d50e > div > div,',
+'.b8812f16.a2f3d50e ._262baab,',
+'.b8812f16.a2f3d50e ._3586175,',
+'.b8812f16.a2f3d50e ._6d215eb,',
+'.b8812f16.a2f3d50e ._77cdc67,',
+'.b8812f16.a2f3d50e ._7b40dad,',
+'.b8812f16.a2f3d50e ._8a693f3,',
+'.b8812f16.a2f3d50e ._1d72f01 {',
+'  background: transparent !important;',
+'  backdrop-filter: none !important;',
+'  -webkit-backdrop-filter: none !important;',
+'}',
+// Стекло применяем один раз — на корень сайдбара.
+'.b8812f16.a2f3d50e {',
 '  background: rgba(15, 18, 32, 0.45) !important;',
-'  backdrop-filter: blur(12px) saturate(140%) !important;',
-'  -webkit-backdrop-filter: blur(12px) saturate(140%) !important;',
+'  backdrop-filter: blur(var(--cuckoo-sidebar-blur)) saturate(140%) !important;',
+'  -webkit-backdrop-filter: blur(var(--cuckoo-sidebar-blur)) saturate(140%) !important;',
 '}',
 // ========== 隐藏底部「Сгенерировано ИИ」免责声明 ==========
 '._0fcaa63 {',

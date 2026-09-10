@@ -94,16 +94,59 @@ function apply(id) {
 }
 
 /**
- * Загрузить настройки из settings.json и применить фон.
+ * Применить настройки размытия (background, header, sidebar).
+ * Значения — числа в px. Записываются как CSS-переменные на :root.
+ */
+function applyBlur(settings) {
+  const root = document.documentElement;
+  const bg = Number(settings && settings.backgroundBlur) || 0;
+  const hd = Number(settings && settings.headerBlur);
+  const sb = Number(settings && settings.sidebarBlur);
+  root.style.setProperty('--cuckoo-bg-blur', bg + 'px');
+  root.style.setProperty('--cuckoo-header-blur', (isNaN(hd) ? 12 : hd) + 'px');
+  root.style.setProperty('--cuckoo-sidebar-blur', (isNaN(sb) ? 12 : sb) + 'px');
+  console.log('[Cuckoo Code] Блюр: фон=' + bg + 'px, шапка=' + (isNaN(hd) ? 12 : hd) + 'px, сайдбар=' + (isNaN(sb) ? 12 : sb) + 'px');
+}
+
+/**
+ * Загрузить настройки из settings.json и применить фон + размытие.
  */
 async function loadAndApply() {
   try {
     const settings = await window.electronAPI.getCuckooSettings();
     const bgId = (settings && settings.background) || DEFAULT_ID;
     apply(bgId);
+    applyBlur(settings);
   } catch (err) {
-    console.error('[Cuckoo Code] Не удалось загрузить настройки фона:', err.message);
+    console.error('[Cuckoo Code] Не удалось загрузить настройки:', err.message);
     apply(DEFAULT_ID);
+    applyBlur(null);
+  }
+}
+
+/**
+ * Значения по умолчанию (синхронизированы с src/main/settings-store.js).
+ */
+const RESET_DEFAULTS = {
+  background: DEFAULT_ID,
+  backgroundBlur: 0,
+  headerBlur: 12,
+  sidebarBlur: 12,
+};
+
+/**
+ * Сбросить фон и все блюры к дефолтам (с сохранением в settings.json).
+ */
+async function resetAll() {
+  apply(RESET_DEFAULTS.background);
+  applyBlur(RESET_DEFAULTS);
+  try {
+    for (const key of Object.keys(RESET_DEFAULTS)) {
+      await window.electronAPI.setCuckooSetting(key, RESET_DEFAULTS[key]);
+    }
+    console.log('[Cuckoo Code] Настройки сброшены к дефолтам');
+  } catch (err) {
+    console.error('[Cuckoo Code] Не удалось сохранить дефолты:', err.message);
   }
 }
 
@@ -116,8 +159,11 @@ function getPreviewUri(file) {
 
 module.exports = {
   apply,
+  applyBlur,
   loadAndApply,
   getPreviewUri,
+  resetAll,
+  RESET_DEFAULTS,
   BACKGROUNDS,
   DEFAULT_ID,
   BACKGROUNDS_DIR,

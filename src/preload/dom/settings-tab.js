@@ -56,8 +56,14 @@ function activateCuckooTab() {
 
     // Вешаем обработчики на превью фонов
     bindBackgroundGrid();
+    // Вешаем обработчики на слайдеры размытия
+    bindBlurSliders();
+    // Загружаем сохранённые значения блюра в слайдеры
+    refreshBlurValues();
     // Подсвечиваем текущий фон
     refreshBackgroundSelection();
+    // Кнопка сброса
+    bindResetButton();
   }
   ourContent.style.display = '';
 }
@@ -81,6 +87,8 @@ function buildContentHTML() {
     '<style>' +
     '  .cuckoo-settings-title { font-size: 20px; font-weight: 700; margin: 0 0 4px; color: #e8eaff; }' +
     '  .cuckoo-settings-subtitle { color: #8a90b8; font-size: 13px; margin: 0 0 16px; }' +
+    '  .cuckoo-section-title { font-size: 14px; font-weight: 600; margin: 0 0 10px; color: #c8ccff; ' +
+    '                          text-transform: uppercase; letter-spacing: 0.6px; }' +
     '  .cuckoo-bg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }' +
     '  .cuckoo-bg-item { cursor: pointer; border: 2px solid rgba(139,147,255,0.2); border-radius: 10px; ' +
     '                    overflow: hidden; transition: border-color 0.18s, transform 0.15s; background: rgba(0,0,0,0.25); }' +
@@ -89,12 +97,51 @@ function buildContentHTML() {
     '  .cuckoo-bg-preview { width: 100%; aspect-ratio: 16/10; background-size: cover; background-position: center; background-color: #0f1220; }' +
     '  .cuckoo-bg-label { font-size: 11px; padding: 5px 8px; text-align: center; color: #cfd3ff; ' +
     '                     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }' +
+    // Слайдеры
+    '  .cuckoo-blur-row { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; ' +
+    '                     background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); ' +
+    '                     border-radius: 10px; margin-bottom: 8px; }' +
+    '  .cuckoo-blur-label { font-size: 13px; color: #cfd3ff; display: flex; justify-content: space-between; ' +
+    '                       align-items: center; margin-bottom: 2px; }' +
+    '  .cuckoo-blur-value { font-size: 12px; color: #8b93ff; font-family: "Consolas", monospace; font-weight: 600; }' +
+    '  .cuckoo-blur-slider { width: 100%; height: 4px; -webkit-appearance: none; appearance: none; ' +
+    '                        background: rgba(139,147,255,0.25); border-radius: 2px; outline: none; ' +
+    '                        cursor: pointer; }' +
+    '  .cuckoo-blur-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; ' +
+    '                        width: 16px; height: 16px; border-radius: 50%; background: #8b93ff; ' +
+    '                        cursor: pointer; transition: transform 0.15s; }' +
+    '  .cuckoo-blur-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }' +
     '</style>' +
     '<div>' +
     '  <div class="cuckoo-settings-title">Cuckoo Code</div>' +
-    '  <div class="cuckoo-settings-subtitle">Выбор фонового изображения страницы</div>' +
+    '  <div class="cuckoo-settings-subtitle">Настройки интерфейса и фонового изображения</div>' +
     '</div>' +
-    '<div class="cuckoo-bg-grid">' + items + '</div>';
+    '<div>' +
+    '  <div class="cuckoo-section-title">Размытие</div>' +
+    '  <div class="cuckoo-blur-row">' +
+    '    <div class="cuckoo-blur-label"><span>Блюр фонового изображения</span><span class="cuckoo-blur-value" id="cuckoo-blur-bg-val">0 px</span></div>' +
+    '    <input type="range" id="cuckoo-blur-bg" class="cuckoo-blur-slider" min="0" max="30" step="1" value="0">' +
+    '  </div>' +
+    '  <div class="cuckoo-blur-row">' +
+    '    <div class="cuckoo-blur-label"><span>Блюр шапки (стекло)</span><span class="cuckoo-blur-value" id="cuckoo-blur-header-val">12 px</span></div>' +
+    '    <input type="range" id="cuckoo-blur-header" class="cuckoo-blur-slider" min="0" max="30" step="1" value="12">' +
+    '  </div>' +
+    '  <div class="cuckoo-blur-row">' +
+    '    <div class="cuckoo-blur-label"><span>Блюр сайдбара (стекло)</span><span class="cuckoo-blur-value" id="cuckoo-blur-sidebar-val">12 px</span></div>' +
+    '    <input type="range" id="cuckoo-blur-sidebar" class="cuckoo-blur-slider" min="0" max="30" step="1" value="12">' +
+    '  </div>' +
+    '</div>' +
+    '<div>' +
+    '  <div class="cuckoo-section-title">Фон страницы</div>' +
+    '  <div class="cuckoo-bg-grid">' + items + '</div>' +
+    '</div>' +
+    '<div style="display:flex;justify-content:flex-end;margin-top:4px;">' +
+    '  <button id="cuckoo-btn-reset" style="' +
+    '    padding: 9px 18px; border: 1px solid rgba(255,107,122,0.5); border-radius: 10px;' +
+    '    background: rgba(255,107,122,0.15); color: #ff9aa5; font-weight: 600; font-size: 13px;' +
+    '    cursor: pointer; transition: all 0.18s;' +
+    '  ">Сбросить настройки</button>' +
+    '</div>';
 }
 
 function escapeHtml(s) {
@@ -130,6 +177,92 @@ function bindBackgroundGrid() {
       }
     });
   });
+}
+
+/**
+ * Обработчики слайдеров размытия.
+ * На input — мгновенно применяем и обновляем подпись.
+ * На change — сохраняем в settings.json.
+ */
+function bindBlurSliders() {
+  const sliders = [
+    { inputId: 'cuckoo-blur-bg',      valId: 'cuckoo-blur-bg-val',      key: 'backgroundBlur', def: 0 },
+    { inputId: 'cuckoo-blur-header',  valId: 'cuckoo-blur-header-val',  key: 'headerBlur',     def: 12 },
+    { inputId: 'cuckoo-blur-sidebar', valId: 'cuckoo-blur-sidebar-val', key: 'sidebarBlur',    def: 12 },
+  ];
+
+  sliders.forEach(({ inputId, valId, key, def }) => {
+    const input = document.getElementById(inputId);
+    const label = document.getElementById(valId);
+    if (!input || !label) return;
+    const updateLabel = (v) => { label.textContent = v + ' px'; };
+
+    input.addEventListener('input', () => {
+      const v = Number(input.value);
+      updateLabel(v);
+      // Мгновенно применяем — собираем текущие значения и вызываем applyBlur
+      const settings = {
+        backgroundBlur: Number((document.getElementById('cuckoo-blur-bg') || {}).value) || 0,
+        headerBlur:     Number((document.getElementById('cuckoo-blur-header') || {}).value),
+        sidebarBlur:    Number((document.getElementById('cuckoo-blur-sidebar') || {}).value),
+      };
+      background.applyBlur(settings);
+    });
+
+    input.addEventListener('change', async () => {
+      const v = Number(input.value);
+      try {
+        const res = await window.electronAPI.setCuckooSetting(key, v);
+        if (!res || !res.success) {
+          console.error('[Cuckoo Code] Не удалось сохранить настройку', key, res && res.error);
+        }
+      } catch (err) {
+        console.error('[Cuckoo Code] Ошибка сохранения настройки', key, err.message);
+      }
+    });
+  });
+}
+
+/**
+ * Кнопка «Сбросить настройки» — возвращает фон и все блюры к дефолтам.
+ */
+function bindResetButton() {
+  const btn = document.getElementById('cuckoo-btn-reset');
+  if (!btn) return;
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    btn.textContent = 'Сброс...';
+    try {
+      await background.resetAll();
+      // Обновляем UI: слайдеры + подсветка фона
+      await refreshBlurValues();
+      await refreshBackgroundSelection();
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Сбросить настройки';
+    }
+  });
+}
+
+/**
+ * Загрузить сохранённые значения блюра в слайдеры.
+ */
+async function refreshBlurValues() {
+  try {
+    const s = await window.electronAPI.getCuckooSettings();
+    const setSlider = (id, valId, v) => {
+      const input = document.getElementById(id);
+      const label = document.getElementById(valId);
+      if (!input || !label) return;
+      input.value = String(v);
+      label.textContent = v + ' px';
+    };
+    setSlider('cuckoo-blur-bg',      'cuckoo-blur-bg-val',      Number(s && s.backgroundBlur) || 0);
+    setSlider('cuckoo-blur-header',  'cuckoo-blur-header-val',  Number(s && s.headerBlur != null ? s.headerBlur : 12));
+    setSlider('cuckoo-blur-sidebar', 'cuckoo-blur-sidebar-val', Number(s && s.sidebarBlur != null ? s.sidebarBlur : 12));
+  } catch (err) {
+    console.error('[Cuckoo Code] Не удалось загрузить значения блюра:', err.message);
+  }
 }
 
 /**

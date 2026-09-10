@@ -12,6 +12,9 @@ const { app } = require('electron');
 
 const DEFAULTS = {
   background: 'miku',
+  backgroundBlur: 0,   // px — размытие самой картинки фона
+  headerBlur: 12,      // px — стекло верхней панели
+  sidebarBlur: 12,     // px — стекло левого сайдбара
 };
 
 let cachedPath = null;
