@@ -110,10 +110,26 @@ function hasOnlyCodeContent(root) {
   if (!root) return false;
   // 调用方已定位到具体代码块元素时，视为"只有代码"
   if (root.tagName === 'PRE') return true;
-  const clone = root.cloneNode(true);
-  // 剔除代码块本身、banner（语言标签 + 复制/下载按钮）与工具栏等装饰元素
-  clone.querySelectorAll('pre, .md-code, .md-code-block-banner-wrap, .md-code-block-banner, button, [class*="toolbar"], [class*="copy"], [class*="download"], [class*="code-block-header"], [class*="lang"], [class*="header"]').forEach((el) => el.remove());
-  return !(clone.textContent || '').trim();
+  // 无 cloneNode：直接遍历文本节点，跳过代码块/工具栏/按钮内的文本。
+  // 原实现 cloneNode(true) 在长回复上会复制整棵 DOM 子树，是流式期间的性能瓶颈。
+  return !hasMeaningfulTextOutsideCode(root);
+}
+
+// 遍历 root 下的文本节点，判断是否存在「非代码块、非工具栏」的有意义文本。
+// 跳过：<pre>/<code>/.md-code 内的文本；banner/button/工具栏等装饰节点内的文本。
+function hasMeaningfulTextOutsideCode(root) {
+  const SKIP_CLOSEST = 'pre, code, .md-code, .md-code-block-banner-wrap, .md-code-block-banner, button, [class*="toolbar"], [class*="copy"], [class*="download"], [class*="code-block-header"], [class*="lang"], [class*="header"]';
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  let node;
+  while ((node = walker.nextNode())) {
+    const text = node.nodeValue;
+    if (!text || !text.trim()) continue;
+    const parent = node.parentElement;
+    if (!parent) continue;
+    if (parent.closest(SKIP_CLOSEST)) continue;
+    return true; // нашли значимый текст вне кода — значит ответ НЕ только из кода
+  }
+  return false;
 }
 
 /**

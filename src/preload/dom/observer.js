@@ -476,9 +476,11 @@ function sleep(ms) {
 }
 function startObserver() {
   const observer = new MutationObserver((mutations) => {
-    // 100ms 节流：避免页面高频 DOM 变化导致日志与检测刷屏
+    // 节流：避免页面高频 DOM 变化导致日志与检测刷屏。
+    // 800ms 平衡响应速度与 CPU：завершение ответа дублируется childList-мутацией
+    // (исчезновение stop-кнопки) и поллингом completionPollTimer (2s).
     const now = Date.now();
-    if (now - lastObserverRun < 400) return;
+    if (now - lastObserverRun < 800) return;
     lastObserverRun = now;
 
     // Собираем только summary по mutations — не вникаем в детали каждого узла.
@@ -503,6 +505,16 @@ function startObserver() {
         hasNewContent = true;
       }
     }
+
+    // Пытаемся сразу стартовать таймер метрики для новых AI-сообщений.
+    // Debounced response-meta.run() может не успеть на коротких ответах →
+    // finishTimer видит пустой activeTimers и пишет 0s. Стартуем из observer'а
+    // мгновенно, как только новый AI-элемент появился в DOM.
+    try {
+      const metaCandidates = getMessageCandidates();
+      const latestForMeta = metaCandidates.length > 0 ? metaCandidates[metaCandidates.length - 1] : null;
+      if (latestForMeta) responseMeta.startTimer(latestForMeta);
+    } catch (_) {}
 
     // 回复结束后读取最新 AI 回复；完成判定内部已含必要等待
     if (hasNewContent && !isProcessingResponse) {
@@ -529,7 +541,7 @@ function startObserver() {
 
   const target = document.body || document.documentElement;
   if (target) {
-    observer.observe(target, { childList: true, subtree: true, characterData: true, attributes: true });
+    observer.observe(target, { childList: true, subtree: true });
   }
 
   // 完成检测兜底轮询：mutation 通道存在漏触发窗口——

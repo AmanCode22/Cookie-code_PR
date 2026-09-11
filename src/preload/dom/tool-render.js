@@ -182,14 +182,27 @@ function startWatch() {
   window.__cuckooWatchStarted = true;
 
   // Debounce-обёртка: не чаще раза в 400ms, чтобы не дёргать DOM при каждом mutation.
+  // Hot-path обрабатывает только последний .ds-markdown — стримится всегда снизу.
+  // Старые ответы декорируются один раз при первичном прогоне (runAll на старте ниже).
   let debounceTimer = null;
+  let firstRunDone = false;
   const runAll = () => {
     if (debounceTimer) return;
     debounceTimer = setTimeout(() => {
       debounceTimer = null;
       try {
+        if (!firstRunDone) {
+          // Первый прогон — по всей истории (после reload нужно декорировать старое).
+          firstRunDone = true;
+          const scopes = document.querySelectorAll('.ds-markdown');
+          scopes.forEach((s) => { try { decorate(s); } catch (_) {} });
+          return;
+        }
+        // Дальше — только последний ответ.
         const scopes = document.querySelectorAll('.ds-markdown');
-        scopes.forEach((s) => { try { decorate(s); } catch (_) {} });
+        if (scopes.length > 0) {
+          try { decorate(scopes[scopes.length - 1]); } catch (_) {}
+        }
       } catch (_) {}
     }, 400);
   };
