@@ -81,6 +81,16 @@
 
 Ник пользователя в сайдбаре имеет **анимированный радужный градиент** (включено по умолчанию). Отключается в **Настройки → Cookie Code → Эффекты**.
 
+### Telegram-бот
+
+Управляйте Cookie Code и следите за ним с телефона:
+
+- **Уведомления об инструментах** — каждый вызов (успех/ошибка, имя, аргументы, результат) приходит в ваш Telegram-чат. Для `edit` показывается новый код (до 2000 символов).
+- **Ответы AI** — каждый текстовый ответ AI дублируется в Telegram (человекочитаемый текст без code-блоков).
+- **Входящие сообщения** — напишите боту, и сообщение попадёт в чат DeepSeek, как если бы вы набрали его сами.
+- Лёгкий клиент **без зависимостей** (long-polling, без VPS и webhook).
+- Настройка в **Настройки → Cookie Code → Telegram-бот** (токен от @BotFather + chat ID).
+
 ### Чистое окно
 
 Без системного меню Electron — приложение сразу открывается в DeepSeek. Все стандартные горячие клавиши (Ctrl+C/V, Ctrl+R, F12) работают.
@@ -211,7 +221,12 @@ Cookie Code перехватывает его, выполняет в песоч�
   "sidebarOpacity": 45,
   "toolBlockOpacity": 55,
   "toolBlockBlur": 0,
-  "rgbUsername": true
+  "rgbUsername": true,
+  "telegramEnabled": false,
+  "telegramBotToken": "",
+  "telegramChatId": "",
+  "telegramNotifyTools": false,
+  "telegramChatFeed": false
 }
 ```
 
@@ -251,6 +266,9 @@ src/
 │   └── logos/
 tools/                 Реализация инструментов (в главном процессе)
 └── cuckoo-tools.d.ts  TypeScript-декларации для AI
+botsrc/                Интеграция Telegram-бота (без зависимостей)
+├── telegram.js          Клиент Telegram (long-polling)
+└── index.js             Настройки, уведомления, приём сообщений
 ```
 
 ---

@@ -81,6 +81,16 @@ All settings persist in `cuckoo-settings.json`.
 
 The username in the sidebar has an animated rainbow gradient (enabled by default). Toggle it in **Settings → Cookie Code → Effects**.
 
+### Telegram bot
+
+Control and monitor Cookie Code from your phone:
+
+- **Tool notifications** — every tool call (success/failure, name, arguments, result) is sent to your Telegram chat. For `edit`, the new code is shown (up to 2000 chars).
+- **AI replies** — every AI text response is mirrored to Telegram (human-readable text, code blocks stripped).
+- **Incoming messages** — send a message to the bot and it lands in the DeepSeek chat as if you typed it.
+- Lightweight, **dependency-free** client (long-polling, no VPS or webhook needed).
+- Configured in **Settings → Cookie Code → Telegram bot** (token from @BotFather + chat ID).
+
 ### Clean window
 
 No Electron system menu — the app opens straight into DeepSeek. All standard keyboard shortcuts (Ctrl+C/V, Ctrl+R, F12) still work.
@@ -211,7 +221,12 @@ User settings live in `cuckoo-settings.json` under the app's userData directory:
   "sidebarOpacity": 45,
   "toolBlockOpacity": 55,
   "toolBlockBlur": 0,
-  "rgbUsername": true
+  "rgbUsername": true,
+  "telegramEnabled": false,
+  "telegramBotToken": "",
+  "telegramChatId": "",
+  "telegramNotifyTools": false,
+  "telegramChatFeed": false
 }
 ```
 
@@ -251,6 +266,9 @@ src/
 │   └── logos/
 tools/                 Tool implementations (run in main process)
 └── cuckoo-tools.d.ts  Type declarations for the AI
+botsrc/                Telegram bot integration (dependency-free)
+├── telegram.js          Long-polling Telegram client
+└── index.js             Settings, notifications, chat feed
 ```
 
 ---
