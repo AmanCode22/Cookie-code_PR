@@ -87,6 +87,8 @@ function apply(id) {
   try {
     document.documentElement.style.setProperty('background-image', value, 'important');
     document.body.style.setProperty('background-image', value, 'important');
+    // Дублируем URL в переменную — её читает reasoning-glass.js и CSS-шаблон.
+    document.documentElement.style.setProperty('--cuckoo-bg-image', uri ? value : 'none', 'important');
     console.log('[Cookie Code] Фон применён:', id, '(' + (uri ? Math.round(uri.length / 1024) + ' КБ' : 'нет') + ')');
   } catch (err) {
     console.error('[Cookie Code] Не удалось применить фон:', err.message);
@@ -121,6 +123,10 @@ function applyBlur(settings) {
   root.style.setProperty('--cuckoo-sidebar-opacity', sbOpVal + '%');
   root.style.setProperty('--cuckoo-toolblock-opacity', tbOpVal + '%');
   root.style.setProperty('--cuckoo-toolblock-blur', tbBlurVal + 'px');
+  // Плашка «Размышление» использует свой blur (дефолт 12px, если настройка toolBlockBlur = 0).
+  root.style.setProperty('--cuckoo-reasoning-blur', (tbBlurVal > 0 ? tbBlurVal : 12) + 'px');
+  // И свою (более лёгкую) плотность плёнки — тонкая плашка не должна выглядеть чёрной.
+  root.style.setProperty('--cuckoo-reasoning-opacity', Math.max(15, tbOpVal - 20) + '%');
   console.log('[Cookie Code] Стили: фон=' + bg + 'px, шапка=' + hdVal + 'px/' + hdOpVal + '%, сайдбар=' + sbVal + 'px/' + sbOpVal + '%, tool=' + tbBlurVal + 'px/' + tbOpVal + '%');
 }
 

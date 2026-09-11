@@ -16,6 +16,7 @@ const chatExport = require('./dom/chat-export');
 const chatInput = require('./dom/chat-input');
 const settingsTab = require('./dom/settings-tab');
 const background = require('./dom/background');
+const reasoningGlass = require('./dom/reasoning-glass');
 const i18n = require('./i18n/i18n');
 const { getProviderByUrl } = require('../providers');
 
@@ -60,6 +61,9 @@ async function init() {
 
     // Загружаем настройки и применяем фон
     background.loadAndApply();
+
+    // Матовое стекло для плашки «Размышление N секунд»
+    reasoningGlass.startWatch();
   } catch (err) {
     console.error('[Cookie Code] init() 出错:', err);
     // 兜底：即使出错也强制显示面板
