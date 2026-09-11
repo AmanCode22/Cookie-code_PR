@@ -498,7 +498,27 @@ function extractHumanTextFromNode(node) {
   if (!node) return '';
   const clone = node.cloneNode(true);
   clone.querySelectorAll('.md-code-block, .cuckoo-tool-block, .cuckoo-tool-header, .cuckoo-tool-label, .cuckoo-tool-file, .cuckoo-tool-sep, .cuckoo-tool-icon, .cuckoo-tool-chevron, pre, button, [class*="toolbar"], [class*="copy"], [class*="download"], [class*="code-block"], [class*="lang"]').forEach(el => el.remove());
-  let t = (clone.textContent || '').replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
+  // Обходим DOM и расставляем переносы на границах блочных элементов —
+  // textContent их склеивает (абзацы/пункты списка/заголовки).
+  const BLOCK = { P: 1, DIV: 1, LI: 1, UL: 1, OL: 1, BR: 1, TR: 1, H1: 1, H2: 1, H3: 1, H4: 1, H5: 1, H6: 1, BLOCKQUOTE: 1, TABLE: 1, SECTION: 1, ARTICLE: 1 };
+  const out = [];
+  const walk = (el) => {
+    const tag = el.nodeName ? el.nodeName.toUpperCase() : '';
+    if (tag === 'BR') { out.push('\n'); return; }
+    for (let i = 0; i < el.childNodes.length; i++) {
+      const child = el.childNodes[i];
+      if (child.nodeType === 3) {
+        out.push(child.nodeValue);
+      } else if (child.nodeType === 1) {
+        const isBlock = !!BLOCK[child.nodeName.toUpperCase()];
+        if (isBlock) out.push('\n');
+        walk(child);
+        if (isBlock) out.push('\n');
+      }
+    }
+  };
+  walk(clone);
+  let t = out.join('').replace(/[ \t]+/g, ' ').replace(/ *\n */g, '\n').replace(/\n{3,}/g, '\n\n').trim();
   return t;
 }
 

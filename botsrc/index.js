@@ -5,7 +5,7 @@
  * Роли:
  *  - читает настройки (token/chatId/enabled/notifyTools/chatFeed) из settings-store;
  *  - запускает/останавливает polling;
- *  - notifyToolResult(toolName, ok, detail)  → уведомление в TG (с деталями вызова: аргументы + новый код).
+ *  - notifyToolResult(toolName, ok, detail)  → уведомление в TG (diff-стиль для edit).
  *  - входящее сообщение из TG → sendToChat в активном окне DeepSeek.
  */
 const { telegramBot } = require('./telegram');
@@ -153,10 +153,19 @@ async function notifyToolResult(toolName, ok, detail) {
     const parts = [];
 
     if (toolName === 'edit') {
-      // edit оставляем как есть (структурированное представление, без цитаты).
-      if (argsText) parts.push(escapeHtml(argsText));
-      if (preview) parts.push('📤 ' + escapeHtml(String(preview).replace(/\n{3,}/g, '\n\n').slice(0, 600)));
-      const msg = header + '\n' + parts.join('\n');
+      // Красивый diff-стиль: старый код как -, новый как +.
+      const file = (args && (args.file_path || args.path)) || '';
+      const oldS = args && args.old_string != null ? String(args.old_string) : '';
+      const newS = args && args.new_string != null ? String(args.new_string) : '';
+      const lines = [];
+      const addLines = (prefix, s) => {
+        for (const ln of s.split('\n')) lines.push(prefix + escapeHtml(ln));
+      };
+      if (oldS) addLines('➖ ', oldS.slice(0, 1000));
+      if (newS) addLines('➕ ', newS.slice(0, 2000));
+      const body = lines.join('\n') || '(пустое изменение)';
+      const title = file ? ' ' + escapeHtml(file) : '';
+      const msg = emoji + ' <b>edit</b>' + title + '\n<blockquote expandable>' + body + '</blockquote>';
       return telegramBot.sendMessage(msg, { parseMode: 'HTML' });
     }
 
