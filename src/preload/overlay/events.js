@@ -3,7 +3,7 @@
  * 由原 preload.js 拆分而来，逻辑保持不变。
  */
 const state = require('../dom/state');
-const { hideOverlay, showOverlay, renderHistory, commandHistory, showToast, showConfirmDialog, hideFirstTimeDialog } = require('./ui');
+const { hideOverlay, showOverlay, renderHistory, commandHistory, showToast, showConfirmDialog, hideFirstTimeDialog, handleKillProcess } = require('./ui');
 const { handleInitProject, renderSessions } = require('../dom/session-list');
 const { handleManualParse } = require('../dom/observer');
 const { sendToChat } = require('../dom/chat-input');
@@ -258,6 +258,10 @@ function bindEvents() {
   // 手动解析按钮
   const manualParseBtn = document.getElementById('cuckoo-btn-manual-parse');
   manualParseBtn?.addEventListener('click', handleManualParse);
+
+  // Экстренная остановка активных дочерних процессов (кнопка Kill в плашке статуса)
+  const killBtn = document.getElementById('cuckoo-btn-kill');
+  killBtn?.addEventListener('click', handleKillProcess);
 
   // 窗口管理按钮：打开浮动管理面板
   const windowManagerBtn = document.getElementById('cuckoo-btn-window-manager');

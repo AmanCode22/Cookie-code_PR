@@ -102,11 +102,18 @@ class PwshTool extends Tool {
       console.log('[PwshTool] 执行命令: ' + trimmed + ', cwd=' + workDir);
 
       return await new Promise((resolve) => {
-        execFile(
+        let processManager = null;
+        try {
+          processManager = require('../src/main/process-manager').processManager;
+        } catch (_) {}
+
+        const child = execFile(
           'powershell',
           ['-NoProfile', '-Command', trimmed],
           { cwd: workDir, timeout, maxBuffer: 1024 * 1024, windowsHide: true, encoding: 'buffer' },
           (error, stdout, stderr) => {
+            const wasKilledByUser = processManager && child && processManager.wasKilled(child.pid);
+            if (processManager && child) processManager.untrack(child);
             const out = decodeOutput(stdout);
             const err = decodeOutput(stderr);
 
@@ -120,7 +127,9 @@ class PwshTool extends Tool {
 
             const markers = [];
             if (error) {
-              if (error.killed) {
+              if (wasKilledByUser) {
+                markers.push('[terminated by user]');
+              } else if (error.killed) {
                 markers.push('[timed out after ' + timeout + 'ms]');
               } else if (typeof error.code === 'number') {
                 markers.push('[exit code: ' + error.code + ']');
@@ -137,6 +146,10 @@ class PwshTool extends Tool {
             resolve(ToolResult.success(body));
           }
         );
+
+        if (processManager && child) {
+          processManager.track(child);
+        }
       });
     } catch (err) {
       return ToolResult.error('命令执行异常: ' + err.message);

@@ -22,6 +22,9 @@ let electronAPI = {
   executeJs: (code, callId) => {
     return ipcRenderer.invoke('execute-js', { code, callId });
   },
+  killProcess: () => {
+    return ipcRenderer.invoke('kill-process');
+  },
   sendEnterToChat: () => {
     return ipcRenderer.invoke('chat-send-enter');
   },

@@ -123,20 +123,31 @@ class BashTool extends Tool {
       const timeout = typeof timeoutMs === 'number' && timeoutMs > 0 ? timeoutMs : 30000;
 
       return await new Promise((resolve) => {
-        exec(trimmed, {
+        let processManager = null;
+        try {
+          processManager = require('../src/main/process-manager').processManager;
+        } catch (_) {}
+
+        const child = exec(trimmed, {
           cwd: workDir,
           timeout,
           maxBuffer: 1024 * 1024,
           windowsHide: true,
           encoding: 'buffer',
         }, (error, stdout, stderr) => {
+          const wasKilledByUser = processManager && child && processManager.wasKilled(child.pid);
+          if (processManager && child) processManager.untrack(child);
           const out = decodeOutput(stdout);
           const err = decodeOutput(stderr);
           const parts = [];
           if (out) parts.push(out);
           if (err) parts.push('[stderr]\n' + err);
           if (error) {
-            if (error.killed) parts.push('[timed out]');
+            if (wasKilledByUser) {
+              parts.push('[terminated by user]');
+            } else if (error.killed) {
+              parts.push('[timed out]');
+            }
             const code = typeof error.code === 'number' ? error.code : 1;
             parts.push('[exit code: ' + code + ']');
           } else {
@@ -144,6 +155,10 @@ class BashTool extends Tool {
           }
           resolve(ToolResult.success(parts.join('\n')));
         });
+
+        if (processManager && child) {
+          processManager.track(child);
+        }
       });
     } catch (err) {
       return ToolResult.error('命令执行异常: ' + err.message);

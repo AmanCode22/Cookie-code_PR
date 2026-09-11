@@ -154,6 +154,17 @@ function registerIpcHandlers() {
     }
   });
 
+  // Экстренная остановка активных дочерних процессов (кнопка Kill)
+  ipcMain.handle('kill-process', async () => {
+    try {
+      const { processManager } = require('./process-manager');
+      const result = await processManager.killAll();
+      return { success: true, count: result.count };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  });
+
   // 执行 JS 脚本
   ipcMain.handle('execute-js', async (event, { code, callId }) => {
     if (!code || typeof code !== 'string') {

@@ -195,7 +195,14 @@ function runBash(args, projectDir) {
   const cwd = resolveDir(args.workdir || args.cwd, projectDir);
 
   return new Promise((resolve) => {
-    exec(command, { cwd, timeout, maxBuffer: 1024 * 1024, windowsHide: true, encoding: 'buffer' }, (error, stdout, stderr) => {
+    let processManager = null;
+    try {
+      processManager = require('../src/main/process-manager').processManager;
+    } catch (_) {}
+
+    const child = exec(command, { cwd, timeout, maxBuffer: 1024 * 1024, windowsHide: true, encoding: 'buffer' }, (error, stdout, stderr) => {
+      const wasKilledByUser = processManager && child && processManager.wasKilled(child.pid);
+      if (processManager && child) processManager.untrack(child);
       const out = decodeOutput(stdout);
       const err = decodeOutput(stderr);
 
@@ -209,7 +216,9 @@ function runBash(args, projectDir) {
 
       const markers = [];
       if (error) {
-        if (error.killed) {
+        if (wasKilledByUser) {
+          markers.push('[terminated by user]');
+        } else if (error.killed) {
           markers.push('[timed out after ' + timeout + 'ms]');
         } else if (typeof error.code === 'number') {
           markers.push('[exit code: ' + error.code + ']');
@@ -226,6 +235,10 @@ function runBash(args, projectDir) {
       // 非零退出也正常返回（success:true），模型看到标记自行判断
       resolve({ success: true, data: body });
     });
+
+    if (processManager && child) {
+      processManager.track(child);
+    }
   });
 }
 

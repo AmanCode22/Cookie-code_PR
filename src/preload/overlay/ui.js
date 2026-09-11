@@ -7,6 +7,7 @@ const path = require('path');
 const { OVERLAY_HTML, OVERLAY_CSS } = require('./template');
 const { getProviderByUrl } = require('../../../src/providers');
 const state = require('../dom/state');
+const { t } = require('../i18n/i18n');
 
 // Инлайн-SVG логотипа DeepSeek (вставляется в круглый бейдж оверлея).
 // Читается один раз при загрузке preload, чтобы не дёргать диск при каждом рендере.
@@ -296,6 +297,31 @@ function setTaskStatus(running) {
 }
 
 /**
+ * Экстренная остановка активных дочерних процессов (кнопка Kill в плашке статуса).
+ * Отправляет IPC kill-process → processManager.killAll() (taskkill /T /F на Windows).
+ */
+async function handleKillProcess() {
+  const btn = document.getElementById('cuckoo-btn-kill');
+  if (btn) btn.disabled = true;
+  try {
+    const res = await window.electronAPI.killProcess();
+    if (res && res.success) {
+      if (res.count > 0) {
+        showToast(t('overlay.task.killed', { count: res.count }), 2500);
+      } else {
+        showToast(t('overlay.task.killNone'), 2000);
+      }
+    } else {
+      showToast(t('overlay.task.killError') + (res && res.error ? ': ' + res.error : ''), 3000);
+    }
+  } catch (err) {
+    showToast(t('overlay.task.killError') + ': ' + (err.message || err), 3000);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+/**
  * 显示覆盖层（移除 hidden 类）
  */
 function showOverlay() {
@@ -493,6 +519,7 @@ module.exports = {
   showToast,
   showConfirmDialog,
   setTaskStatus,
+  handleKillProcess,
   showOverlay,
   hideOverlay,
   displayCommand,

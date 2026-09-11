@@ -48,6 +48,11 @@ const KEYS = {
   // ---- Оверлей: задача/результат/история ----
   'overlay.label.task':         { ru: 'Обнаружена задача:',        en: 'Task detected:' },
   'overlay.task.running':       { ru: 'Выполняется',               en: 'Running' },
+  'overlay.task.kill':          { ru: '⏹ Остановить процесс',      en: '⏹ Kill process' },
+  'overlay.task.kill.title':    { ru: 'Экстренно завершить все активные дочерние процессы', en: 'Emergency-kill all active child processes' },
+  'overlay.task.killed':        { ru: 'Процесс остановлен ({count})', en: 'Process stopped ({count})' },
+  'overlay.task.killNone':      { ru: 'Нет активных процессов',    en: 'No active processes' },
+  'overlay.task.killError':     { ru: 'Не удалось остановить процесс', en: 'Failed to kill process' },
   'overlay.cmd.none':           { ru: 'Нет',                       en: 'None' },
   'overlay.label.result':       { ru: 'Результат:',                en: 'Result:' },
   'overlay.label.history':      { ru: 'История',                   en: 'History' },
