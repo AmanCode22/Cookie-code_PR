@@ -198,11 +198,14 @@ function startWatch() {
           scopes.forEach((s) => { try { decorate(s); } catch (_) {} });
           return;
         }
-        // Дальше — только последний ответ.
+        // Дальше — все ответы, в которых есть ещё не обёрнутые tool-блоки.
+        // (DeepSeek лениво догружает историю, поэтому «только последний»
+        //  оставлял старые сообщения сырыми.)
         const scopes = document.querySelectorAll('.ds-markdown');
-        if (scopes.length > 0) {
-          try { decorate(scopes[scopes.length - 1]); } catch (_) {}
-        }
+        scopes.forEach((s) => {
+          const hasRaw = s.querySelector('.md-code-block:not([data-cuckoo-tool-wrapped="1"])');
+          if (hasRaw) { try { decorate(s); } catch (_) {} }
+        });
       } catch (_) {}
     }, 400);
   };
