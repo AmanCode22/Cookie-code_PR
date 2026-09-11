@@ -22,6 +22,12 @@ function buildRegexps(patterns) {
 }
 
 /**
+ * Скомпилированный список дефолтных RegExp-паттернов опасных команд.
+ * Публичный (для тестов и внешнего использования); не зависит от настроек.
+ */
+const DANGEROUS_CMDS = buildRegexps(DEFAULT_DANGEROUS_PATTERNS);
+
+/**
  * Актуальный список RegExp опасных команд из настроек.
  */
 function getDangerousCmds() {
@@ -166,4 +172,4 @@ class BashTool extends Tool {
   }
 }
 
-module.exports = { BashTool, getDangerousCmds };
+module.exports = { BashTool, getDangerousCmds, DANGEROUS_CMDS };

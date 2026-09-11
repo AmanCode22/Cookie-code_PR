@@ -110,9 +110,29 @@ function hasOnlyCodeContent(root) {
   if (!root) return false;
   // 调用方已定位到具体代码块元素时，视为"只有代码"
   if (root.tagName === 'PRE') return true;
-  // 无 cloneNode：直接遍历文本节点，跳过代码块/工具栏/按钮内的文本。
+  // 优先：直接遍历文本节点，跳过代码块/工具栏/按钮内的文本。
   // 原实现 cloneNode(true) 在长回复上会复制整棵 DOM 子树，是流式期间的性能瓶颈。
-  return !hasMeaningfulTextOutsideCode(root);
+  // 但 TreeWalker 需要真实 DOM 环境；在无 document 的环境（单元测试/SSR）走 cloneNode 回退。
+  if (typeof document !== 'undefined' && typeof document.createTreeWalker === 'function') {
+    return !hasMeaningfulTextOutsideCode(root);
+  }
+  return !hasMeaningfulTextOutsideCodeFallback(root);
+}
+
+/**
+ * 回退实现（无 document 环境）：克隆节点，移除代码块/工具栏，看是否只剩空白。
+ */
+function hasMeaningfulTextOutsideCodeFallback(root) {
+  try {
+    if (typeof root.cloneNode === 'function') {
+      const clone = root.cloneNode(true);
+      if (clone && typeof clone.querySelectorAll === 'function') {
+        clone.querySelectorAll('pre, code, .md-code, .md-code-block, .md-code-block-banner-wrap, .md-code-block-banner, button, [class*="toolbar"], [class*="copy"], [class*="download"], [class*="code-block-header"], [class*="lang"], [class*="header"]').forEach((el) => el.remove && el.remove());
+        return !!(clone.textContent || '').trim();
+      }
+    }
+  } catch (_) {}
+  return false;
 }
 
 // 遍历 root 下的文本节点，判断是否存在「非代码块、非工具栏」的有意义文本。

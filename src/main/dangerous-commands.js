@@ -51,4 +51,10 @@ function isDangerous(cmd) {
   return patterns.some((re) => re.test(cmd.trim()));
 }
 
-module.exports = { isDangerous, getActivePatterns };
+/**
+ * Скомпилированный список дефолтных RegExp-паттернов опасных команд.
+ * Публичный (для тестов и внешних потребителей); не зависит от настроек.
+ */
+const DANGEROUS_CMDS = buildRegexps(settingsStore.DEFAULT_DANGEROUS_PATTERNS);
+
+module.exports = { isDangerous, getActivePatterns, DANGEROUS_CMDS };
