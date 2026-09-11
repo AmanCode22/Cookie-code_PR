@@ -32,17 +32,17 @@
   ],
   "author": {
     "name": "Cookie Code Contributors",
-    "url": "https://github.com/wangyongpeng90/cuckoo-code"
+    "url": "https://github.com/merfiDEV/Cookie-code"
   },
   "license": "GPL-3.0-only",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/wangyongpeng90/cuckoo-code.git"
+    "url": "git+https://github.com/merfiDEV/Cookie-code.git"
   },
   "bugs": {
-    "url": "https://github.com/wangyongpeng90/cuckoo-code/issues"
+    "url": "https://github.com/merfiDEV/Cookie-code/issues"
   },
-  "homepage": "https://github.com/wangyongpeng90/cuckoo-code#readme",
+  "homepage": "https://github.com/merfiDEV/Cookie-code#readme",
   "devDependencies": {
     "electron": "^33.0.0",
     "electron-builder": "^24.13.3"
@@ -61,8 +61,8 @@
     "publish": [
       {
         "provider": "github",
-        "owner": "wangyongpeng90",
-        "repo": "cuckoo-code"
+        "owner": "merfiDEV",
+        "repo": "Cookie-code"
       }
     ],
     "directories": {

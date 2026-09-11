@@ -83,31 +83,31 @@ async function showUpdateErrorDialog(error, isManual) {
   // 自动检查失败时，静默提示即可，不弹对话框打扰用户
   if (!isManual) {
     const detail = isNetworkError(error) || isGitHubAccessError(error)
-      ? '无法连接到更新服务器（GitHub），请检查网络连接。'
-      : '发生未知错误，请稍后重试。';
-    showNotification('检查更新失败', detail);
+      ? 'Unable to connect to the update server (GitHub). Please check your network connection.'
+      : 'An unknown error occurred. Please try again later.';
+    showNotification('Update check failed', detail);
     return false; // 自动检查失败不弹对话框
   }
 
   // 手动检查失败时，弹出对话框并给出详细原因
-  let message = '检查更新失败';
+  let message = 'Update check failed';
   let detail = '';
   if (isNetworkError(error)) {
-    message = '无法连接到更新服务器';
-    detail = '请检查网络连接。更新服务器位于 GitHub，可能需要代理或 VPN 才能访问。\n\n错误信息：' + (error.message || '');
+    message = 'Unable to connect to the update server';
+    detail = 'Please check your network connection. The update server is hosted on GitHub and may require a proxy or VPN.\n\nError: ' + (error.message || '');
   } else if (isGitHubAccessError(error)) {
-    message = '无法访问 GitHub 更新服务器';
-    detail = 'GitHub 访问受限或更新资源不存在。请确认仓库名称和发布版本正确。\n\n错误信息：' + (error.message || '');
+    message = 'Unable to access the GitHub update server';
+    detail = 'GitHub access is restricted or the update resources do not exist. Please verify the repository name and release version.\n\nError: ' + (error.message || '');
   } else {
-    detail = '发生未知错误。\n\n错误信息：' + (error.message || '');
+    detail = 'An unknown error occurred.\n\nError: ' + (error.message || '');
   }
 
   const options = {
     type: 'error',
-    title: '更新失败',
+    title: 'Update failed',
     message,
     detail,
-    buttons: ['重试', '取消'],
+    buttons: ['Retry', 'Cancel'],
     defaultId: 0,
     cancelId: 1,
   };
@@ -126,10 +126,10 @@ async function checkForUpdates() {
     // 已有下载完成的更新，直接提示安装
     const options = {
       type: 'info',
-      title: '更新已就绪',
-      message: '新版本已下载完成',
-      detail: '是否立即重启应用并安装更新？',
-      buttons: ['立即重启', '稍后'],
+      title: 'Update ready',
+      message: 'The new version has been downloaded',
+      detail: 'Restart the app now to install the update?',
+      buttons: ['Restart now', 'Later'],
       defaultId: 0,
       cancelId: 1,
     };
@@ -158,7 +158,7 @@ async function checkForUpdates() {
 autoUpdater.on('checking-for-update', () => {
   console.log('[Updater] 正在检查更新...');
   if (isManualCheck) {
-    showNotification('检查更新', '正在检查是否有新版本...');
+    showNotification('Checking for updates', 'Looking for a new version...');
   }
 });
 
@@ -166,10 +166,10 @@ autoUpdater.on('update-available', async (info) => {
   console.log('[Updater] 发现新版本:', info.version);
   const options = {
     type: 'info',
-    title: '发现新版本',
-    message: '发现新版本 v' + info.version,
-    detail: '是否现在下载更新？下载完成后可在退出时自动安装。',
-    buttons: ['立即下载', '暂不下载'],
+    title: 'New version available',
+    message: 'New version v' + info.version + ' is available',
+    detail: 'Download the update now? It will be installed automatically when you quit.',
+    buttons: ['Download now', 'Not now'],
     defaultId: 0,
     cancelId: 1,
   };
@@ -178,7 +178,7 @@ autoUpdater.on('update-available', async (info) => {
     ? await dialog.showMessageBox(parent, options)
     : await dialog.showMessageBox(options);
   if (result.response === 0) {
-    showNotification('开始下载', '正在下载 v' + info.version + '...');
+    showNotification('Download started', 'Downloading v' + info.version + '...');
     autoUpdater.downloadUpdate().catch((err) => {
       console.error('[Updater] 下载失败:', err);
     });
@@ -190,7 +190,7 @@ autoUpdater.on('update-available', async (info) => {
 autoUpdater.on('update-not-available', () => {
   console.log('[Updater] 已是最新版本');
   if (isManualCheck) {
-    showNotification('已是最新版本', '当前已是最新版本。');
+    showNotification('Up to date', 'You are already running the latest version.');
   }
   isManualCheck = false;
 });
@@ -200,7 +200,7 @@ autoUpdater.on('download-progress', (progressObj) => {
   console.log('[Updater] 下载进度:', percent + '%');
   // 仅在手动检查时显示进度通知
   if (isManualCheck && percent % 10 === 0) {
-    showNotification('下载更新中', '已下载 ' + percent + '%');
+    showNotification('Downloading update', 'Downloaded ' + percent + '%');
   }
 });
 
@@ -211,10 +211,10 @@ autoUpdater.on('update-downloaded', (info) => {
   // 弹窗询问是否立即安装
   const options = {
     type: 'info',
-    title: '更新已就绪',
-    message: '新版本 v' + info.version + ' 已下载完成',
-    detail: '是否立即重启应用并安装更新？',
-    buttons: ['立即重启', '稍后'],
+    title: 'Update ready',
+    message: 'New version v' + info.version + ' has been downloaded',
+    detail: 'Restart the app now to install the update?',
+    buttons: ['Restart now', 'Later'],
     defaultId: 0,
     cancelId: 1,
   };
