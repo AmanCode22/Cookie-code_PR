@@ -6,7 +6,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const tag = process.env.GITHUB_REF_NAME || '';
+const tag = process.env.APP_VERSION || process.env.GITHUB_REF_NAME || '';
 const version = tag.replace(/^v/, '').trim();
 
 if (!version || !/^\d+\.\d+\.\d+/.test(version)) {

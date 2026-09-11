@@ -36,7 +36,7 @@ jobs:
       - name: Sync version
         run: node scripts/sync-version.js
         env:
-          GITHUB_REF_NAME: ${{ needs.prepare.outputs.tag }}
+          APP_VERSION: ${{ needs.prepare.outputs.tag }}
       - run: npm run build:win:local
       - uses: actions/upload-artifact@v5
         with:
@@ -59,7 +59,7 @@ jobs:
       - name: Sync version
         run: node scripts/sync-version.js
         env:
-          GITHUB_REF_NAME: ${{ needs.prepare.outputs.tag }}
+          APP_VERSION: ${{ needs.prepare.outputs.tag }}
       - run: npm run build:mac:local
       - uses: actions/upload-artifact@v5
         with:
