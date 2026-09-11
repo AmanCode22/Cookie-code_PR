@@ -20,6 +20,7 @@ const { sendToolResultToChat, sendCombinedJsResultsToChat, sendMessageToChat } =
 const { isAIResponseComplete } = require('./ai-response');
 const { getProviderByUrl } = require('../../../src/providers');
 const { hasTool, toolNamesList } = require('../tool-names');
+const { t } = require('../i18n/i18n');
 
 /**
  * 手动解析按钮点击处理
@@ -44,26 +45,26 @@ let isExecuting = false;
 
 async function handleManualParse() {
   if (isExecuting) {
-    showToast('命令正在执行，无需手动解析', 3000);
+    showToast(t('overlay.toast.executing'), 3000);
     return;
   }
   const btn = document.getElementById('cuckoo-btn-manual-parse');
   if (btn) {
     btn.disabled = true;
-    btn.textContent = '解析中...';
+    btn.textContent = t('overlay.btn.manualParse.loading');
   }
 
   try {
     // 复用自动解析逻辑：仅解析最后一条 AI 回复
     processLatestAIResponse(0, true);
-    showToast('已触发手动解析最后一条 AI 回复', 3000);
+    showToast(t('overlay.toast.manualParseTriggered'), 3000);
   } catch (err) {
     console.error('[Cookie Code] 手动解析出错:', err);
-    showToast('手动解析出错: ' + err.message, 3000);
+    showToast(t('overlay.toast.manualParseError', { msg: err.message }), 3000);
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.textContent = '手动解析';
+      btn.textContent = t('overlay.btn.manualParse');
     }
   }
 }
@@ -633,10 +634,10 @@ function notifyToolCallDetected(toolCall) {
   // 更新预览区域显示检测到的工具调用
   const preview = document.getElementById('cuckoo-cmd-preview');
   if (preview) {
-    preview.textContent = `[工具] ${toolCall.toolName}\n参数: ${JSON.stringify(toolCall.params, null, 2)}`;
+    preview.textContent = t('overlay.preview.toolPrefix', { name: toolCall.toolName }) + String.fromCharCode(10) + t('overlay.preview.params', { json: JSON.stringify(toolCall.params, null, 2) });
   }
   // 闪烁状态徽章
-  flashBadge('Cookie Code - 工具调用检测到');
+  flashBadge(t('overlay.badge.toolDetected'));
 }
 /**
  * 通知用户检测到 JS 工具脚本（更新预览 + 闪烁徽章）
@@ -645,9 +646,9 @@ function notifyJsScriptDetected(code) {
   // 方向 C：不强制弹面板
   const preview = document.getElementById('cuckoo-cmd-preview');
   if (preview) {
-    preview.textContent = '[JS 工具脚本]' + String.fromCharCode(10) + code;
+    preview.textContent = t('overlay.preview.jsPrefix') + String.fromCharCode(10) + code;
   }
-  flashBadge('Cookie Code - JS 工具脚本检测到');
+  flashBadge(t('overlay.badge.jsDetected'));
 }
 /**
  * 执行检测到的 JS 工具脚本（带双通道去重）
@@ -657,7 +658,7 @@ async function handleJsToolScript(code) {
   isExecuting = true;
   notifyJsScriptDetected(code);
   setTaskStatus(true);
-  showToast('开始执行命令');
+  showToast(t('overlay.toast.execStarted'));
 
   const callId = 'js_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
   console.log('[Cookie Code] [诊断] 即将执行的代码(JSON转义): ' + JSON.stringify(code));
@@ -677,12 +678,12 @@ async function handleJsToolScript(code) {
     if (result.success) {
       if (resultStatus) {
         resultStatus.textContent = hasBadExit
-          ? ('⚠ JS 脚本 завершён с кодом ' + exitMatch[1])
-          : '✅ JS 脚本执行成功';
+          ? t('overlay.status.jsExit', { code: exitMatch[1] })
+          : t('overlay.status.jsOk');
         resultStatus.className = hasBadExit ? 'cuckoo-result-status error' : 'cuckoo-result-status success';
       }
       if (resultOutput) {
-        resultOutput.textContent = result.output || '(脚本执行完成，无输出)';
+        resultOutput.textContent = result.output || t('overlay.output.scriptDone');
       }
       if (hasBadExit) {
         try {
@@ -691,21 +692,21 @@ async function handleJsToolScript(code) {
       }
     } else {
       if (resultStatus) {
-        resultStatus.textContent = '❌ JS 脚本执行失败';
+        resultStatus.textContent = t('overlay.status.jsFailed');
         resultStatus.className = 'cuckoo-result-status error';
       }
       if (resultOutput) {
-        resultOutput.textContent = result.error || '未知错误';
+        resultOutput.textContent = result.error || t('overlay.output.unknownError');
       }
       // Помечаем tool-блок в чате как ошибочный
-      try { toolRender.markToolBlockError(code, result.error || '执行失败'); } catch (_) {}
+      try { toolRender.markToolBlockError(code, result.error || t('overlay.output.execFailed')); } catch (_) {}
     }
 
     addHistory({
       id: callId,
       command: '[JS] ' + truncate((code.split(String.fromCharCode(10))[0] || code), 60),
       success: result.success && !hasBadExit,
-      output: result.success ? (result.output || '') : (result.error || '未知错误'),
+      output: result.success ? (result.output || '') : (result.error || t('overlay.output.unknownError')),
       timestamp: Date.now(),
     });
 
@@ -718,14 +719,14 @@ async function handleJsToolScript(code) {
     const resultOutput = document.getElementById('cuckoo-result-output');
     if (resultSection) resultSection.classList.remove('cuckoo-hidden');
     if (resultStatus) {
-      resultStatus.textContent = '❌ 系统错误';
+      resultStatus.textContent = t('overlay.status.sysError');
       resultStatus.className = 'cuckoo-result-status error';
     }
     if (resultOutput) {
       resultOutput.textContent = err.message || String(err);
     }
     try { toolRender.markToolBlockError(code, 'Системная ошибка: ' + (err.message || String(err))); } catch (_) {}
-    return { code, result: { success: false, error: '系统异常: ' + (err.message || String(err)) } };
+    return { code, result: { success: false, error: t('overlay.output.systemException', { msg: err.message || String(err) }) } };
   } finally {
     isExecuting = false;
     setTaskStatus(false);
@@ -741,7 +742,7 @@ async function handleToolCall(toolCall) {
   // 方向 C：不强制弹面板
   isExecuting = true;
   setTaskStatus(true);
-  showToast('开始执行命令');
+  showToast(t('overlay.toast.execStarted'));
 
   try {
     const result = await window.electronAPI.executeTool(toolName, params, callId);
@@ -755,7 +756,7 @@ async function handleToolCall(toolCall) {
 
     if (result.success) {
       if (resultStatus) {
-        resultStatus.textContent = `✅ 工具 ${toolName} 执行成功`;
+        resultStatus.textContent = t('overlay.status.toolOk', { name: toolName });
         resultStatus.className = 'cuckoo-result-status success';
       }
       if (resultOutput) {
@@ -763,20 +764,20 @@ async function handleToolCall(toolCall) {
       }
     } else {
       if (resultStatus) {
-        resultStatus.textContent = `❌ 工具 ${toolName} 执行失败`;
+        resultStatus.textContent = t('overlay.status.toolFailed', { name: toolName });
         resultStatus.className = 'cuckoo-result-status error';
       }
       if (resultOutput) {
-        resultOutput.textContent = result.error || '未知错误';
+        resultOutput.textContent = result.error || t('overlay.output.unknownError');
       }
     }
 
     // 添加到历史
     addHistory({
       id: callId,
-      command: `[工具] ${toolName}`,
+      command: t('overlay.preview.toolPrefix', { name: toolName }),
       success: result.success,
-      output: result.success ? JSON.stringify(result.data, null, 2) : (result.error || '未知错误'),
+      output: result.success ? JSON.stringify(result.data, null, 2) : (result.error || t('overlay.output.unknownError')),
       timestamp: Date.now(),
     });
 
@@ -789,12 +790,12 @@ async function handleToolCall(toolCall) {
     const resultOutput = document.getElementById('cuckoo-result-output');
     if (resultSection) resultSection.classList.remove('cuckoo-hidden');
     if (resultStatus) {
-      resultStatus.textContent = '❌ 系统错误';
+      resultStatus.textContent = t('overlay.status.sysError');
       resultStatus.className = 'cuckoo-result-status error';
     }
     if (resultOutput) resultOutput.textContent = err.message || String(err);
     // 系统异常也要回传 AI，让它知道发生了什么
-    sendToolResultToChat(toolCall, { success: false, error: '系统异常: ' + (err.message || String(err)) });
+    sendToolResultToChat(toolCall, { success: false, error: t('overlay.output.systemException', { msg: err.message || String(err) }) });
   } finally {
     isExecuting = false;
     setTaskStatus(false);
