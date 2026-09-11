@@ -71,6 +71,9 @@ function activateCuckooTab() {
     refreshRgbCheckbox();
     // Подсвечиваем текущий фон
     refreshBackgroundSelection();
+    // Telegram-бот
+    bindTelegramSettings();
+    refreshTelegramSettings();
     // Кнопка сброса
     bindResetButton();
   }
@@ -201,6 +204,27 @@ function buildContentHTML() {
     '  <div class="cuckoo-section-title">' + t('settings.section.background') + '</div>' +
     '  <div class="cuckoo-bg-grid">' + items + '</div>' +
     '</div>' +
+    '<div>' +
+    '  <div class="cuckoo-section-title">' + t('tg.title') + '</div>' +
+    '  <div class="cuckoo-blur-row">' +
+    '    <div class="cuckoo-blur-label"><span>' + t('tg.label.token') + '</span></div>' +
+    '    <input type="password" id="cuckoo-tg-token" class="cuckoo-blur-slider" style="height:auto;padding:8px 10px;background:rgba(15,18,32,0.6);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#dde1ff;font-size:12px;" placeholder="123456:ABC-DEF..." />' +
+    '  </div>' +
+    '  <div class="cuckoo-blur-row">' +
+    '    <div class="cuckoo-blur-label"><span>' + t('tg.label.chatId') + '</span></div>' +
+    '    <input type="text" id="cuckoo-tg-chatid" class="cuckoo-blur-slider" style="height:auto;padding:8px 10px;background:rgba(15,18,32,0.6);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#dde1ff;font-size:12px;" placeholder="123456789" />' +
+    '  </div>' +
+    '  <div class="cuckoo-blur-row">' +
+    '    <label class="cuckoo-checkbox-row" style="display:flex;align-items:center;gap:10px;cursor:pointer;"><input type="checkbox" id="cuckoo-tg-enabled" style="width:16px;height:16px;cursor:pointer;"><span style="font-size:13px;color:#cfd3ff;">' + t('tg.label.enabled') + '</span></label>' +
+    '    <label class="cuckoo-checkbox-row" style="display:flex;align-items:center;gap:10px;cursor:pointer;"><input type="checkbox" id="cuckoo-tg-notify" style="width:16px;height:16px;cursor:pointer;"><span style="font-size:13px;color:#cfd3ff;">' + t('tg.label.notifyTools') + '</span></label>' +
+    '    <label class="cuckoo-checkbox-row" style="display:flex;align-items:center;gap:10px;cursor:pointer;"><input type="checkbox" id="cuckoo-tg-feed" style="width:16px;height:16px;cursor:pointer;"><span style="font-size:13px;color:#cfd3ff;">' + t('tg.label.chatFeed') + '</span></label>' +
+    '  </div>' +
+    '  <div style="display:flex;gap:8px;margin-top:8px;">' +
+    '    <button id="cuckoo-tg-save" style="flex:1;padding:9px 14px;border-radius:10px;font-weight:600;font-size:13px;cursor:pointer;border:none;background:linear-gradient(135deg,#8b93ff,#6d76ff);color:#fff;">' + t('tg.btn.save') + '</button>' +
+    '    <button id="cuckoo-tg-ping" style="flex:1;padding:9px 14px;border-radius:10px;font-weight:600;font-size:13px;cursor:pointer;border:1px solid rgba(139,147,255,0.5);background:rgba(139,147,255,0.12);color:#a8afff;">' + t('tg.btn.ping') + '</button>' +
+    '    <button id="cuckoo-tg-test" style="flex:1;padding:9px 14px;border-radius:10px;font-weight:600;font-size:13px;cursor:pointer;border:1px solid rgba(139,147,255,0.5);background:rgba(139,147,255,0.12);color:#a8afff;">' + t('tg.btn.test') + '</button>' +
+    '  </div>' +
+    '</div>' +
     '<div style="display:flex;justify-content:flex-end;gap:10px;margin-top:4px;flex-wrap:wrap;">' +
     '  <button id="cuckoo-btn-open-config" style="' +
     '    padding: 9px 18px; border: 1px solid rgba(139,147,255,0.5); border-radius: 10px;' +
@@ -310,6 +334,83 @@ function bindBlurSliders() {
 /**
  * Кнопка «Сбросить настройки» — возвращает фон и все блюры к дефолтам.
  */
+/**
+ * Загрузить сохранённые настройки Telegram в поля вкладки.
+ */
+async function refreshTelegramSettings() {
+  try {
+    const s = await window.electronAPI.getCuckooSettings();
+    const tokenEl = document.getElementById('cuckoo-tg-token');
+    const chatEl = document.getElementById('cuckoo-tg-chatid');
+    const enabledEl = document.getElementById('cuckoo-tg-enabled');
+    const notifyEl = document.getElementById('cuckoo-tg-notify');
+    const feedEl = document.getElementById('cuckoo-tg-feed');
+    if (tokenEl) tokenEl.value = s.telegramBotToken || '';
+    if (chatEl) chatEl.value = s.telegramChatId || '';
+    if (enabledEl) enabledEl.checked = !!s.telegramEnabled;
+    if (notifyEl) notifyEl.checked = !!s.telegramNotifyTools;
+    if (feedEl) feedEl.checked = !!s.telegramChatFeed;
+  } catch (err) {
+    console.error('[Cookie Code] Не удалось загрузить настройки Telegram:', err.message);
+  }
+}
+
+/**
+ * Обработчики кнопок Telegram: сохранить / проверить токен / тест.
+ */
+function bindTelegramSettings() {
+  const saveBtn = document.getElementById('cuckoo-tg-save');
+  const pingBtn = document.getElementById('cuckoo-tg-ping');
+  const testBtn = document.getElementById('cuckoo-tg-test');
+
+  const readValues = () => ({
+    token: (document.getElementById('cuckoo-tg-token') || {}).value || '',
+    chatId: (document.getElementById('cuckoo-tg-chatid') || {}).value || '',
+    enabled: !!(document.getElementById('cuckoo-tg-enabled') || {}).checked,
+    notify: !!(document.getElementById('cuckoo-tg-notify') || {}).checked,
+    feed: !!(document.getElementById('cuckoo-tg-feed') || {}).checked,
+  });
+
+  const save = async () => {
+    const v = readValues();
+    try {
+      await window.electronAPI.setCuckooSetting('telegramBotToken', v.token.trim());
+      await window.electronAPI.setCuckooSetting('telegramChatId', v.chatId.trim());
+      await window.electronAPI.setCuckooSetting('telegramEnabled', v.enabled);
+      await window.electronAPI.setCuckooSetting('telegramNotifyTools', v.notify);
+      await window.electronAPI.setCuckooSetting('telegramChatFeed', v.feed);
+      const res = await window.electronAPI.telegramApply();
+      return res && res.success;
+    } catch (err) {
+      console.error('[Cookie Code] Не удалось сохранить Telegram:', err.message);
+      return false;
+    }
+  };
+
+  saveBtn?.addEventListener('click', async () => {
+    saveBtn.textContent = '...';
+    const ok = await save();
+    saveBtn.textContent = ok ? '✅ ' + t('tg.btn.save') : '❌ ' + t('tg.btn.save');
+    setTimeout(() => { saveBtn.textContent = t('tg.btn.save'); }, 1800);
+  });
+
+  pingBtn?.addEventListener('click', async () => {
+    await save();
+    pingBtn.textContent = '...';
+    const res = await window.electronAPI.telegramPing();
+    pingBtn.textContent = (res && res.success) ? '✅ @' + (res.username || 'bot') : '❌ ' + ((res && res.error) || 'error');
+    setTimeout(() => { pingBtn.textContent = t('tg.btn.ping'); }, 2500);
+  });
+
+  testBtn?.addEventListener('click', async () => {
+    await save();
+    testBtn.textContent = '...';
+    const res = await window.electronAPI.telegramTest();
+    testBtn.textContent = (res && res.success) ? '✅ ' + t('tg.btn.test') : '❌ ' + ((res && res.error) || 'error');
+    setTimeout(() => { testBtn.textContent = t('tg.btn.test'); }, 2500);
+  });
+}
+
 function bindResetButton() {
   const btn = document.getElementById('cuckoo-btn-reset');
   if (!btn) return;

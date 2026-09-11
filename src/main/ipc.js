@@ -112,8 +112,21 @@ function registerIpcHandlers() {
     const selectedDir = store ? store.state.selectedProjectDir : null;
     try {
       const result = await toolRegistry.execute(toolName, { ...params, projectDir: selectedDir });
+      // Уведомление в Telegram (не блокирует ответ).
+      try {
+        const preview = result.success
+          ? (typeof result.data === 'string' ? result.data : '')
+          : (result.error || '');
+        const exitMatch = String(preview).match(/\[exit code:\s*(-?\d+)\]/);
+        const hasBadExit = !!(exitMatch && exitMatch[1] !== '0');
+        const ok = !!result.success && !hasBadExit;
+        require('../../botsrc').notifyToolResult(toolName, ok, { args: params, preview });
+      } catch (_) {}
       return { callId, success: result.success, data: result.data, error: result.error };
     } catch (err) {
+      try {
+        require('../../botsrc').notifyToolResult(toolName, false, err.message);
+      } catch (_) {}
       return { callId, success: false, error: err.message };
     }
   });
@@ -208,6 +221,54 @@ function registerIpcHandlers() {
     const result = settingsStore.setSetting(key, value);
     if (!result) return { success: false, error: '写入失败' };
     return { success: true, settings: result };
+  });
+
+  // ========== Telegram-бот (botsrc/) ==========
+  ipcMain.handle('telegram-apply', async () => {
+    try {
+      const bot = require('../../botsrc');
+      const status = await bot.applySettings();
+      return { success: true, status };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  });
+
+  ipcMain.handle('telegram-status', async () => {
+    try {
+      const bot = require('../../botsrc');
+      return { success: true, status: bot.getStatus() };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  });
+
+  ipcMain.handle('telegram-ping', async () => {
+    try {
+      const bot = require('../../botsrc');
+      return await bot.ping();
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  });
+
+  ipcMain.handle('telegram-test', async () => {
+    try {
+      const bot = require('../../botsrc');
+      return await bot.testSend();
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  });
+
+  // Ответ AI → в Telegram (для просмотра с телефона).
+  ipcMain.handle('telegram-notify-ai', async (_event, { text } = {}) => {
+    try {
+      const bot = require('../../botsrc');
+      return await bot.notifyAIResponse(text);
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
   });
 
   // ========== Экспорт ответа AI в PDF / DOCX ==========

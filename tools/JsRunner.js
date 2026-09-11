@@ -308,6 +308,20 @@ class JsRunner {
           }
         }
       }
+      // Уведомление в Telegram о результате tool (не блокирует выполнение).
+      try {
+        const { notifyToolResult } = require('../botsrc');
+        const label = op === '__bash' ? 'Bash' : op;
+        const preview = result.success
+          ? (typeof result.data === 'string' ? result.data : '')
+          : (result.error || '');
+        // Фактический успех: для bash/pwsh ненулевой exit code — это ошибка,
+        // хотя инструмент возвращает success:true.
+        const exitMatch = String(preview).match(/\[exit code:\s*(-?\d+)\]/);
+        const hasBadExit = !!(exitMatch && exitMatch[1] !== '0');
+        const ok = !!result.success && !hasBadExit;
+        notifyToolResult(label, ok, { args: args, preview: preview });
+      } catch (_) {}
       return JSON.stringify(result);
     };
 

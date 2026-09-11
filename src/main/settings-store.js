@@ -34,6 +34,12 @@ const DEFAULTS = {
   rgbUsername: true,     // RGB-переливание ника пользователя (по умолчанию вкл)
   dangerousPatterns: DEFAULT_DANGEROUS_PATTERNS, // список regex-паттернов опасных команд
   language: 'ru',        // язык UI: 'ru' | 'en'
+  // ===== Telegram-бот (botsrc/) =====
+  telegramEnabled: false,   // включить бота (polling + уведомления)
+  telegramBotToken: '',     // токен от @BotFather
+  telegramChatId: '',       // id твоего чата с ботом
+  telegramNotifyTools: false, // присылать уведомления о результате tool
+  telegramChatFeed: false,  // принимать сообщения из TG в чат DeepSeek
 };
 
 let cachedPath = null;

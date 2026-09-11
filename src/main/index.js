@@ -263,6 +263,17 @@ function setupAppMenu() {
 // ========== IPC 处理器 ==========
 registerIpcHandlers();
 
+// ========== Telegram-бот (botsrc/) — применяем настройки при старте ==========
+try {
+  require('../../botsrc').applySettings().then((st) => {
+    console.log('[Cookie Code] Telegram bot status:', JSON.stringify(st));
+  }).catch((err) => {
+    console.error('[Cookie Code] Telegram bot start error:', err.message);
+  });
+} catch (err) {
+  console.error('[Cookie Code] Telegram bot init error:', err.message);
+}
+
 // 覆盖层"新建窗口"按钮触发
 const { ipcMain: ipcMainForProfile } = require('electron');
 ipcMainForProfile.handle('create-profile-window', async (_event, { providerId } = {}) => {

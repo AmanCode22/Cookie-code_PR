@@ -193,6 +193,7 @@ const OVERLAY_CSS = [
 '.cuckoo-blur-value { font-size: 12px; color: #8b93ff; font-family: "Consolas", monospace; font-weight: 600; }',
 '.cuckoo-input { width: 70px; background: rgba(15,18,32,0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 5px 8px; color: #dde1ff; font-size: 12px; font-family: "Consolas", monospace; outline: none; transition: border-color 0.18s; }',
 '.cuckoo-input:focus { border-color: rgba(139,147,255,0.6); }',
+
 '.cuckoo-label { font-size: 12px; font-weight: 600; color: #c8ccff; text-transform: uppercase; letter-spacing: 0.6px; cursor: pointer; margin-bottom: 2px; }',
 '.cuckoo-cmd-preview {',
 '  background: rgba(15,18,32,0.6); border: 1px solid rgba(255,255,255,0.1);',

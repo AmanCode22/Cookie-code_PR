@@ -269,6 +269,18 @@ function processLatestAIResponse(retryCount = 0, force = false) {
     return;
   }
 
+  // Дублируем "человеческий" текст ответа в Telegram (без code-блоков),
+  // даже если рядом есть tool-вызов. Антидубль по lastAiTgText.
+  // Делаем это до ветвлений, т.к. при наличии JS-блоков они выходят по return.
+  // Клонируем DOM и вырезаем code-блоки/тулбары — textContent их не фильтрует.
+  try {
+    const humanText = extractHumanTextFromNode(markdown);
+    if (humanText && humanText !== lastAiTgText) {
+      lastAiTgText = humanText;
+      window.electronAPI.telegramNotifyAI(humanText);
+    }
+  } catch (_) {}
+
   // 优先检测 JS 工具代码块（cuckoo 代码块 / 调用工具函数的 js 代码块）
   const jsBlocks = getJsCodeBlocksFromMarkdown(markdown);
   console.log('[DEBUG][processLatest] lastMessage=' + (lastMessage.className || lastMessage.tagName) +
@@ -471,6 +483,35 @@ let isProcessingResponse = false;
 let lastObserverRun = 0;
 let completionPollTimer = null;
 let lastNotifiedText = '';
+// Последний текст, отправленный в Telegram (антидубль).
+let lastAiTgText = '';
+
+/**
+ * Убрать из текста markdown code-блоки, оставив человеческий текст.
+ * Бэктики берём через String.fromCharCode(96), чтобы не ломать шаблоны.
+ */
+/**
+ * Извлечь человеческий текст из DOM-узла ответа: клонировать, удалить
+ * code-блоки и тулбары, вернуть очищенный textContent.
+ */
+function extractHumanTextFromNode(node) {
+  if (!node) return '';
+  const clone = node.cloneNode(true);
+  clone.querySelectorAll('.md-code-block, .cuckoo-tool-block, .cuckoo-tool-header, .cuckoo-tool-label, .cuckoo-tool-file, .cuckoo-tool-sep, .cuckoo-tool-icon, .cuckoo-tool-chevron, pre, button, [class*="toolbar"], [class*="copy"], [class*="download"], [class*="code-block"], [class*="lang"]').forEach(el => el.remove());
+  let t = (clone.textContent || '').replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
+  return t;
+}
+
+function extractHumanText(raw) {
+  if (!raw) return '';
+  const BT = String.fromCharCode(96);
+  const fence = BT + BT + BT;
+  let t = String(raw);
+  const re = new RegExp(fence + '[\\s\\S]*?' + fence, 'g');
+  t = t.replace(re, ' ');
+  t = t.replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
+  return t;
+}
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }

@@ -25,6 +25,12 @@ let electronAPI = {
   killProcess: () => {
     return ipcRenderer.invoke('kill-process');
   },
+  // ===== Telegram-бот =====
+  telegramApply: () => ipcRenderer.invoke('telegram-apply'),
+  telegramStatus: () => ipcRenderer.invoke('telegram-status'),
+  telegramPing: () => ipcRenderer.invoke('telegram-ping'),
+  telegramTest: () => ipcRenderer.invoke('telegram-test'),
+  telegramNotifyAI: (text) => ipcRenderer.invoke('telegram-notify-ai', { text }),
   sendEnterToChat: () => {
     return ipcRenderer.invoke('chat-send-enter');
   },
