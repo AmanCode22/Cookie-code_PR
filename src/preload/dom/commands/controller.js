@@ -15,6 +15,14 @@ let activeHit = null;
 let menuOpen = false;
 /** Текущий список элементов меню (для навигации). */
 let currentItems = [];
+/** Тип активного меню: 'command' | 'file'. */
+let activeKind = 'command';
+/** Таймер debounce для поиска файлов. */
+let fileSearchTimer = null;
+/** Счётчик запросов файлов (для отбрасывания устаревших ответов). */
+let fileSearchSeq = 0;
+/** Последний выполненный запрос файлов (чтобы не перезапрашивать то же самое). */
+let lastFileQuery = null;
 
 /**
  * Обработчик события input/keyup/click на поле.
@@ -40,10 +48,22 @@ function update(e) {
 
   if (!hit) {
     activeHit = null;
+    cancelFileSearch();
     if (menuOpen) closeMenu();
     return;
   }
 
+  // Ветка @-файлов: запрашиваем список файлов проекта через IPC.
+  if (hit.trigger === '@') {
+    activeHit = { hit, field };
+    activeKind = 'file';
+    scheduleFileSearch(field, hit.query);
+    return;
+  }
+
+  // Ветка slash-команд.
+  activeKind = 'command';
+  cancelFileSearch();
   const candidates = searchCommands(hit.query).map((c) => ({
     name: c.name,
     description: descOf(c, t),
@@ -62,6 +82,64 @@ function update(e) {
 
   // меню позиционируем после рендера
   requestAnimationFrame(() => menu.position(field));
+}
+
+/** Отменяет отложенный поиск файлов. */
+function cancelFileSearch() {
+  if (fileSearchTimer) {
+    clearTimeout(fileSearchTimer);
+    fileSearchTimer = null;
+  }
+}
+
+/**
+ * Отложенно (debounce 120мс) запрашивает файлы проекта и показывает меню.
+ * @param {Element} field
+ * @param {string} query
+ */
+function scheduleFileSearch(field, query) {
+  // Тот же запрос уже показан — не перезапрашиваем и не перерисовываем меню
+  // (иначе навигация стрелками сбрасывает подсветку на первый элемент).
+  if (menuOpen && activeKind === 'file' && query === lastFileQuery) return;
+  cancelFileSearch();
+  const seq = ++fileSearchSeq;
+  fileSearchTimer = setTimeout(async () => {
+    fileSearchTimer = null;
+    if (!activeHit || activeHit.field !== field) return;
+    if (!window.electronAPI || typeof window.electronAPI.listProjectFiles !== 'function') return;
+    let files = [];
+    try {
+      const res = await window.electronAPI.listProjectFiles(query);
+      if (res && res.success && Array.isArray(res.files)) files = res.files;
+    } catch (_) { files = []; }
+    // Устаревший ответ (пользователь уже набрал другое) — игнорируем.
+    if (seq !== fileSearchSeq) return;
+    if (!activeHit || activeHit.field !== field) return;
+    lastFileQuery = query;
+
+    if (files.length === 0) {
+      if (menuOpen) closeMenu();
+      return;
+    }
+
+    const wasOpen = menuOpen && activeKind === 'file';
+    const prevHighlight = wasOpen ? menu.getState().highlight : 0;
+    currentItems = files.map((f) => ({ name: f.rel, abs: f.abs, description: '' }));
+    activeKind = 'file';
+    menu.show(
+      currentItems,
+      field,
+      (idx) => pick(idx),
+      { prefix: '', title: t('cmd.menu.files'), monospace: false }
+    );
+    if (wasOpen && prevHighlight > 0) {
+      const idx = Math.min(prevHighlight, currentItems.length - 1);
+      menu.highlightItem(idx);
+      menu.scrollIntoView(idx);
+    }
+    menuOpen = true;
+    requestAnimationFrame(() => menu.position(field));
+  }, 120);
 }
 
 /**
@@ -99,8 +177,10 @@ function move(dir) {
   const st = menu.getState();
   const count = st.items.length;
   if (count === 0) return;
-  const next = (st.highlight + dir + count) % count;
+  const next = Math.min(Math.max(st.highlight + dir, 0), count - 1);
+  if (next === st.highlight) return;
   menu.highlightItem(next);
+  menu.scrollIntoView(next);
 }
 
 /**
@@ -113,12 +193,18 @@ function pick(idx) {
   const item = currentItems[idx];
   if (!item) return;
 
-  const cmd = findCommand(item.name);
-  if (!cmd) return;
+  // Для файлов вставляем абсолютный путь, для команд — промпт.
+  let replacement;
+  if (activeKind === 'file') {
+    replacement = item.abs || item.name;
+  } else {
+    const cmd = findCommand(item.name);
+    if (!cmd) return;
+    replacement = cmd.prompt;
+  }
 
-  const replacement = cmd.prompt;
   const draft = getValue(field);
-  // Заменяем ТОЛЬКО токен "/name" (от span.start до текущего caret)
+  // Заменяем ТОЛЬКО токен (от span.start до текущего caret)
   const caret = getCaret(field);
   const before = draft.slice(0, hit.span.start);
   const after = draft.slice(caret === null ? hit.span.end : caret);
@@ -126,7 +212,7 @@ function pick(idx) {
 
   setValue(field, next);
 
-  // Устанавливаем курсор после вставленного промпта
+  // Устанавливаем курсор после вставленного текста
   const pos = before.length + replacement.length;
   setCaret(field, pos);
 
@@ -139,6 +225,9 @@ function closeMenu() {
   menu.hide();
   menuOpen = false;
   currentItems = [];
+  activeKind = 'command';
+  lastFileQuery = null;
+  cancelFileSearch();
 }
 
 /**

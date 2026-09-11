@@ -44,6 +44,42 @@ test('detectTrigger: нет токена', () => {
   assert.strictEqual(detectTrigger('', 0), null);
 });
 
+// ==================== detect: @-файлы ====================
+
+test('detectTrigger: @ в начале строки', () => {
+  const hit = detectTrigger('@src', 4);
+  assert.ok(hit);
+  assert.strictEqual(hit.trigger, '@');
+  assert.strictEqual(hit.query, 'src');
+  assert.deepStrictEqual(hit.span, { start: 0, end: 4 });
+});
+
+test('detectTrigger: @ после пробела', () => {
+  const hit = detectTrigger('файл @ipc', 9);
+  assert.ok(hit);
+  assert.strictEqual(hit.trigger, '@');
+  assert.strictEqual(hit.query, 'ipc');
+});
+
+test('detectTrigger: одиночный @ даёт пустой query', () => {
+  const hit = detectTrigger('@', 1);
+  assert.ok(hit);
+  assert.strictEqual(hit.trigger, '@');
+  assert.strictEqual(hit.query, '');
+});
+
+test('detectTrigger: @ после буквы не триггерит (email)', () => {
+  assert.strictEqual(detectTrigger('user@host', 9), null);
+});
+
+test('detectTrigger: @ не в наборе chars не триггерит', () => {
+  assert.strictEqual(detectTrigger('@src', 4, '/'), null);
+});
+
+test('detectTrigger: слэш-токен не триггерит при chars="@", @ триггерит', () => {
+  assert.strictEqual(detectTrigger('/plan', 5, '@'), null);
+});
+
 test('detectTrigger: неверные аргументы', () => {
   assert.strictEqual(detectTrigger(null, 1), null);
   assert.strictEqual(detectTrigger('abc', null), null);

@@ -14,6 +14,9 @@ let state = {
   items: [],
   highlight: 0,
   anchor: null, // поле ввода, к которому привязано меню
+  prefix: '/', // префикс токена для отображения ('' — без префикса)
+  title: null, // заголовок меню (null — взять cmd.menu.title по умолчанию)
+  monospace: true, // моноширинный ли шрифт у имени элемента
 };
 
 /**
@@ -66,7 +69,7 @@ function render(items, highlight) {
   }
 
   const title = document.createElement('div');
-  title.textContent = t('cmd.menu.title');
+  title.textContent = state.title != null ? state.title : t('cmd.menu.title');
   title.style.cssText = 'padding:6px 10px;font-size:11px;letter-spacing:0.6px;text-transform:uppercase;color:#8a90b8;';
   el.appendChild(title);
 
@@ -87,8 +90,8 @@ function render(items, highlight) {
     ].join(';');
 
     const name = document.createElement('div');
-    name.textContent = '/' + item.name;
-    name.style.cssText = 'font-weight:600;color:#c8ccff;font-family:Consolas,monospace;';
+    name.textContent = state.prefix + item.name;
+    name.style.cssText = 'font-weight:600;color:#c8ccff;' + (state.monospace ? 'font-family:Consolas,monospace;' : '');
     row.appendChild(name);
 
     const desc = document.createElement('div');
@@ -129,6 +132,27 @@ function highlightItem(index) {
 }
 
 /**
+ * Прокручивает меню так, чтобы подсвеченный элемент был виден.
+ * @param {number} index
+ */
+function scrollIntoView(index) {
+  const el = document.getElementById(MENU_ID);
+  if (!el) return;
+  const rows = el.querySelectorAll('.cuckoo-command-item');
+  const row = rows[index];
+  if (!row) return;
+  const rowTop = row.offsetTop;
+  const rowBottom = rowTop + row.offsetHeight;
+  const viewTop = el.scrollTop;
+  const viewBottom = viewTop + el.clientHeight;
+  if (rowTop < viewTop) {
+    el.scrollTop = rowTop;
+  } else if (rowBottom > viewBottom) {
+    el.scrollTop = rowBottom - el.clientHeight;
+  }
+}
+
+/**
  * Позиционирует меню относительно поля ввода (над ним).
  * @param {Element} anchor
  */
@@ -158,11 +182,15 @@ function position(anchor) {
  * @param {Element} anchor
  * @param {Function} onPick - callback(index)
  */
-function show(items, anchor, onPick) {
+function show(items, anchor, onPick, options) {
   state.items = items;
   state.highlight = 0;
   state.anchor = anchor;
   state.onPick = onPick;
+  const opts = options || {};
+  state.prefix = opts.prefix != null ? opts.prefix : '/';
+  state.title = opts.title != null ? opts.title : null;
+  state.monospace = opts.monospace != null ? opts.monospace : true;
   render(items, 0);
   position(anchor);
 }
@@ -174,6 +202,9 @@ function hide() {
   state.visible = false;
   state.items = [];
   state.onPick = undefined;
+  state.prefix = '/';
+  state.title = null;
+  state.monospace = true;
 }
 
 /**
@@ -189,6 +220,7 @@ module.exports = {
   hide,
   render,
   highlightItem,
+  scrollIntoView,
   position,
   getState,
 };

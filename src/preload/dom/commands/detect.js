@@ -41,22 +41,23 @@ function isDoubleSlash(draft, index) {
 }
 
 /**
- * 在 draft 的 caret 处检测 slash 令牌。
+ * 在 draft 的 caret 处检测触发符令牌（"/" 或 "@"）。
  * @param {string} draft - 完整文本
  * @param {number} caret - 光标偏移
+ * @param {string} [chars='/@'] - 需要检测的触发符集合
  * @returns {{trigger: string, query: string, span: {start: number, end: number}} | null}
- *   null 表示光标处没有活跃的 slash 令牌。
+ *   null 表示光标处没有活跃的令牌。
  */
-function detectTrigger(draft, caret) {
+function detectTrigger(draft, caret, chars = '/@') {
   if (typeof draft !== 'string' || typeof caret !== 'number') return null;
   if (caret <= 0 || caret > draft.length) return null;
 
   for (let i = caret - 1; i >= 0; i--) {
     const ch = draft.charAt(i);
     if (WHITESPACE.test(ch)) return null;
-    if (ch !== '/') continue;
+    if (!chars.includes(ch)) continue;
     if (!boundaryOk(draft, i, ch)) continue;
-    if (isDoubleSlash(draft, i)) continue;
+    if (ch === '/' && isDoubleSlash(draft, i)) continue;
     return {
       trigger: ch,
       query: draft.slice(i + 1, caret),

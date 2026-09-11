@@ -200,4 +200,4 @@ class GlobToolNew extends Tool {
   }
 }
 
-module.exports = { GlobToolNew, parseGlobArgs, formatGlobOutput, MAX_RESULTS, GLOB_VCS_EXCLUDES, buildGlobArgs };
+module.exports = { GlobToolNew, parseGlobArgs, formatGlobOutput, MAX_RESULTS, GLOB_VCS_EXCLUDES, buildGlobArgs, runRipgrep };

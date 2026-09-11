@@ -33,6 +33,34 @@ function registerIpcHandlers() {
     return { success: true, sessions };
   });
 
+  // 列出项目文件（用于 @ 文件提及自动补全）
+  // 返回 { success, files: [{ rel, abs }] }，rel 为相对 projectDir 的路径，abs 为绝对路径。
+  ipcMain.handle('list-project-files', async (event, { query = '' } = {}) => {
+    const ctx = windowState.getContextByWebContents(event.sender);
+    const store = ctx ? ctx.sessionStore : null;
+    const projectDir = store ? store.state.selectedProjectDir : null;
+    if (!projectDir) return { success: true, files: [] };
+
+    try {
+      const path = require('path');
+      const { buildGlobArgs, runRipgrep } = require('../../tools/GlobToolNew');
+      const safeQuery = String(query || '').replace(/[\\*?\[\]]/g, '');
+      const pattern = safeQuery ? '**/*' + safeQuery + '*' : '**/*';
+      const args = buildGlobArgs({ pattern });
+      const { stdout } = await runRipgrep(args, projectDir);
+      const files = stdout
+        .split(/\r?\n/)
+        .map((p) => p.replace(/\\/g, '/').replace(/^\.\//, ''))
+        .filter((p) => p.length > 0)
+        .sort((a, b) => a.localeCompare(b))
+        .slice(0, 100)
+        .map((rel) => ({ rel, abs: path.join(projectDir, rel) }));
+      return { success: true, files };
+    } catch (err) {
+      return { success: false, error: err.message, files: [] };
+    }
+  });
+
   // 导航到会话
   ipcMain.handle('navigate-session', async (event, { sessionId }) => {
     if (!sessionId) return { success: false, error: '缺少会话ID' };

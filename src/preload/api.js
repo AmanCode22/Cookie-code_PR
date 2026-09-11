@@ -37,6 +37,9 @@ let electronAPI = {
   listSessions: () => {
     return ipcRenderer.invoke('list-sessions');
   },
+  listProjectFiles: (query) => {
+    return ipcRenderer.invoke('list-project-files', { query });
+  },
   navigateSession: (sessionId) => {
     return ipcRenderer.invoke('navigate-session', { sessionId });
   },
