@@ -1,13 +1,31 @@
-name: Build Electron Apps
+name: Build and Release
 
 on:
   push:
     branches: [ master ]
-  pull_request:
-    branches: [ master ]
+
+permissions:
+  contents: write
 
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.bump.outputs.version }}
+      tag: ${{ steps.bump.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Compute next version
+        id: bump
+        run: |
+          CUR=$(node -p "require('./package.json').version")
+          NEXT=$(node -e "const v=process.argv[1].split('.').map(Number); v[2]=(v[2]||0)+1; console.log(v.join('.'))" "$CUR")
+          echo "version=$NEXT" >> "$GITHUB_OUTPUT"
+          echo "tag=v$NEXT" >> "$GITHUB_OUTPUT"
+          echo "Current: $CUR -> Next: $NEXT"
+
   build-win:
+    needs: prepare
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v5
@@ -15,13 +33,22 @@ jobs:
         with:
           node-version: 20
       - run: npm install
+      - name: Sync version
+        run: node scripts/sync-version.js
+        env:
+          GITHUB_REF_NAME: ${{ needs.prepare.outputs.tag }}
       - run: npm run build:win:local
       - uses: actions/upload-artifact@v5
         with:
           name: Windows-build
-          path: dist/
+          path: |
+            dist/*.exe
+            dist/*.zip
+            dist/*.blockmap
+            dist/latest.yml
 
   build-mac:
+    needs: prepare
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v5
@@ -29,8 +56,41 @@ jobs:
         with:
           node-version: 20
       - run: npm install
+      - name: Sync version
+        run: node scripts/sync-version.js
+        env:
+          GITHUB_REF_NAME: ${{ needs.prepare.outputs.tag }}
       - run: npm run build:mac:local
       - uses: actions/upload-artifact@v5
         with:
           name: macOS-build
-          path: dist/
+          path: |
+            dist/*.dmg
+            dist/*.zip
+            dist/*.blockmap
+            dist/latest-mac.yml
+
+  release:
+    needs: [prepare, build-win, build-mac]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v5
+        with:
+          name: Windows-build
+          path: artifacts/win
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v5
+        with:
+          name: macOS-build
+          path: artifacts/mac
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: ${{ needs.prepare.outputs.tag }}
+          name: ${{ needs.prepare.outputs.tag }}
+          generate_release_notes: true
+          files: |
+            artifacts/win/*
+            artifacts/mac/*
