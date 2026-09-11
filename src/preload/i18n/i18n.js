@@ -144,6 +144,10 @@ const KEYS = {
   // ---- Настройки: язык ----
   'settings.lang.ru':           { ru: 'Русский',                   en: 'Russian' },
   'settings.lang.en':           { ru: 'Английский',                en: 'English' },
+
+  // ---- Slash-команды ----
+  'cmd.menu.title':             { ru: 'Команды',                    en: 'Commands' },
+  'cmd.plan.description':       { ru: 'Войти в режим плана и вставить план-промпт', en: 'Enter plan mode and inject the plan prompt' },
 };
 
 // ========== Состояние ==========

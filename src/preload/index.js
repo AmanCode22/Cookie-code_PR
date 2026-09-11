@@ -15,6 +15,7 @@ const observer = require('./dom/observer');
 const chatExport = require('./dom/chat-export');
 const chatInput = require('./dom/chat-input');
 const settingsTab = require('./dom/settings-tab');
+const commands = require('./dom/commands');
 const background = require('./dom/background');
 const reasoningGlass = require('./dom/reasoning-glass');
 const i18n = require('./i18n/i18n');
@@ -55,6 +56,9 @@ async function init() {
 
     // 启动设置面板标签注入
     settingsTab.start();
+
+    // Slash-команды: автодополнение и /plan
+    commands.start();
 
     // Кнопка экспорта ответа в PDF/DOCX под каждым ответом AI
     try { chatExport.startWatch(); } catch (e) { console.error('[Cookie Code] chat-export startWatch failed:', e.message); }
