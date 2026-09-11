@@ -41,7 +41,7 @@ async function init() {
     // 监听 URL 变化（SPA 路由）
     window.addEventListener('popstate', ui.updateHomeMode);
     window.addEventListener('hashchange', ui.updateHomeMode);
-    setInterval(ui.updateHomeMode, 1500);
+    setInterval(ui.updateHomeMode, 5000);
     // 首次延迟执行，确保 overlay 已注入
     setTimeout(ui.updateHomeMode, 500);
 

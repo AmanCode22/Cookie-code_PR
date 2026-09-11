@@ -38,6 +38,9 @@ function readMetaStore() {
 function writeMetaStore(store) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+    // Обновляем кеш — следующий read вернёт свежие данные
+    cachedStore = store;
+    cachedStoreTime = Date.now();
   } catch (_) {}
 }
 
@@ -140,8 +143,26 @@ function findLatestAIMessage() {
 /**
  * Восстановить мета-панели из localStorage (после reload).
  */
+// Кеш localStorage — чтобы не парсить JSON каждые 500ms
+let cachedStore = null;
+let cachedStoreTime = 0;
+const STORE_CACHE_TTL = 2000;
+
+function getCachedStore() {
+  const now = Date.now();
+  if (cachedStore && (now - cachedStoreTime) < STORE_CACHE_TTL) return cachedStore;
+  cachedStore = readMetaStore();
+  cachedStoreTime = now;
+  return cachedStore;
+}
+
+function invalidateStoreCache() {
+  cachedStore = null;
+  cachedStoreTime = 0;
+}
+
 function restoreFromStorage() {
-  const store = readMetaStore();
+  const store = getCachedStore();
   if (!store || Object.keys(store).length === 0) return;
   const all = document.querySelectorAll('.ds-message');
   for (let i = 0; i < all.length; i++) {
@@ -182,19 +203,28 @@ function startWatch() {
     } catch (_) {}
   };
 
+  // Debounce — не чаще раза в 500ms, чтобы не спамить localStorage.
+  let debounceTimer = null;
+  const runDebounced = () => {
+    if (debounceTimer) return;
+    debounceTimer = setTimeout(() => {
+      debounceTimer = null;
+      run();
+    }, 500);
+  };
+
   if (document.body) {
-    const mo = new MutationObserver(run);
+    const mo = new MutationObserver(runDebounced);
     mo.observe(document.body, { childList: true, subtree: true });
     run();
   } else {
     document.addEventListener('DOMContentLoaded', () => {
-      const mo = new MutationObserver(run);
+      const mo = new MutationObserver(runDebounced);
       mo.observe(document.body, { childList: true, subtree: true });
       run();
     }, { once: true });
   }
-  setInterval(run, 500);
-  console.log('[meta] watch started (mutation + poll)');
+  console.log('[meta] watch started (debounced mutation)');
 }
 
 /**

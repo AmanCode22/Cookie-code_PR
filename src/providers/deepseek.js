@@ -106,17 +106,23 @@ module.exports = {
   // ========== 自动解析相关方法 ==========
 
   // 判断 AI 是否已完成回复
+  // Оптимизация: сначала быстрая проверка stopBtn (1 querySelector вместо N),
+  // и только если он есть — обходим сообщения для подсчёта кнопок.
   isResponseComplete() {
     try {
-      let btnCount = 0;
+      // Шаг 1: если кнопка «стоп» НЕ найдена — ответ ещё не завершён (или уже давно завершён и нажат стоп).
+      // Это быстрый путь: без обхода .ds-message.
+      const stopBtn = document.querySelector(STOP_BTN_SELECTOR);
+      if (!stopBtn) return false;
+
+      // Шаг 2: кнопка «стоп» есть → ответ активно генерируется.
+      // Проверим, что под последним сообщением достаточно action-кнопок.
       const messages = document.querySelectorAll('.ds-message');
       if (messages.length === 0) return false;
       const lastMessage = messages[messages.length - 1];
       const scope = lastMessage.parentElement || lastMessage;
       const actionButtons = scope.querySelectorAll(ACTION_BTN_SELECTOR);
-      btnCount = actionButtons.length;
-      const stopBtn = document.querySelector(STOP_BTN_SELECTOR);
-      return btnCount >= 2 && !!stopBtn;
+      return actionButtons.length >= 2;
     } catch (err) {
       console.error('[Cookie Code] ❌ 检测 AI 完成状态出错:', err);
       return false;

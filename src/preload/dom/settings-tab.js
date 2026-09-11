@@ -580,10 +580,24 @@ function cleanupIfModalClosed() {
 function start() {
   injectSettingsTab();
   cleanupIfModalClosed();
-  setInterval(() => {
-    injectSettingsTab();
-    cleanupIfModalClosed();
-  }, 800);
+  // Оптимизация: если настроек нет 10 циклов подряд — увеличиваем интервал
+  // (не дёргаем DOM каждые 800ms, когда модалка закрыта).
+  let emptyCycles = 0;
+  let timer = null;
+  const tick = () => {
+    const hasTab = !!document.querySelector('.d316d158');
+    if (hasTab) {
+      emptyCycles = 0;
+      injectSettingsTab();
+      cleanupIfModalClosed();
+    } else {
+      emptyCycles++;
+    }
+    // Адаптивный интервал: 800ms при открытых настройках, 5s при закрытых.
+    const delay = emptyCycles > 10 ? 5000 : 800;
+    timer = setTimeout(tick, delay);
+  };
+  timer = setTimeout(tick, 800);
 }
 
 module.exports = { start, injectSettingsTab, activateCuckooTab, deactivateCuckooTab };

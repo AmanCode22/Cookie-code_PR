@@ -181,12 +181,17 @@ function startWatch() {
   watchStarted = true;
   window.__cuckooWatchStarted = true;
 
-  // Основной путь: MutationObserver.
+  // Debounce-обёртка: не чаще раза в 400ms, чтобы не дёргать DOM при каждом mutation.
+  let debounceTimer = null;
   const runAll = () => {
-    try {
-      const scopes = document.querySelectorAll('.ds-markdown');
-      scopes.forEach((s) => { try { decorate(s); } catch (_) {} });
-    } catch (_) {}
+    if (debounceTimer) return;
+    debounceTimer = setTimeout(() => {
+      debounceTimer = null;
+      try {
+        const scopes = document.querySelectorAll('.ds-markdown');
+        scopes.forEach((s) => { try { decorate(s); } catch (_) {} });
+      } catch (_) {}
+    }, 400);
   };
 
   if (document.body) {
@@ -201,11 +206,7 @@ function startWatch() {
     }, { once: true });
   }
 
-  // Дополнительно: polling каждые 700ms на случай виртуализации/SPA,
-  // когда MutationObserver не ловит перерисовку (DeepSeek virtual list).
-  setInterval(runAll, 700);
-
-  console.log('[Cookie Code] tool-render watch started (mutation + poll)');
+  console.log('[Cookie Code] tool-render watch started (debounced mutation)');
 }
 
 // Очередь ошибок, которые нужно «навесить» на блоки, когда они появятся в DOM.

@@ -235,14 +235,7 @@ function ensureStabilityTimer() {
  */
 function processLatestAIResponse(retryCount = 0, force = false) {
   const messages = getMessageCandidates();
-  const nowIso = new Date().toISOString();
-  console.log('[' + nowIso + '] [DEBUG] messages count=' + messages.length);
-  for (let i = 0; i < messages.length; i++) {
-    const m = messages[i];
-    console.log('[' + nowIso + '] [DEBUG] [' + i + '] cls=' + ((m.className || m.tagName || '').toString().slice(0, 60)) + ' text=' + ((m.textContent || '').trim().slice(0, 50)));
-  }
   if (messages.length === 0) {
-    console.log('[Cookie Code] 未找到 AI 消息节点');
     return;
   }
 
@@ -485,23 +478,28 @@ function startObserver() {
   const observer = new MutationObserver((mutations) => {
     // 100ms 节流：避免页面高频 DOM 变化导致日志与检测刷屏
     const now = Date.now();
-    if (now - lastObserverRun < 100) return;
+    if (now - lastObserverRun < 400) return;
     lastObserverRun = now;
 
+    // Собираем только summary по mutations — не вникаем в детали каждого узла.
+    // Это дорогая операция, а нам нужно лишь понять «что-то изменилось».
     let hasNewContent = false;
-    const mutationStats = { childList: 0, characterData: 0, attributes: 0 };
     for (const mutation of mutations) {
-      mutationStats[mutation.type] = (mutationStats[mutation.type] || 0) + 1;
       if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-        // 扫描命令
-        const commands = scanForCommands(mutation.addedNodes);
-        for (const cmd of commands) {
-          displayCommand({ command: cmd, timestamp: Date.now(), id: generateId() });
+        // scanForCommands вызываем только для «осмысленных» узлов (не text).
+        const meaningful = [];
+        for (let i = 0; i < mutation.addedNodes.length; i++) {
+          const n = mutation.addedNodes[i];
+          if (n.nodeType === 1) meaningful.push(n); // только ELEMENT_NODE
         }
-        hasNewContent = true;
+        if (meaningful.length > 0) {
+          const commands = scanForCommands(meaningful);
+          for (const cmd of commands) {
+            displayCommand({ command: cmd, timestamp: Date.now(), id: generateId() });
+          }
+          hasNewContent = true;
+        }
       } else if (mutation.type === 'characterData' || mutation.type === 'attributes') {
-        // Claude 的完成信号（retry 按钮 / 代码块）可能通过文本或属性变化出现，
-        // 不产生新增子节点，也需要触发完成检测。
         hasNewContent = true;
       }
     }
