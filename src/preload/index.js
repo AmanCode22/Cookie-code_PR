@@ -12,6 +12,7 @@ const ui = require('./overlay/ui');
 const projectDir = require('./overlay/project-dir');
 const bindEvents = require('./overlay/events');
 const observer = require('./dom/observer');
+const chatExport = require('./dom/chat-export');
 const chatInput = require('./dom/chat-input');
 const settingsTab = require('./dom/settings-tab');
 const background = require('./dom/background');
@@ -53,6 +54,9 @@ async function init() {
 
     // 启动设置面板标签注入
     settingsTab.start();
+
+    // Кнопка экспорта ответа в PDF/DOCX под каждым ответом AI
+    try { chatExport.startWatch(); } catch (e) { console.error('[Cookie Code] chat-export startWatch failed:', e.message); }
 
     // Загружаем настройки и применяем фон
     background.loadAndApply();

@@ -125,6 +125,7 @@
     "@joplin/turndown-plugin-gfm": "^1.0.67",
     "@modelcontextprotocol/sdk": "^1.30.0",
     "@vscode/ripgrep": "^1.18.0",
+    "docx": "^9.7.1",
     "electron-log": "^5.4.4",
     "electron-updater": "^6.8.9",
     "mysql2": "^3.24.2",

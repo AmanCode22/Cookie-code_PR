@@ -97,6 +97,9 @@ let electronAPI = {
   openCuckooSettingsFile: () => {
     return ipcRenderer.invoke('cuckoo-settings-open-file');
   },
+  exportChat: (payload) => {
+    return ipcRenderer.invoke('cuckoo-chat-export', payload);
+  },
 };
 
 try {

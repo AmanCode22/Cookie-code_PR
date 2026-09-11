@@ -11,6 +11,7 @@ const { toolRegistry, jsRunner } = require('./tool-registry');
 const { initProject } = require('./project-context');
 const { isDangerous } = require('./dangerous-commands');
 const settingsStore = require('./settings-store');
+const chatExport = require('./chat-export');
 const { decodeOutput, normalizeCommand } = require('../../tools/decodeOutput');
 
 function registerIpcHandlers() {
@@ -196,6 +197,19 @@ function registerIpcHandlers() {
     const result = settingsStore.setSetting(key, value);
     if (!result) return { success: false, error: '写入失败' };
     return { success: true, settings: result };
+  });
+
+  // ========== Экспорт ответа AI в PDF / DOCX ==========
+  ipcMain.handle('cuckoo-chat-export', async (_event, payload) => {
+    try {
+      console.log('[Cookie Code] chat-export: получен запрос, format =', payload && payload.format, ', html.length =', payload && payload.html && payload.html.length);
+      const result = await chatExport.exportChat(payload || {});
+      console.log('[Cookie Code] chat-export: результат =', JSON.stringify(result));
+      return result;
+    } catch (err) {
+      console.error('[Cookie Code] chat-export error:', err.message, err.stack);
+      return { success: false, error: err.message };
+    }
   });
 
   // Открыть файл настроек (cuckoo-settings.json) системным редактором.

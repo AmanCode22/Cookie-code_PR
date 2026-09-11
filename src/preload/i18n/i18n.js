@@ -101,6 +101,14 @@ const KEYS = {
   'settings.dangerous.saved':   { ru: '✅ Сохранено',              en: '✅ Saved' },
   'settings.dangerous.error':   { ru: '❌ Ошибка',                 en: '❌ Error' },
 
+  // ---- Экспорт ответа AI ----
+  'export.btn.title':           { ru: 'Экспорт ответа',            en: 'Export response' },
+  'export.menu.pdf':            { ru: '📄 Скачать PDF',            en: '📄 Download PDF' },
+  'export.menu.docx':           { ru: '📝 Скачать DOCX',           en: '📝 Download DOCX' },
+  'export.status.working':      { ru: 'Сохранение...',             en: 'Saving...' },
+  'export.status.ok':           { ru: '✅ Сохранено',              en: '✅ Saved' },
+  'export.status.err':          { ru: '❌ Ошибка',                 en: '❌ Error' },
+
   // ---- Настройки: кнопки внизу ----
   'settings.btn.openConfig':    { ru: 'Открыть файл настроек',     en: 'Open configuration file' },
   'settings.btn.openConfig.title': { ru: 'Открыть cuckoo-settings.json в системном редакторе', en: 'Open cuckoo-settings.json in the system editor' },
