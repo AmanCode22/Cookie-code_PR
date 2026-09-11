@@ -102,6 +102,10 @@ const KEYS = {
   'settings.dangerous.error':   { ru: '❌ Ошибка',                 en: '❌ Error' },
 
   // ---- Настройки: кнопки внизу ----
+  'settings.btn.openConfig':    { ru: 'Открыть файл настроек',     en: 'Open configuration file' },
+  'settings.btn.openConfig.title': { ru: 'Открыть cuckoo-settings.json в системном редакторе', en: 'Open cuckoo-settings.json in the system editor' },
+  'settings.btn.openConfig.opened': { ru: '✅ Файл открыт',         en: '✅ File opened' },
+  'settings.btn.openConfig.error':  { ru: '❌ Не удалось открыть',  en: '❌ Failed to open' },
   'settings.btn.clearStorage':  { ru: 'Очистить мета-данные',      en: 'Clear meta data' },
   'settings.btn.clearStorage.title': { ru: 'Очистить сохранённые мета-данные и историю ошибок', en: 'Clear saved meta data and error history' },
   'settings.btn.reset':         { ru: 'Сбросить настройки',        en: 'Reset settings' },

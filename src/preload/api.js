@@ -94,6 +94,9 @@ let electronAPI = {
   setCuckooSetting: (key, value) => {
     return ipcRenderer.invoke('cuckoo-settings-set', { key, value });
   },
+  openCuckooSettingsFile: () => {
+    return ipcRenderer.invoke('cuckoo-settings-open-file');
+  },
 };
 
 try {

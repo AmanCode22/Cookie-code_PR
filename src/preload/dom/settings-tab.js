@@ -201,7 +201,12 @@ function buildContentHTML() {
     '  <div class="cuckoo-section-title">' + t('settings.section.background') + '</div>' +
     '  <div class="cuckoo-bg-grid">' + items + '</div>' +
     '</div>' +
-    '<div style="display:flex;justify-content:flex-end;gap:10px;margin-top:4px;">' +
+    '<div style="display:flex;justify-content:flex-end;gap:10px;margin-top:4px;flex-wrap:wrap;">' +
+    '  <button id="cuckoo-btn-open-config" style="' +
+    '    padding: 9px 18px; border: 1px solid rgba(139,147,255,0.5); border-radius: 10px;' +
+    '    background: rgba(139,147,255,0.12); color: #a8afff; font-weight: 600; font-size: 13px;' +
+    '    cursor: pointer; transition: all 0.18s;' +
+    '  " title="' + t('settings.btn.openConfig.title') + '">' + t('settings.btn.openConfig') + '</button>' +
     '  <button id="cuckoo-btn-clear-storage" style="' +
     '    padding: 9px 18px; border: 1px solid rgba(139,147,255,0.5); border-radius: 10px;' +
     '    background: rgba(139,147,255,0.12); color: #a8afff; font-weight: 600; font-size: 13px;' +
@@ -336,6 +341,27 @@ function bindResetButton() {
           clearBtn.disabled = false;
           clearBtn.textContent = originalText;
         }, 300);
+      }
+    });
+  }
+
+  // Кнопка «Открыть файл настроек» — открывает cuckoo-settings.json системным редактором.
+  const openCfgBtn = document.getElementById('cuckoo-btn-open-config');
+  if (openCfgBtn) {
+    openCfgBtn.addEventListener('click', async () => {
+      openCfgBtn.disabled = true;
+      const originalText = openCfgBtn.textContent;
+      try {
+        const res = await window.electronAPI.openCuckooSettingsFile();
+        openCfgBtn.textContent = (res && res.success) ? t('settings.btn.openConfig.opened') : t('settings.btn.openConfig.error');
+      } catch (err) {
+        console.error('[Cookie Code] openCuckooSettingsFile error:', err.message);
+        openCfgBtn.textContent = t('settings.btn.openConfig.error');
+      } finally {
+        setTimeout(() => {
+          openCfgBtn.disabled = false;
+          openCfgBtn.textContent = originalText;
+        }, 1200);
       }
     });
   }

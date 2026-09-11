@@ -2,7 +2,7 @@
  * IPC 处理器注册（渲染进程 → 主进程）
  * 多窗口版：按 event.sender 路由到对应窗口的 profile 上下文。
  */
-const { app, dialog, ipcMain, Notification } = require('electron');
+const { app, dialog, ipcMain, Notification, shell } = require('electron');
 const { exec } = require('child_process');
 
 const windowState = require('./window');
@@ -196,6 +196,24 @@ function registerIpcHandlers() {
     const result = settingsStore.setSetting(key, value);
     if (!result) return { success: false, error: '写入失败' };
     return { success: true, settings: result };
+  });
+
+  // Открыть файл настроек (cuckoo-settings.json) системным редактором.
+  // Если файла ещё нет — создаём его с дефолтами, чтобы редактор не ругался.
+  ipcMain.handle('cuckoo-settings-open-file', async () => {
+    try {
+      const fs = require('fs');
+      const file = settingsStore.getSettingsPath();
+      if (!fs.existsSync(file)) {
+        settingsStore.writeSettings(settingsStore.readSettings());
+      }
+      const errMsg = await shell.openPath(file);
+      if (errMsg) return { success: false, error: errMsg };
+      return { success: true, path: file };
+    } catch (err) {
+      console.error('[Cookie Code] 打开 settings.json 失败:', err.message);
+      return { success: false, error: err.message };
+    }
   });
 }
 
