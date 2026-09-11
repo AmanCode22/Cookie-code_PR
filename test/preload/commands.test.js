@@ -86,7 +86,8 @@ test('registry: searchCommands по префиксу', () => {
 
 test('registry: PLAN_PROMPT содержит ключевые фразы', () => {
   assert.ok(PLAN_PROMPT.includes('计划模式'));
-  assert.ok(PLAN_PROMPT.includes('exit_plan_mode'));
+  assert.ok(PLAN_PROMPT.includes('计划 Markdown'));
+  assert.ok(PLAN_PROMPT.includes('等待用户确认'));
 });
 
 test('registry: все команды имеют обязательные поля', () => {
