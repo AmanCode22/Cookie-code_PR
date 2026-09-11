@@ -131,25 +131,48 @@ function formatToolArgs(toolName, args) {
   }
 }
 
+/** Экранирование для HTML parse_mode. */
+function escapeHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 /** Уведомление о результате tool. */
 async function notifyToolResult(toolName, ok, detail) {
   const cfg = _read();
   if (!cfg.enabled || !cfg.notifyTools) return { success: false, skipped: true };
   const emoji = ok ? '✅' : '❌';
-  let msg = emoji + ' ' + toolName;
+  const header = emoji + ' ' + escapeHtml(toolName);
 
   // detail может быть строкой (ошибка) или объектом { args, preview }.
   if (detail && typeof detail === 'object') {
     const { args, preview } = detail;
     const argsText = formatToolArgs(toolName, args);
-    if (argsText) msg += '\n' + argsText;
-    if (preview) {
-      msg += '\n📤 ' + String(preview).replace(/\n{3,}/g, '\n\n').slice(0, 600);
+    const parts = [];
+
+    if (toolName === 'edit') {
+      // edit оставляем как есть (структурированное представление, без цитаты).
+      if (argsText) parts.push(escapeHtml(argsText));
+      if (preview) parts.push('📤 ' + escapeHtml(String(preview).replace(/\n{3,}/g, '\n\n').slice(0, 600)));
+      const msg = header + '\n' + parts.join('\n');
+      return telegramBot.sendMessage(msg, { parseMode: 'HTML' });
     }
-  } else if (detail) {
-    msg += '\n' + String(detail).slice(0, 600);
+
+    // Остальные инструменты: аргументы + результат в цитате <blockquote>.
+    const bodyParts = [];
+    if (argsText) bodyParts.push(argsText);
+    if (preview) bodyParts.push('📤 ' + String(preview).replace(/\n{3,}/g, '\n\n').slice(0, 600));
+    const bodyHtml = escapeHtml(bodyParts.join('\n'));
+    const msg = header + (bodyHtml ? '\n<blockquote>' + bodyHtml + '</blockquote>' : '');
+    return telegramBot.sendMessage(msg, { parseMode: 'HTML' });
   }
-  return telegramBot.sendMessage(msg);
+
+  // detail — строка.
+  let msg = header;
+  if (detail) msg += '\n<blockquote>' + escapeHtml(String(detail).slice(0, 600)) + '</blockquote>';
+  return telegramBot.sendMessage(msg, { parseMode: 'HTML' });
 }
 
 /** Применить настройки: пересоздать конфиг бота и (при необходимости) запустить polling. */
