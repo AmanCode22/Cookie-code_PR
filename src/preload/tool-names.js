@@ -21,6 +21,7 @@ const TOOL_NAMES = [
   'pwsh',
   'mysql',
   'web_fetch',
+  'city_time',
   'open_browser_window',
   'inject_js',
   'mcp_list_servers',

@@ -375,7 +375,7 @@ function processLatestAIResponse(retryCount = 0, force = false) {
 
   // 是否为疑似工具内容（用于控制详细日志与提示文案）
   const looksToolish = text.includes(FENCE) ||
-    /toolName|"tool"|file_|await\s+(?:read|write|edit|glob|grep|bash|pwsh|todoWrite|deleteFile|webFetch|openBrowserWindow|injectJS|readFile|writeFile|editFile)\s*\(/.test(text);
+    /toolName|"tool"|file_|await\s+(?:read|write|edit|glob|grep|bash|pwsh|todoWrite|deleteFile|webFetch|cityTime|openBrowserWindow|injectJS|readFile|writeFile|editFile)\s*\(/.test(text);
 
   // 长度必打；原文/转义仅在疑似工具内容时打印（普通聊天回复不再刷屏）
   console.log('[Cookie Code] 回复文本长度: ' + text.length + (looksToolish ? '（疑似工具内容）' : '（普通文本）'));

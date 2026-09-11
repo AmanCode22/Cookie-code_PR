@@ -28,6 +28,7 @@ const ICONS = {
   browser:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>',
   skill:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.5 5 5.5.8-4 3.9.9 5.5L12 14.7 7.1 17.2l.9-5.5-4-3.9 5.5-.8z"/></svg>',
   mysql:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>',
+  citytime: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
   js:       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>',
 };
 
@@ -50,6 +51,7 @@ function detectTool(code) {
     { id: 'delete', re: /await\s+deleteFile\s*\(/,                       label: 'Delete' },
     { id: 'todo',   re: /await\s+todoWrite\s*\(/,                        label: 'Todo' },
     { id: 'fetch',  re: /await\s+webFetch\s*\(/,                         label: 'WebFetch' },
+    { id: 'citytime', re: /await\s+cityTime\s*\(/,                      label: 'CityTime' },
     { id: 'mcp',    re: /await\s+mcpCall\s*\(/,                          label: 'MCP' },
     { id: 'browser',re: /await\s+(openBrowserWindow|injectJS)\s*\(/,     label: 'Browser' },
     { id: 'skill',  re: /await\s+(skillList|skillLoad|skillExecute)\s*\(/, label: 'Skill' },
@@ -112,7 +114,7 @@ function decorate(scope) {
     // - язык в баннере `cuckoo` (некоторые рендереры оставляют как есть), ИЛИ
     // - язык `js`/`javascript` и в коде есть вызовы tool-функций (await read/write/edit/...).
     // DeepSeek показывает `cuckoo` как `js`, потому что языка cuckoo у него нет.
-    const TOOL_CALL_RE = /await\s+(read|readLines|write|edit|glob|grep|bash|pwsh|todoWrite|deleteFile|webFetch|mcpCall|openBrowserWindow|injectJS|mysql|skillList|skillLoad|skillExecute)\s*\(/;
+    const TOOL_CALL_RE = /await\s+(read|readLines|write|edit|glob|grep|bash|pwsh|todoWrite|deleteFile|webFetch|cityTime|mcpCall|openBrowserWindow|injectJS|mysql|skillList|skillLoad|skillExecute)\s*\(/;
     const hasToolCall = TOOL_CALL_RE.test(code);
     const langIsCuckoo = lang === 'cuckoo';
     const langIsJs = lang === 'js' || lang === 'javascript' || !lang;

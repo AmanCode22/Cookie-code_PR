@@ -259,6 +259,17 @@ declare function mysql(options: MySQLOptions): Promise<string>;
  */
 declare function webFetch(url: string): Promise<string>;
 
+// ================= CityTime =================
+
+/**
+ * 返回当前时间与用户所在地（城市、国家）。
+ * 时间与时区在本地获取；城市/国家通过外部 IP 地理定位服务确定。
+ * 返回纯文本（中文）：时间（ISO 8601 + 本地化）、时区、城市 / 国家。
+ * 网络不可用时，仅返回时间与时区，并注明城市/国家未确定。
+ * @returns 纯文本：时间、时区、城市 / 国家
+ */
+declare function cityTime(): Promise<string>;
+
 /**
  * 打开一个 Electron 浏览器窗口并返回窗口 ID。 打开浏览器后可以使用 injectJS 工具对窗口内容注入js , 以具备操控网页能力
  * @param url 要打开的网页 URL
