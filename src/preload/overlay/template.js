@@ -654,6 +654,18 @@ const OVERLAY_CSS = [
 '  0% { background-position: 0% 50%; }',
 '  100% { background-position: 400% 50%; }',
 '}',
+// ========== RGB-переливание приветственного текста на стартовой странице ==========
+// Приветствие — <span> без класса, всегда идёт сразу после SVG с классом .ce41ed1b
+// внутри общего контейнера. Цепляемся к этому span через :has().
+'body:not(.cuckoo-rgb-off) :is(._6c7e7df, div:has(> svg.ce41ed1b)) > span {',
+'  background: linear-gradient(90deg, #ff4d4d, #ffa64d, #ffee4d, #4dff88, #4dd2ff, #8a4dff, #ff4dd2, #ff4d4d);',
+'  background-size: 400% 100%;',
+'  -webkit-background-clip: text;',
+'  background-clip: text;',
+'  -webkit-text-fill-color: transparent;',
+'  color: transparent;',
+'  animation: cuckoo-rgb-username 5s linear infinite;',
+'}',
 // ========== RGB-переливание кнопки «Повторить» (retry под ошибкой ответа) ==========
 // Класс ds-button--warning стабильный (не хешированный). Ограничение .ds-message
 // гарантирует, что не затронутся warning-кнопки в других местах (например, в настройках).
