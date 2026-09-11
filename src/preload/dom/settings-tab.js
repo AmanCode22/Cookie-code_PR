@@ -78,6 +78,9 @@ function activateCuckooTab() {
     bindResetButton();
   }
   ourContent.style.display = '';
+
+  // Подсвечиваем нашу кнопку вкладки как активную
+  setTabActive();
 }
 
 /**
@@ -632,6 +635,9 @@ function deactivateCuckooTab() {
 
   const ourContent = document.getElementById(TAB_CONTENT_ID);
   if (ourContent) ourContent.remove();
+
+  // Снимаем подсветку с нашей кнопки вкладки
+  setTabInactive();
 }
 
 // Делегирование клика: ловим клики по вкладкам (наши и родные).
@@ -658,6 +664,48 @@ document.addEventListener(
   },
   true // capture
 );
+
+/**
+ * Применить/снять фирменный фон активной вкладки Cookie Code.
+ * Красим и саму кнопку, и вложенный .ds-button__background (если есть).
+ * @param {Element} btn — кнопка вкладки
+ * @param {boolean} active — активна ли вкладка
+ */
+function applyTabActiveStyle(btn, active) {
+  if (!btn) return;
+  const bg = btn.querySelector('.ds-button__background');
+  if (active) {
+    btn.style.background = 'rgba(139,147,255,0.25)';
+    btn.style.color = '#fff';
+    if (bg) bg.style.background = 'rgba(139,147,255,0.25)';
+  } else {
+    btn.style.background = '';
+    btn.style.color = '';
+    if (bg) bg.style.background = '';
+  }
+}
+
+/**
+ * Пометить кнопку вкладки Cookie Code как активную.
+ * Идемпотентно; молча выходит, если кнопки нет.
+ */
+function setTabActive() {
+  const btn = document.getElementById(TAB_BUTTON_ID);
+  if (!btn) return;
+  btn.setAttribute('data-cuckoo-active', '1');
+  applyTabActiveStyle(btn, true);
+}
+
+/**
+ * Снять активную подсветку с кнопки вкладки Cookie Code.
+ * Идемпотентно; молча выходит, если кнопки нет.
+ */
+function setTabInactive() {
+  const btn = document.getElementById(TAB_BUTTON_ID);
+  if (!btn) return;
+  btn.removeAttribute('data-cuckoo-active');
+  applyTabActiveStyle(btn, false);
+}
 
 /**
  * Вставить кнопку-таб в левую панель, если её ещё нет.
@@ -727,4 +775,4 @@ function start() {
   timer = setTimeout(tick, 800);
 }
 
-module.exports = { start, injectSettingsTab, activateCuckooTab, deactivateCuckooTab };
+module.exports = { start, injectSettingsTab, activateCuckooTab, deactivateCuckooTab, setTabActive, setTabInactive };
