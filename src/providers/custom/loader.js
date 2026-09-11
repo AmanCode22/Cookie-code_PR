@@ -103,7 +103,6 @@ function loadCustomProviders() {
       }
       provider._customPath = p;
       providers.push(provider);
-      console.log('[CustomProvider] 已加载:', provider.id, '来自', p);
     } catch (err) {
       console.error('[CustomProvider] 加载失败:', p, err.message);
     }
