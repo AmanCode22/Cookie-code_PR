@@ -149,9 +149,15 @@ function registerIpcHandlers() {
           if (profile && profile.name) windowName = profile.name;
         }
 
+        const lang = settingsStore.getSetting('language') === 'en' ? 'en' : 'ru';
+        const notifText = {
+          ru: { title: 'AI завершил задачу', body: 'AI завершил ответ' },
+          en: { title: 'AI task completed', body: 'AI has finished responding' },
+        }[lang];
+
         const notification = new Notification({
-          title: windowName + ' - AI任务已完成',
-          body: 'AI 已完成回复',
+          title: windowName + ' - ' + notifText.title,
+          body: notifText.body,
         });
         notification.show();
 

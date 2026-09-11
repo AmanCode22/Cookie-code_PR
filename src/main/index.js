@@ -17,6 +17,9 @@ const SESSION_DIR = process.env.CUCKOO_SESSION_DIR || 'cuckoo-ai-pro-session';
 app.setPath('userData', path.join(app.getPath('appData'), SESSION_DIR));
 console.log('[Cookie Code] Session 数据目录:', app.getPath('userData'));
 
+// Имя приложения в системных уведомлениях Windows (иначе показывается electron.app.Electron)
+app.setAppUserModelId('Cookie Code');
+
 // 渲染进程日志输出目录（仅开发环境持久化；打包版不写日志文件）
 const RENDERER_LOG_DIR = app.isPackaged
   ? null
