@@ -100,6 +100,28 @@ let electronAPI = {
   exportChat: (payload) => {
     return ipcRenderer.invoke('cuckoo-chat-export', payload);
   },
+  // ========== API Уведомлений-баннеров (cuckoo-first-time-box style) ==========
+  // Публичное API для показа модальных уведомлений сверху страницы
+  // с произвольным текстом, кнопкой действия и крестиком закрытия.
+  //
+  // Использование:
+  //   await window.electronAPI.showBannerNotification('Текст сообщения', {
+  //     btnText: 'Кнопка действия', // строка, или null/false чтобы скрыть кнопку
+  //     duration: 5000,             // мс до автозакрытия (0 = без таймера)
+  //     onAction: () => {},         // callback при нажатии кнопки
+  //     onClose: () => {}           // callback при закрытии крестиком
+  //   });
+  //   // Возвращает Promise<boolean>: true если нажата кнопка, false если закрыто крестиком/таймером
+  //
+  //   window.electronAPI.hideBannerNotification(); // принудительно закрыть баннер
+  showBannerNotification: (text, options) => {
+    const { showBannerNotification } = require('./overlay/ui');
+    return showBannerNotification(text, options);
+  },
+  hideBannerNotification: () => {
+    const { hideBannerNotification } = require('./overlay/ui');
+    return hideBannerNotification();
+  },
 };
 
 try {

@@ -189,6 +189,102 @@ function showConfirmDialog(text, options) {
 }
 
 /**
+ * Показать плавающее верхнее уведомление-баннер с кнопкой действия и крестиком
+ * (стиль «При первом создании диалога...», см. cuckoo-first-time-box).
+ *
+ * @param {string} text - Текст сообщения
+ * @param {object} [options]
+ * @param {string} [options.btnText] - Текст кнопки действия (по умолчанию «ОК» или скрыта, если null/false)
+ * @param {Function} [options.onAction] - Callback при клике на кнопку
+ * @param {Function} [options.onClose] - Callback при закрытии
+ * @param {number} [options.duration] - Автозакрытие в мс (0 или undefined = не закрывать автоматически)
+ * @returns {Promise<boolean>} resolve(true) при нажатии кнопки, resolve(false) при закрытии крестиком / по таймауту
+ */
+function showBannerNotification(text, options) {
+  const opts = options || {};
+  const btnText = opts.btnText !== undefined ? opts.btnText : 'OK';
+  const showBtn = btnText !== false && btnText !== null && btnText !== '';
+  const duration = typeof opts.duration === 'number' ? opts.duration : 0;
+
+  // Закрываем предыдущий кастомный баннер, если был открыт
+  hideBannerNotification();
+
+  return new Promise((resolve) => {
+    let resolved = false;
+    let timer = null;
+
+    const overlayWrap = document.createElement('div');
+    overlayWrap.id = 'cuckoo-custom-banner-dialog';
+    overlayWrap.className = 'cuckoo-first-time-dialog';
+
+    const box = document.createElement('div');
+    box.className = 'cuckoo-first-time-box';
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'cuckoo-btn-icon cuckoo-first-time-close';
+    closeBtn.title = 'Close';
+    closeBtn.textContent = '×';
+
+    const textEl = document.createElement('div');
+    textEl.className = 'cuckoo-first-time-text';
+    textEl.style.whiteSpace = 'pre-wrap';
+    textEl.textContent = text;
+
+    box.appendChild(closeBtn);
+    box.appendChild(textEl);
+
+    let actionBtn = null;
+    if (showBtn) {
+      const actionsEl = document.createElement('div');
+      actionsEl.className = 'cuckoo-actions';
+      actionBtn = document.createElement('button');
+      actionBtn.className = 'cuckoo-btn cuckoo-btn-primary';
+      actionBtn.textContent = btnText;
+      actionsEl.appendChild(actionBtn);
+      box.appendChild(actionsEl);
+    }
+
+    overlayWrap.appendChild(box);
+    document.body.appendChild(overlayWrap);
+
+    const cleanup = (wasAction) => {
+      if (resolved) return;
+      resolved = true;
+      if (timer) clearTimeout(timer);
+      overlayWrap.remove();
+      if (wasAction) {
+        if (typeof opts.onAction === 'function') {
+          try { opts.onAction(); } catch (_) {}
+        }
+        resolve(true);
+      } else {
+        if (typeof opts.onClose === 'function') {
+          try { opts.onClose(); } catch (_) {}
+        }
+        resolve(false);
+      }
+    };
+
+    closeBtn.addEventListener('click', () => cleanup(false));
+    if (actionBtn) {
+      actionBtn.addEventListener('click', () => cleanup(true));
+    }
+
+    if (duration > 0) {
+      timer = setTimeout(() => cleanup(false), duration);
+    }
+  });
+}
+
+/**
+ * Скрыть текущее кастомное уведомление-баннер.
+ */
+function hideBannerNotification() {
+  const el = document.getElementById('cuckoo-custom-banner-dialog');
+  if (el) el.remove();
+}
+
+/**
  * 设置任务状态（检测到任务：后面的执行中提示）
  * @param {boolean} running - 是否执行中
  */
@@ -409,6 +505,8 @@ module.exports = {
   updateHomeMode,
   showFirstTimeDialog,
   hideFirstTimeDialog,
+  showBannerNotification,
+  hideBannerNotification,
   forceShowOverlay,
   startOverlayWatcher,
 };

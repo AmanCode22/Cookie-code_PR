@@ -3,6 +3,7 @@
  * 由原 preload.js 拆分而来，逻辑保持不变。
  */
 const { escapeHtml, showToast } = require('../overlay/ui');
+const { t } = require('../i18n/i18n');
 
 // ========== 会话列表功能 ==========
 
@@ -85,7 +86,7 @@ async function handleInitProject() {
   const initBtn = document.getElementById('cuckoo-btn-init');
   if (initBtn) {
     initBtn.disabled = true;
-    initBtn.textContent = '⏳ 初始化中...';
+    initBtn.textContent = t('overlay.btn.init.loading');
   }
 
   try {
@@ -94,8 +95,18 @@ async function handleInitProject() {
       throw new Error('window.electronAPI.initProject 不存在');
     }
     const result = await window.electronAPI.initProject();
-    if (result && !result.success) {
-      showToast(result.message || '初始化失败', 3000);
+    if (result && result.success) {
+      // Дергаем API баннер-уведомлений о том, что проект успешно инициализирован
+      if (typeof window.electronAPI.showBannerNotification === 'function') {
+        window.electronAPI.showBannerNotification(t('init.success.text'), {
+          btnText: t('init.success.btn'),
+          duration: 6000,
+        });
+      }
+    } else if (result && !result.success) {
+      if (result.message && !result.message.includes('取消')) {
+        showToast(result.message || '初始化失败', 3000);
+      }
     }
   } catch (err) {
     console.error('[Cookie Code] 初始化项目失败:', err);
@@ -103,7 +114,7 @@ async function handleInitProject() {
   } finally {
     if (initBtn) {
       initBtn.disabled = false;
-      initBtn.textContent = '初始化项目';
+      initBtn.textContent = t('overlay.btn.init');
     }
   }
 }

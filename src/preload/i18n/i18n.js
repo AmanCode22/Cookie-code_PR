@@ -23,6 +23,7 @@ const KEYS = {
 
   // ---- Оверлей: кнопки ----
   'overlay.btn.init':           { ru: 'Инициализировать проект',   en: 'Initialize project' },
+  'overlay.btn.init.loading':   { ru: '⏳ Инициализация...',       en: '⏳ Initializing...' },
   'overlay.btn.windowManager':  { ru: 'Окна',                      en: 'Windows' },
   'overlay.btn.windowManager.title': { ru: 'Управление окнами',    en: 'Manage windows' },
   'overlay.btn.mcp':            { ru: 'MCP',                       en: 'MCP' },
@@ -71,6 +72,8 @@ const KEYS = {
   // ---- Оверлей: бейдж и первый диалог ----
   'badge.title':                { ru: 'Cookie Code работает',      en: 'Cookie Code is running' },
   'firstTime.text':             { ru: 'При первом создании диалога нужно инициализировать проект и выбрать каталог, иначе работа невозможна', en: 'When starting the first conversation, initialize a project and pick a directory — otherwise the app cannot work' },
+  'init.success.text':          { ru: 'Проект успешно инициализирован!', en: 'Project initialized successfully!' },
+  'init.success.btn':           { ru: 'Отлично',                   en: 'Great' },
 
   // ---- Настройки: общее ----
   'settings.title':             { ru: 'Cookie Code',               en: 'Cookie Code' },
