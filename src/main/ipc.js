@@ -345,6 +345,51 @@ function registerIpcHandlers() {
     }
   });
 
+  // ========== Git history (вкладка «История») ==========
+  ipcMain.handle('git-log', async (event, { limit } = {}) => {
+    try {
+      const ctx = windowState.getContextByWebContents(event.sender);
+      const projectDir = ctx && ctx.sessionStore && ctx.sessionStore.state.selectedProjectDir;
+      if (!projectDir) return { success: false, reason: 'git не найден: проект не инициализирован' };
+      return await gitDiff.getLog(projectDir, limit || 20);
+    } catch (err) {
+      return { success: false, reason: err.message };
+    }
+  });
+
+  ipcMain.handle('git-commit-files', async (event, { hash } = {}) => {
+    try {
+      const ctx = windowState.getContextByWebContents(event.sender);
+      const projectDir = ctx && ctx.sessionStore && ctx.sessionStore.state.selectedProjectDir;
+      if (!projectDir) return { success: false, reason: 'git не найден: проект не инициализирован' };
+      return await gitDiff.getCommitFiles(projectDir, hash);
+    } catch (err) {
+      return { success: false, reason: err.message };
+    }
+  });
+
+  ipcMain.handle('git-commit-file-diff', async (event, { hash, filePath } = {}) => {
+    try {
+      const ctx = windowState.getContextByWebContents(event.sender);
+      const projectDir = ctx && ctx.sessionStore && ctx.sessionStore.state.selectedProjectDir;
+      if (!projectDir) return { success: false, reason: 'git не найден: проект не инициализирован' };
+      return await gitDiff.getCommitFileDiff(projectDir, hash, filePath);
+    } catch (err) {
+      return { success: false, reason: err.message };
+    }
+  });
+
+  ipcMain.handle('git-commit-diff', async (event, { hash } = {}) => {
+    try {
+      const ctx = windowState.getContextByWebContents(event.sender);
+      const projectDir = ctx && ctx.sessionStore && ctx.sessionStore.state.selectedProjectDir;
+      if (!projectDir) return { success: false, reason: 'git не найден: проект не инициализирован' };
+      return await gitDiff.getCommitDiff(projectDir, hash);
+    } catch (err) {
+      return { success: false, reason: err.message };
+    }
+  });
+
   // Открыть файл настроек (cuckoo-settings.json) системным редактором.
   // Если файла ещё нет — создаём его с дефолтами, чтобы редактор не ругался.
   ipcMain.handle('cuckoo-settings-open-file', async () => {

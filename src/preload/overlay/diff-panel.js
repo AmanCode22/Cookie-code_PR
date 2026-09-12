@@ -1,13 +1,21 @@
 /**
- * Панель «Изменения» (git diff).
- * Данные берутся из git через IPC (git-status / git-diff-file).
- * Клик по файлу открывает отдельное модальное окно с unified diff.
+ * Панель «Изменения» (git) с вкладками «Изменения» / «История».
+ * - Изменения: список изменённых файлов (git status) → клик → окно с unified diff.
+ * - История: список последних коммитов → клик → файлы коммита → клик → окно с diff;
+ *   кнопка «Весь коммит» показывает полный diff коммита.
  */
 const { showToast } = require('./ui');
 
 const PANEL_ID = 'cuckoo-diff-panel';
 const LIST_ID = 'cuckoo-diff-list';
+const LOG_LIST_ID = 'cuckoo-git-log-list';
+const COMMIT_FILES_ID = 'cuckoo-commit-files';
+const COMMIT_FILES_LIST_ID = 'cuckoo-commit-files-list';
 const VIEWER_ID = 'cuckoo-diff-viewer';
+
+const COMMITS_LIMIT = 20;
+
+let currentCommit = null; // { hash, subject }
 
 function escapeHtml(text) {
   const div = document.createElement('div');
@@ -15,7 +23,6 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
-/** Ярлык статуса файла. */
 function statusLabel(status) {
   switch (status) {
     case 'modified': return { txt: 'M', cls: 'modified' };
@@ -27,7 +34,33 @@ function statusLabel(status) {
   }
 }
 
-/** Загрузить список изменённых файлов. */
+// ================= Вкладки =================
+
+function setActiveTab(tab) {
+  const tChanges = document.getElementById('cuckoo-diff-tab-changes');
+  const tHistory = document.getElementById('cuckoo-diff-tab-history');
+  const bodyChanges = document.getElementById(LIST_ID);
+  const bodyHistory = document.getElementById(LOG_LIST_ID);
+  const commitFiles = document.getElementById(COMMIT_FILES_ID);
+
+  const isChanges = tab === 'changes';
+  tChanges?.classList.toggle('active', isChanges);
+  tHistory?.classList.toggle('active', !isChanges);
+  bodyChanges?.classList.toggle('cuckoo-hidden', !isChanges);
+  // При переключении на «Историю» прячем список коммитов только если не открыт коммит
+  if (bodyHistory) bodyHistory.classList.toggle('cuckoo-hidden', isChanges || !!currentCommit);
+  if (commitFiles) commitFiles.classList.toggle('cuckoo-hidden', isChanges || !currentCommit);
+
+  if (isChanges) {
+    currentCommit = null;
+    renderDiffList();
+  } else {
+    renderGitLog();
+  }
+}
+
+// ================= Вкладка «Изменения» =================
+
 async function renderDiffList() {
   const list = document.getElementById(LIST_ID);
   if (!list) return;
@@ -63,7 +96,95 @@ async function renderDiffList() {
   }
 }
 
-/** Отрендерить unified diff в HTML (подсветка +/-/@@). */
+// ================= Вкладка «История» =================
+
+async function renderGitLog() {
+  const list = document.getElementById(LOG_LIST_ID);
+  if (!list) return;
+  list.innerHTML = '<div class="cuckoo-session-empty">Загрузка…</div>';
+  try {
+    const res = await window.electronAPI.gitLog(COMMITS_LIMIT);
+    if (!res || !res.success) {
+      list.innerHTML = '<div class="cuckoo-session-empty">' + escapeHtml(res && res.reason || 'git не найден') + '</div>';
+      return;
+    }
+    const commits = res.commits || [];
+    if (commits.length === 0) {
+      list.innerHTML = '<div class="cuckoo-session-empty">Нет коммитов</div>';
+      return;
+    }
+    list.innerHTML = commits.map(c =>
+      '<div class="cuckoo-commit-item" data-hash="' + escapeHtml(c.hash) + '" data-subject="' + escapeHtml(c.subject) + '">' +
+        '<span class="cuckoo-commit-subject-line">' + escapeHtml(c.subject) + '</span>' +
+        '<span class="cuckoo-commit-meta-line"><span class="cuckoo-commit-hash">' + escapeHtml(c.short) + '</span> · ' + escapeHtml(c.author) + ' · ' + escapeHtml(c.date) + '</span>' +
+      '</div>'
+    ).join('');
+
+    list.querySelectorAll('.cuckoo-commit-item').forEach(el => {
+      el.addEventListener('click', () => {
+        openCommitFiles(el.dataset.hash, el.dataset.subject);
+      });
+    });
+  } catch (err) {
+    list.innerHTML = '<div class="cuckoo-session-empty">Ошибка: ' + escapeHtml(err.message || err) + '</div>';
+  }
+}
+
+/** Открыть список файлов коммита. */
+async function openCommitFiles(hash, subject) {
+  currentCommit = { hash, subject };
+  const logList = document.getElementById(LOG_LIST_ID);
+  const commitFiles = document.getElementById(COMMIT_FILES_ID);
+  const filesList = document.getElementById(COMMIT_FILES_LIST_ID);
+  const subjectEl = document.getElementById('cuckoo-commit-subject');
+
+  if (logList) logList.classList.add('cuckoo-hidden');
+  if (commitFiles) commitFiles.classList.remove('cuckoo-hidden');
+  if (subjectEl) subjectEl.textContent = subject || '';
+  if (filesList) filesList.innerHTML = '<div class="cuckoo-session-empty">Загрузка…</div>';
+
+  try {
+    const res = await window.electronAPI.gitCommitFiles(hash);
+    if (!res || !res.success) {
+      filesList.innerHTML = '<div class="cuckoo-session-empty">' + escapeHtml(res && res.reason || 'Ошибка') + '</div>';
+      return;
+    }
+    const files = res.files || [];
+    if (files.length === 0) {
+      filesList.innerHTML = '<div class="cuckoo-session-empty">Нет файлов</div>';
+      return;
+    }
+    filesList.innerHTML = files.map(f => {
+      const s = statusLabel(f.status);
+      return '<div class="cuckoo-diff-file" data-path="' + escapeHtml(f.path) + '" title="' + escapeHtml(f.path) + '">' +
+        '<span class="cuckoo-diff-file-badge ' + s.cls + '">' + s.txt + '</span>' +
+        '<span class="cuckoo-diff-file-path">' + escapeHtml(f.path) + '</span>' +
+      '</div>';
+    }).join('');
+
+    filesList.querySelectorAll('.cuckoo-diff-file').forEach(el => {
+      el.addEventListener('click', async () => {
+        filesList.querySelectorAll('.cuckoo-diff-file').forEach(x => x.classList.remove('active'));
+        el.classList.add('active');
+        await openCommitFileViewer(currentCommit.hash, el.dataset.path);
+      });
+    });
+  } catch (err) {
+    filesList.innerHTML = '<div class="cuckoo-session-empty">Ошибка: ' + escapeHtml(err.message || err) + '</div>';
+  }
+}
+
+/** Вернуться к списку коммитов. */
+function backToLog() {
+  currentCommit = null;
+  const logList = document.getElementById(LOG_LIST_ID);
+  const commitFiles = document.getElementById(COMMIT_FILES_ID);
+  if (logList) logList.classList.remove('cuckoo-hidden');
+  if (commitFiles) commitFiles.classList.add('cuckoo-hidden');
+}
+
+// ================= Окно просмотра diff =================
+
 function renderUnifiedDiff(diffText) {
   if (!diffText || !diffText.trim()) {
     return '<div class="cuckoo-diff-empty">Пустой diff</div>';
@@ -73,7 +194,7 @@ function renderUnifiedDiff(diffText) {
     let cls = 'ctx';
     if (line.startsWith('+++') || line.startsWith('---')) cls = 'meta';
     else if (line.startsWith('@@')) cls = 'hunk';
-    else if (line.startsWith('diff ') || line.startsWith('index ') || line.startsWith('new file') || line.startsWith('deleted file') || line.startsWith('similarity') || line.startsWith('rename ')) cls = 'meta';
+    else if (line.startsWith('commit ') || line.startsWith('Author:') || line.startsWith('Date:') || line.startsWith('diff ') || line.startsWith('index ') || line.startsWith('new file') || line.startsWith('deleted file') || line.startsWith('similarity') || line.startsWith('rename ')) cls = 'meta';
     else if (line.startsWith('+')) cls = 'add';
     else if (line.startsWith('-')) cls = 'del';
     return '<div class="cuckoo-diff-line ' + cls + '"><span class="cuckoo-diff-text">' + escapeHtml(line) + '</span></div>';
@@ -81,7 +202,6 @@ function renderUnifiedDiff(diffText) {
   return '<pre class="cuckoo-diff-code">' + html + '</pre>';
 }
 
-/** Открыть отдельное модальное окно с diff файла. */
 async function openDiffViewer(filePath, status) {
   const viewer = document.getElementById(VIEWER_ID);
   if (!viewer) return;
@@ -90,7 +210,6 @@ async function openDiffViewer(filePath, status) {
   if (titleEl) titleEl.textContent = filePath;
   if (bodyEl) bodyEl.innerHTML = '<div class="cuckoo-diff-empty">Загрузка…</div>';
   viewer.classList.remove('cuckoo-hidden');
-
   try {
     const res = await window.electronAPI.gitDiffFile(filePath, status);
     if (!res || !res.success) {
@@ -103,35 +222,76 @@ async function openDiffViewer(filePath, status) {
   }
 }
 
-/** Закрыть окно просмотра diff. */
+async function openCommitFileViewer(hash, filePath) {
+  const viewer = document.getElementById(VIEWER_ID);
+  if (!viewer) return;
+  const titleEl = viewer.querySelector('#cuckoo-diff-viewer-title');
+  const bodyEl = viewer.querySelector('#cuckoo-diff-viewer-body');
+  if (titleEl) titleEl.textContent = filePath + ' @ ' + (hash || '').slice(0, 7);
+  if (bodyEl) bodyEl.innerHTML = '<div class="cuckoo-diff-empty">Загрузка…</div>';
+  viewer.classList.remove('cuckoo-hidden');
+  try {
+    const res = await window.electronAPI.gitCommitFileDiff(hash, filePath);
+    if (!res || !res.success) {
+      bodyEl.innerHTML = '<div class="cuckoo-diff-empty">' + escapeHtml(res && res.reason || 'Не удалось получить diff') + '</div>';
+      return;
+    }
+    bodyEl.innerHTML = renderUnifiedDiff(res.diff || '');
+  } catch (err) {
+    bodyEl.innerHTML = '<div class="cuckoo-diff-empty">Ошибка: ' + escapeHtml(err.message || err) + '</div>';
+  }
+}
+
+async function openCommitFullDiff() {
+  if (!currentCommit) return;
+  const viewer = document.getElementById(VIEWER_ID);
+  if (!viewer) return;
+  const titleEl = viewer.querySelector('#cuckoo-diff-viewer-title');
+  const bodyEl = viewer.querySelector('#cuckoo-diff-viewer-body');
+  if (titleEl) titleEl.textContent = 'Весь коммит ' + (currentCommit.hash || '').slice(0, 7);
+  if (bodyEl) bodyEl.innerHTML = '<div class="cuckoo-diff-empty">Загрузка…</div>';
+  viewer.classList.remove('cuckoo-hidden');
+  try {
+    const res = await window.electronAPI.gitCommitDiff(currentCommit.hash);
+    if (!res || !res.success) {
+      bodyEl.innerHTML = '<div class="cuckoo-diff-empty">' + escapeHtml(res && res.reason || 'Не удалось получить diff') + '</div>';
+      return;
+    }
+    bodyEl.innerHTML = renderUnifiedDiff(res.diff || '');
+  } catch (err) {
+    bodyEl.innerHTML = '<div class="cuckoo-diff-empty">Ошибка: ' + escapeHtml(err.message || err) + '</div>';
+  }
+}
+
 function closeDiffViewer() {
   const viewer = document.getElementById(VIEWER_ID);
   if (viewer) viewer.classList.add('cuckoo-hidden');
 }
 
-/** Открыть панель. */
+// ================= Панель =================
+
 function openDiffPanel() {
   const panel = document.getElementById(PANEL_ID);
   if (panel) panel.classList.remove('cuckoo-hidden');
-  renderDiffList();
+  currentCommit = null;
+  setActiveTab('changes');
 }
 
-/** Закрыть панель (и окно просмотра). */
 function closeDiffPanel() {
   const panel = document.getElementById(PANEL_ID);
   if (panel) panel.classList.add('cuckoo-hidden');
   closeDiffViewer();
 }
 
-/** Переключить видимость панели. */
 function toggleDiffPanel() {
   const panel = document.getElementById(PANEL_ID);
   if (!panel) return;
-  if (panel.classList.contains('cuckoo-hidden')) {
-    openDiffPanel();
-  } else {
-    closeDiffPanel();
-  }
+  if (panel.classList.contains('cuckoo-hidden')) openDiffPanel();
+  else closeDiffPanel();
 }
 
-module.exports = { openDiffPanel, closeDiffPanel, toggleDiffPanel, renderDiffList, closeDiffViewer };
+module.exports = {
+  openDiffPanel, closeDiffPanel, toggleDiffPanel,
+  renderDiffList, renderGitLog, closeDiffViewer,
+  setActiveTab, backToLog, openCommitFullDiff,
+};

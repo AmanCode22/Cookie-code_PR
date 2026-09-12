@@ -116,6 +116,18 @@ let electronAPI = {
   gitDiffFile: (filePath, status) => {
     return ipcRenderer.invoke('git-diff-file', { filePath, status });
   },
+  gitLog: (limit) => {
+    return ipcRenderer.invoke('git-log', { limit });
+  },
+  gitCommitFiles: (hash) => {
+    return ipcRenderer.invoke('git-commit-files', { hash });
+  },
+  gitCommitFileDiff: (hash, filePath) => {
+    return ipcRenderer.invoke('git-commit-file-diff', { hash, filePath });
+  },
+  gitCommitDiff: (hash) => {
+    return ipcRenderer.invoke('git-commit-diff', { hash });
+  },
   exportChat: (payload) => {
     return ipcRenderer.invoke('cuckoo-chat-export', payload);
   },

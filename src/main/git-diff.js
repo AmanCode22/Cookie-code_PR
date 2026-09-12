@@ -139,4 +139,81 @@ async function getFileDiff(projectDir, filePath, status) {
   return { success: true, diff: r.stdout };
 }
 
-module.exports = { checkRepo, getStatus, getFileDiff, parseStatus };
+/**
+ * Получить последние коммиты (git log).
+ * @param {string} projectDir
+ * @param {number} [limit] - сколько коммитов (по умолчанию 20)
+ * @returns {Promise<{success:boolean, commits?:Array<{hash:string,short:string,author:string,date:string,subject:string}>, reason?:string}>}
+ */
+async function getLog(projectDir, limit) {
+  const repo = await checkRepo(projectDir);
+  if (!repo.isRepo) return { success: false, reason: 'git не найден: ' + (repo.reason || '') };
+  const n = Math.max(1, Math.min(200, limit || 20));
+  // Разделители: RS (0x1e) между записями, US (0x1f) между полями
+  const fmt = '%H%x1f%h%x1f%an%x1f%ad%x1f%s%x1e';
+  const r = await git(repo.root, ['log', '-n', String(n), '--date=iso', '--pretty=format:' + fmt]);
+  if (!r.ok) return { success: false, reason: r.stderr.trim() || 'git log failed' };
+  const commits = r.stdout.split('\x1e').map(s => s.trim()).filter(Boolean).map(rec => {
+    const p = rec.split('\x1f');
+    return { hash: p[0] || '', short: p[1] || '', author: p[2] || '', date: p[3] || '', subject: p[4] || '' };
+  });
+  return { success: true, root: repo.root, commits };
+}
+
+/**
+ * Получить unified diff одного коммита (все файлы).
+ * @param {string} projectDir
+ * @param {string} hash
+ * @returns {Promise<{success:boolean, diff?:string, reason?:string}>}
+ */
+async function getCommitDiff(projectDir, hash) {
+  const repo = await checkRepo(projectDir);
+  if (!repo.isRepo) return { success: false, reason: 'git не найден: ' + (repo.reason || '') };
+  if (!hash) return { success: false, reason: 'hash is required' };
+  const r = await git(repo.root, ['show', '--no-color', '--stat', '--patch', hash]);
+  if (!r.ok) return { success: false, reason: r.stderr.trim() || 'git show failed' };
+  return { success: true, diff: r.stdout };
+}
+
+/**
+ * Список файлов, изменённых в коммите.
+ * @returns {Promise<{success:boolean, files?:Array<{status:string,path:string}>, reason?:string}>}
+ */
+async function getCommitFiles(projectDir, hash) {
+  const repo = await checkRepo(projectDir);
+  if (!repo.isRepo) return { success: false, reason: 'git не найден: ' + (repo.reason || '') };
+  if (!hash) return { success: false, reason: 'hash is required' };
+  const r = await git(repo.root, ['show', '--name-status', '--pretty=format:', hash]);
+  if (!r.ok) return { success: false, reason: r.stderr.trim() || 'git show failed' };
+  const files = [];
+  for (const line of r.stdout.split(/\r?\n/)) {
+    if (!line.trim()) continue;
+    const parts = line.split(/\t/);
+    const code = (parts[0] || '').trim();
+    let path = (parts[1] || '').trim();
+    if (code.startsWith('R') && parts[2]) path = parts[2].trim();
+    let status = 'changed';
+    if (code.startsWith('A')) status = 'added';
+    else if (code.startsWith('M')) status = 'modified';
+    else if (code.startsWith('D')) status = 'deleted';
+    else if (code.startsWith('R')) status = 'renamed';
+    files.push({ status, path });
+  }
+  return { success: true, files };
+}
+
+/**
+ * Unified diff одного файла в рамках коммита.
+ * @returns {Promise<{success:boolean, diff?:string, reason?:string}>}
+ */
+async function getCommitFileDiff(projectDir, hash, filePath) {
+  const repo = await checkRepo(projectDir);
+  if (!repo.isRepo) return { success: false, reason: 'git не найден: ' + (repo.reason || '') };
+  if (!hash) return { success: false, reason: 'hash is required' };
+  if (!filePath) return { success: false, reason: 'filePath is required' };
+  const r = await git(repo.root, ['show', '--no-color', hash, '--', filePath]);
+  if (!r.ok) return { success: false, reason: r.stderr.trim() || 'git show failed' };
+  return { success: true, diff: r.stdout };
+}
+
+module.exports = { checkRepo, getStatus, getFileDiff, parseStatus, getLog, getCommitDiff, getCommitFiles, getCommitFileDiff };

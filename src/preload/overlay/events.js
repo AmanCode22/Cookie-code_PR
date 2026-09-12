@@ -4,7 +4,7 @@
  */
 const state = require('../dom/state');
 const { hideOverlay, showOverlay, renderHistory, commandHistory, showToast, showConfirmDialog, hideFirstTimeDialog, handleKillProcess } = require('./ui');
-const { toggleDiffPanel, closeDiffPanel, renderDiffList, closeDiffViewer } = require('./diff-panel');
+const { toggleDiffPanel, closeDiffPanel, renderDiffList, closeDiffViewer, setActiveTab, backToLog, openCommitFullDiff } = require('./diff-panel');
 const { handleInitProject, renderSessions } = require('../dom/session-list');
 const { handleManualParse } = require('../dom/observer');
 const { sendToChat } = require('../dom/chat-input');
@@ -286,9 +286,24 @@ function bindEvents() {
   const diffCloseBtn = document.getElementById('cuckoo-diff-close');
   diffCloseBtn?.addEventListener('click', closeDiffPanel);
 
-  // Diff-панель: обновить
+  // Diff-панель: обновить (в зависимости от активной вкладки)
   const diffRefreshBtn = document.getElementById('cuckoo-diff-refresh');
-  diffRefreshBtn?.addEventListener('click', renderDiffList);
+  diffRefreshBtn?.addEventListener('click', () => {
+    const historyTab = document.getElementById('cuckoo-diff-tab-history');
+    if (historyTab && historyTab.classList.contains('active')) {
+      require('./diff-panel').renderGitLog();
+    } else {
+      renderDiffList();
+    }
+  });
+
+  // Diff-панель: вкладки
+  document.getElementById('cuckoo-diff-tab-changes')?.addEventListener('click', () => setActiveTab('changes'));
+  document.getElementById('cuckoo-diff-tab-history')?.addEventListener('click', () => setActiveTab('history'));
+
+  // Diff-панель: назад к истории / весь коммит
+  document.getElementById('cuckoo-commit-back')?.addEventListener('click', backToLog);
+  document.getElementById('cuckoo-commit-full')?.addEventListener('click', openCommitFullDiff);
 
   // Diff-viewer: закрыть
   const diffViewerCloseBtn = document.getElementById('cuckoo-diff-viewer-close');
