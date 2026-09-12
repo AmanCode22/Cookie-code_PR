@@ -227,8 +227,12 @@ function registerIpcHandlers() {
     const store = ctx ? ctx.sessionStore : null;
     const selectedDir = store ? store.state.selectedProjectDir : null;
     try {
+      const before = JSON.stringify(todoStore.getList(event.sender.id));
       const result = await jsRunner.run(code, selectedDir, event.sender.id);
-      try { event.sender.send('todo-updated', { todos: todoStore.getList(event.sender.id) }); } catch (_) {}
+      const after = JSON.stringify(todoStore.getList(event.sender.id));
+      if (before !== after) {
+        try { event.sender.send('todo-updated', { todos: todoStore.getList(event.sender.id) }); } catch (_) {}
+      }
       return { callId, ...result };
     } catch (err) {
       return { callId, success: false, error: err.message };

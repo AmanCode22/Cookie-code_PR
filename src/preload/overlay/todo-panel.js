@@ -178,8 +178,10 @@ function start() {
 
   try {
     window.electronAPI.onTodoUpdated((data) => {
-      // Любое обновление от модели снова показывает окно
-      userClosed = false;
+      // Сбрасываем ручное закрытие только при реальном изменении списка
+      const next = JSON.stringify((data && data.todos) || []);
+      const prev = JSON.stringify(currentTodos || []);
+      if (next !== prev) userClosed = false;
       render(data && data.todos);
     });
   } catch (_) {}

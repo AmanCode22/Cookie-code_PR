@@ -879,7 +879,7 @@ const OVERLAY_CSS = [
 // ========== Окно «Cookie Code» с задачами (слева) ==========
 '.cuckoo-todo-panel {',
 '  position: fixed; top: 90px; left: 20px; z-index: 2147483646;',
-'  width: 300px; max-height: 60vh; display: flex; flex-direction: column;',
+'  width: 380px; max-height: 68vh; display: flex; flex-direction: column;',
 '  background: rgba(17, 19, 34, var(--cuckoo-overlay-bg-opacity, 0.72));',
 '  backdrop-filter: blur(var(--cuckoo-sidebar-blur, 12px)) saturate(140%);',
 '  -webkit-backdrop-filter: blur(var(--cuckoo-sidebar-blur, 12px)) saturate(140%);',
