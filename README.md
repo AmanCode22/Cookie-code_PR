@@ -88,6 +88,8 @@ Control and monitor Cookie Code from your phone:
 - **Tool notifications** — every tool call (success/failure, name, arguments, result) is sent to your Telegram chat. For `edit`, the new code is shown (up to 2000 chars).
 - **AI replies** — every AI text response is mirrored to Telegram (human-readable text, code blocks stripped).
 - **Incoming messages** — send a message to the bot and it lands in the DeepSeek chat as if you typed it.
+- **`/todos` command** — get the current task list of the active window from Telegram.
+- **All-done notification** — when every task in the list becomes `completed`, the bot sends a one-time "🎉 All tasks completed" message with the list below it (fires again after the list changes).
 - Lightweight, **dependency-free** client (long-polling, no VPS or webhook needed).
 - Configured in **Settings → Cookie Code → Telegram bot** (token from @BotFather + chat ID).
 

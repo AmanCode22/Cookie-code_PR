@@ -16,6 +16,26 @@ const { decodeOutput, normalizeCommand } = require('../../tools/decodeOutput');
 const gitDiff = require('./git-diff');
 const todoStore = require('./todo-store');
 
+/**
+ * Если у окна все задачи выполнены (и список непустой) — пингуем Telegram один раз.
+ * Набор id-шников, для которых уже пинговали, чтобы не спамить при повторных вызовах.
+ */
+const _todoAllDoneNotified = new Set();
+function maybeNotifyAllDone(senderId) {
+  try {
+    const todos = todoStore.getList(senderId);
+    if (todos.length === 0) { _todoAllDoneNotified.delete(senderId); return; }
+    const done = todos.filter((t) => t.status === 'completed').length;
+    if (done === todos.length) {
+      if (_todoAllDoneNotified.has(senderId)) return;
+      _todoAllDoneNotified.add(senderId);
+      try { require('../../botsrc').notifyAllDone(todos); } catch (_) {}
+    } else {
+      _todoAllDoneNotified.delete(senderId);
+    }
+  } catch (_) {}
+}
+
 function registerIpcHandlers() {
   // 初始化项目
   ipcMain.handle('init-project', async (event, { skipPrompt = false } = {}) => {
@@ -168,6 +188,7 @@ function registerIpcHandlers() {
       // Если менялся todo-список — пушим обновление в окно
       if (toolName === 'todo_write' || toolName === 'todo_edit' || toolName === 'todo_delete') {
         try { event.sender.send('todo-updated', { todos: todoStore.getList(event.sender.id) }); } catch (_) {}
+        maybeNotifyAllDone(event.sender.id);
       }
       // Уведомление в Telegram (не блокирует ответ).
       try {
@@ -255,6 +276,7 @@ function registerIpcHandlers() {
       const after = JSON.stringify(todoStore.getList(event.sender.id));
       if (before !== after) {
         try { event.sender.send('todo-updated', { todos: todoStore.getList(event.sender.id) }); } catch (_) {}
+        maybeNotifyAllDone(event.sender.id);
       }
       return { callId, ...result };
     } catch (err) {

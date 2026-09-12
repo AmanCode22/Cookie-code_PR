@@ -67,9 +67,47 @@ async function _sendToChat(text) {
   }
 }
 
-/** Входящее из TG → в чат DeepSeek. */
+/** Получить id активного окна (для доступа к его todo-списку). */
+function _activeSenderId() {
+  try {
+    const win = windowState.getMainWindow();
+    if (win && !win.isDestroyed() && win.webContents) return win.webContents.id;
+  } catch (_) {}
+  return null;
+}
+
+/** Текст со списком задач (для /todos и уведомления о завершении). */
+function formatTodos(todos) {
+  const items = Array.isArray(todos) ? todos : [];
+  if (items.length === 0) return '☑ Список задач пуст.';
+  const icon = { pending: '☐', in_progress: '◔', completed: '☑' };
+  const done = items.filter((t) => t.status === 'completed').length;
+  const lines = items.map((t) => (icon[t.status] || '☐') + ' ' + t.content);
+  return '☑ Задачи (' + done + '/' + items.length + '):\n' + lines.join('\n');
+}
+
+/** Входящее из TG → в чат DeepSeek (или команда). */
 async function _handleIncoming(chatId, text) {
   const cfg = _read();
+  const raw = String(text || '');
+  const cmd = raw.trim().toLowerCase();
+
+  // Команда /todos — показать список задач активного окна.
+  if (cmd === '/todos' || cmd === '/todo') {
+    let todos = [];
+    try {
+      const senderId = _activeSenderId();
+      if (senderId != null) {
+        const todoStore = require('../src/main/todo-store');
+        todos = todoStore.getList(senderId);
+      }
+    } catch (err) {
+      _log('error', '/todos error:', err.message);
+    }
+    await telegramBot.sendMessage(formatTodos(todos));
+    return;
+  }
+
   if (!cfg.chatFeed) {
     _log('info', 'chatFeed выключен — игнор входящего:', text);
     return;
@@ -79,6 +117,17 @@ async function _handleIncoming(chatId, text) {
   if (!res.success) {
     await telegramBot.sendMessage('⚠ Не удалось отправить в чат: ' + (res.error || 'unknown'));
   }
+}
+
+/** Уведомить, что все задачи выполнены (со списком ниже). */
+async function notifyAllDone(todos) {
+  const cfg = _read();
+  if (!cfg.enabled || !cfg.notifyTools) return { success: false, skipped: true };
+  const items = Array.isArray(todos) ? todos : [];
+  if (items.length === 0) return { success: false, skipped: true };
+  const lines = items.map((t) => '☑ ' + escapeHtml(t.content)).join('\n');
+  const msg = '🎉 <b>Все задачи выполнены</b> (' + items.length + '/' + items.length + ')\n<blockquote>' + lines + '</blockquote>';
+  return telegramBot.sendMessage(msg, { parseMode: 'HTML' });
 }
 
 /**
@@ -238,6 +287,7 @@ module.exports = {
   testSend,
   notifyToolResult,
   notifyAIResponse,
+  notifyAllDone,
   _handleIncoming,
   _sendToChat,
 };
