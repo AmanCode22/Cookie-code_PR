@@ -274,7 +274,7 @@ class JsRunner {
    * @param {string|null} projectDir - 当前项目目录（相对路径基准）
    * @returns {Promise<{success: boolean, output?: string, error?: string}>}
    */
-  async run(code, projectDir) {
+  async run(code, projectDir, senderId) {
     if (!code || typeof code !== 'string' || !code.trim()) {
       return { success: false, error: '无效的 JS 代码' };
     }
@@ -305,7 +305,7 @@ class JsRunner {
           result = { success: false, error: '未知工具: ' + op };
         } else {
           try {
-            result = await tool.execute(Object.assign({}, args, { projectDir }));
+            result = await tool.execute(Object.assign({}, args, { projectDir, senderId }));
           } catch (err) {
             result = { success: false, error: '工具 ' + op + ' 执行异常: ' + (err.message || String(err)) };
           }

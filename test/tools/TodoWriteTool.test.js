@@ -1,7 +1,7 @@
 'use strict';
 const { test } = require('node:test');
 const assert = require('node:assert');
-const { parseTodoList, formatTodoOutput, STATUSES } = require('../../tools/TodoWriteTool');
+const { parseTodoList, formatTodoOutput, STATUSES } = require('../../tools/TodoTools');
 
 test('parseTodoList 正常列表', () => {
   const list = [

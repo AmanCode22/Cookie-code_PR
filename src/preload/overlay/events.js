@@ -5,6 +5,7 @@
 const state = require('../dom/state');
 const { hideOverlay, showOverlay, renderHistory, commandHistory, showToast, showConfirmDialog, hideFirstTimeDialog, handleKillProcess } = require('./ui');
 const { toggleDiffPanel, closeDiffPanel, renderDiffList, closeDiffViewer, setActiveTab, backToLog, openCommitFullDiff } = require('./diff-panel');
+const todoPanel = require('./todo-panel');
 const { handleInitProject, renderSessions } = require('../dom/session-list');
 const { handleManualParse } = require('../dom/observer');
 const { sendToChat } = require('../dom/chat-input');
@@ -308,6 +309,9 @@ function bindEvents() {
   // Diff-viewer: закрыть
   const diffViewerCloseBtn = document.getElementById('cuckoo-diff-viewer-close');
   diffViewerCloseBtn?.addEventListener('click', closeDiffViewer);
+
+  // Плавающее окошко «Задачи»
+  todoPanel.start();
 
   // MCP 面板：刷新
   const mcpRefreshBtn = document.getElementById('cuckoo-mcp-refresh');

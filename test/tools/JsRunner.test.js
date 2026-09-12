@@ -3,6 +3,7 @@ const { test } = require('node:test');
 const assert = require('node:assert');
 const { JsRunner } = require('../../tools/JsRunner');
 const { registry } = require('../../tools');
+const todoStore = require('../../src/main/todo-store');
 
 test('JsRunner 执行简单 JS 代码', async () => {
   const runner = new JsRunner(registry);
@@ -44,4 +45,21 @@ test('JsRunner 未知工具报错', async () => {
   const r = await runner.run('await read("a.txt")', null);
   assert.strictEqual(r.success, false);
   assert.ok(r.error);
+});
+
+test('JsRunner passes senderId to todo tools', async () => {
+  const runner = new JsRunner(registry);
+  const senderId = 'test-js-runner-todo';
+  todoStore.clear(senderId);
+  const r = await runner.run(
+    'await todoWrite([{ content: "show todo panel", status: "in_progress" }]);',
+    process.cwd(),
+    senderId
+  );
+  assert.strictEqual(r.success, true);
+  const todos = todoStore.getList(senderId);
+  assert.strictEqual(todos.length, 1);
+  assert.strictEqual(todos[0].content, 'show todo panel');
+  assert.strictEqual(todos[0].status, 'in_progress');
+  todoStore.clear(senderId);
 });

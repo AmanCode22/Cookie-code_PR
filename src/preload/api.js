@@ -109,6 +109,18 @@ let electronAPI = {
   openCuckooSettingsFile: () => {
     return ipcRenderer.invoke('cuckoo-settings-open-file');
   },
+  // ========== Todo-задачи ==========
+  getTodos: () => {
+    return ipcRenderer.invoke('todo-get');
+  },
+  clearTodos: () => {
+    return ipcRenderer.invoke('todo-clear');
+  },
+  onTodoUpdated: (callback) => {
+    const listener = (_event, data) => callback(data);
+    ipcRenderer.on('todo-updated', listener);
+    return () => ipcRenderer.removeListener('todo-updated', listener);
+  },
   // ========== Git diff (панель «Изменения») ==========
   gitStatus: () => {
     return ipcRenderer.invoke('git-status');

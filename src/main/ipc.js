@@ -14,6 +14,7 @@ const settingsStore = require('./settings-store');
 const chatExport = require('./chat-export');
 const { decodeOutput, normalizeCommand } = require('../../tools/decodeOutput');
 const gitDiff = require('./git-diff');
+const todoStore = require('./todo-store');
 
 function registerIpcHandlers() {
   // 初始化项目
@@ -140,7 +141,11 @@ function registerIpcHandlers() {
     const store = ctx ? ctx.sessionStore : null;
     const selectedDir = store ? store.state.selectedProjectDir : null;
     try {
-      const result = await toolRegistry.execute(toolName, { ...params, projectDir: selectedDir });
+      const result = await toolRegistry.execute(toolName, { ...params, projectDir: selectedDir, senderId: event.sender.id });
+      // Если менялся todo-список — пушим обновление в окно
+      if (toolName === 'todo_write' || toolName === 'todo_edit' || toolName === 'todo_delete') {
+        try { event.sender.send('todo-updated', { todos: todoStore.getList(event.sender.id) }); } catch (_) {}
+      }
       // Уведомление в Telegram (не блокирует ответ).
       try {
         const preview = result.success
@@ -222,7 +227,8 @@ function registerIpcHandlers() {
     const store = ctx ? ctx.sessionStore : null;
     const selectedDir = store ? store.state.selectedProjectDir : null;
     try {
-      const result = await jsRunner.run(code, selectedDir);
+      const result = await jsRunner.run(code, selectedDir, event.sender.id);
+      try { event.sender.send('todo-updated', { todos: todoStore.getList(event.sender.id) }); } catch (_) {}
       return { callId, ...result };
     } catch (err) {
       return { callId, success: false, error: err.message };
@@ -315,6 +321,25 @@ function registerIpcHandlers() {
       return result;
     } catch (err) {
       console.error('[Cookie Code] chat-export error:', err.message, err.stack);
+      return { success: false, error: err.message };
+    }
+  });
+
+  // ========== Todo-задачи окна ==========
+  ipcMain.handle('todo-get', async (event) => {
+    try {
+      return { success: true, todos: todoStore.getList(event.sender.id) };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  });
+
+  ipcMain.handle('todo-clear', async (event) => {
+    try {
+      todoStore.clear(event.sender.id);
+      try { event.sender.send('todo-updated', { todos: [] }); } catch (_) {}
+      return { success: true };
+    } catch (err) {
       return { success: false, error: err.message };
     }
   });
