@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="https://github.com/merfiDEV/Cookie-code/releases/latest"><img src="https://img.shields.io/github/v/release/wangyongpeng90/cuckoo-code?style=flat-square&color=8b93ff" alt="Latest Release"></a>
-  <a href="https://github.com/merfiDEV/Cookie-code/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue?style=flat-square" alt="License"></a>
+  <a href="https://github.com/merfiDEV/Cookie-code/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License"></a>
   <a href="https://github.com/merfiDEV/Cookie-code"><img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS-8b93ff?style=flat-square" alt="Platform"></a>
   <a href="https://github.com/merfiDEV/Cookie-code"><img src="https://img.shields.io/badge/Electron-33-47848f?style=flat-square&logo=electron&logoColor=white" alt="Electron"></a>
   <a href="https://github.com/merfiDEV/Cookie-code"><img src="https://img.shields.io/badge/Node.js-%3E%3D%2016-339933?style=flat-square&logo=node.js&logoColor=white" alt="Node"></a>
@@ -84,6 +84,11 @@
 ### Telegram-бот
 
 Управляйте Cookie Code и следите за ним с телефона:
+
+<p align="center">
+  <img src="assets/photo_1_2026-09-12_19-08-16.jpg" alt="Telegram-бот — настройки" width="420">
+  <img src="assets/photo_2_2026-09-12_19-08-16.jpg" alt="Telegram-бот — уведомления" width="420">
+</p>
 
 - **Уведомления об инструментах** — каждый вызов (успех/ошибка, имя, аргументы, результат) приходит в ваш Telegram-чат. Для `edit` показывается новый код (до 2000 символов).
 - **Ответы AI** — каждый текстовый ответ AI дублируется в Telegram (человекочитаемый текст без code-блоков).
@@ -275,4 +280,4 @@ botsrc/                Интеграция Telegram-бота (без завис
 
 ## Лицензия
 
-[GPL-3.0-only](LICENSE)
+[MIT](LICENSE)

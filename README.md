@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="https://github.com/merfiDEV/Cookie-code/releases/latest"><img src="https://img.shields.io/github/v/release/merfiDEV/Cookie-code?style=flat-square&color=8b93ff" alt="Latest Release"></a>
-  <a href="https://github.com/merfiDEV/Cookie-code/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue?style=flat-square" alt="License"></a>
+  <a href="https://github.com/merfiDEV/Cookie-code/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License"></a>
   <a href="https://github.com/merfiDEV/Cookie-code"><img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS-8b93ff?style=flat-square" alt="Platform"></a>
   <a href="https://github.com/merfiDEV/Cookie-code"><img src="https://img.shields.io/badge/Electron-33-47848f?style=flat-square&logo=electron&logoColor=white" alt="Electron"></a>
   <a href="https://github.com/merfiDEV/Cookie-code"><img src="https://img.shields.io/badge/Node.js-%3E%3D%2016-339933?style=flat-square&logo=node.js&logoColor=white" alt="Node"></a>
@@ -100,7 +100,8 @@ The username in the sidebar has an animated rainbow gradient (enabled by default
 Control and monitor Cookie Code from your phone:
 
 <p align="center">
-  <img src="assets/photo_6_2026-09-12_19-02-00.jpg" alt="Telegram bot settings" width="420">
+  <img src="assets/photo_1_2026-09-12_19-08-16.jpg" alt="Telegram bot — settings" width="420">
+  <img src="assets/photo_2_2026-09-12_19-08-16.jpg" alt="Telegram bot — notifications" width="420">
 </p>
 
 - **Tool notifications** — every tool call (success/failure, name, arguments, result) is sent to your Telegram chat. For `edit`, the new code is shown (up to 2000 chars).
@@ -295,4 +296,4 @@ botsrc/                Telegram bot integration (dependency-free)
 
 ## License
 
-[GPL-3.0-only](LICENSE)
+[MIT](LICENSE)
