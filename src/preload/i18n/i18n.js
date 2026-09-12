@@ -141,6 +141,15 @@ const KEYS = {
   'settings.opacity.sidebar':   { ru: 'Прозрачность сайдбара',     en: 'Sidebar opacity' },
   'settings.opacity.toolblock': { ru: 'Прозрачность tool-блоков',  en: 'Tool block opacity' },
 
+  // ---- Настройки: панель Cookie Code ----
+  'settings.section.overlay':   { ru: 'Панель Cookie Code',        en: 'Cookie Code Panel' },
+  'settings.overlay.opacity':   { ru: 'Прозрачность фона панели',  en: 'Panel background opacity' },
+  'settings.overlay.blur':      { ru: 'Размытие панели (стекло)',  en: 'Panel blur (glass)' },
+  'settings.overlay.width':     { ru: 'Ширина панели',             en: 'Panel width' },
+  'settings.overlay.bgColor':   { ru: 'Цвет фона панели',          en: 'Panel background color' },
+  'settings.overlay.btnColor':  { ru: 'Основной цвет кнопок',      en: 'Primary button color' },
+  'settings.overlay.btnRadius': { ru: 'Скругление кнопок панели',  en: 'Button corner radius' },
+
   // ---- Настройки: эффекты ----
   'settings.effect.rgb':        { ru: 'RGB-переливание ника',      en: 'RGB animated username' },
 

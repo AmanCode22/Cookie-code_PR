@@ -138,8 +138,24 @@ function apply(id) {
   }
 }
 
+function hexToRgb(hex, defaultVal = { r: 17, g: 19, b: 34 }) {
+  if (!hex || typeof hex !== 'string') return defaultVal;
+  let h = hex.trim().replace(/^#/, '');
+  if (h.length === 3) {
+    h = h.split('').map(c => c + c).join('');
+  }
+  if (h.length !== 6) return defaultVal;
+  const num = parseInt(h, 16);
+  if (isNaN(num)) return defaultVal;
+  return {
+    r: (num >> 16) & 255,
+    g: (num >> 8) & 255,
+    b: num & 255,
+  };
+}
+
 /**
- * Применить настройки размытия и прозрачности.
+ * Применить настройки размытия, прозрачности и темы панели.
  * Числовые значения — px, прозрачность — % (0–100).
  */
 function applyBlur(settings) {
@@ -170,7 +186,43 @@ function applyBlur(settings) {
   root.style.setProperty('--cuckoo-reasoning-blur', (tbBlurVal > 0 ? tbBlurVal : 12) + 'px');
   // И свою (более лёгкую) плотность плёнки — тонкая плашка не должна выглядеть чёрной.
   root.style.setProperty('--cuckoo-reasoning-opacity', Math.max(15, tbOpVal - 20) + '%');
-  console.log('[Cookie Code] Стили: фон=' + bg + 'px, шапка=' + hdVal + 'px/' + hdOpVal + '%, сайдбар=' + sbVal + 'px/' + sbOpVal + '%, tool=' + tbBlurVal + 'px/' + tbOpVal + '%');
+
+  // ===== Кастомизация панели Cookie Code =====
+  const ovOpacity = Number(settings && settings.overlayOpacity);
+  const ovOpacityVal = isNaN(ovOpacity) ? 72 : ovOpacity;
+  const ovBlur = Number(settings && settings.overlayBlur);
+  const ovBlurVal = isNaN(ovBlur) ? 12 : ovBlur;
+  const ovWidth = Number(settings && settings.overlayWidth);
+  const ovWidthVal = isNaN(ovWidth) ? 300 : ovWidth;
+  const ovBgColor = (settings && settings.overlayBgColor) || '#111322';
+  const ovRgb = hexToRgb(ovBgColor, { r: 17, g: 19, b: 34 });
+  const ovAlpha = (ovOpacityVal / 100).toFixed(2);
+
+  root.style.setProperty('--cuckoo-overlay-width', ovWidthVal + 'px');
+  root.style.setProperty('--cuckoo-overlay-blur', ovBlurVal + 'px');
+  root.style.setProperty('--cuckoo-overlay-bg', `rgba(${ovRgb.r}, ${ovRgb.g}, ${ovRgb.b}, ${ovAlpha})`);
+
+  // Кнопки оверлея
+  const ovPrimary = (settings && settings.overlayPrimaryColor) || '#8b93ff';
+  const pRgb = hexToRgb(ovPrimary, { r: 139, g: 147, b: 255 });
+  // Темнее оттенок для градиента
+  const pDarkR = Math.max(0, Math.floor(pRgb.r * 0.8));
+  const pDarkG = Math.max(0, Math.floor(pRgb.g * 0.8));
+  const pDarkB = Math.max(0, Math.floor(pRgb.b * 0.8));
+  const ovRadius = Number(settings && settings.overlayBtnRadius);
+  const ovRadiusVal = isNaN(ovRadius) ? 10 : ovRadius;
+
+  root.style.setProperty('--cuckoo-overlay-btn-radius', ovRadiusVal + 'px');
+  root.style.setProperty('--cuckoo-overlay-primary-bg', `linear-gradient(135deg, rgb(${pRgb.r}, ${pRgb.g}, ${pRgb.b}), rgb(${pDarkR}, ${pDarkG}, ${pDarkB}))`);
+  root.style.setProperty('--cuckoo-overlay-primary-shadow', `rgba(${pDarkR}, ${pDarkG}, ${pDarkB}, 0.25)`);
+  root.style.setProperty('--cuckoo-overlay-primary-shadow-hover', `rgba(${pDarkR}, ${pDarkG}, ${pDarkB}, 0.45)`);
+  root.style.setProperty('--cuckoo-overlay-secondary-bg', `rgba(${pRgb.r}, ${pRgb.g}, ${pRgb.b}, 0.12)`);
+  root.style.setProperty('--cuckoo-overlay-secondary-text', `rgb(${Math.min(255, pRgb.r + 30)}, ${Math.min(255, pRgb.g + 30)}, 255)`);
+  root.style.setProperty('--cuckoo-overlay-secondary-border', `rgba(${pRgb.r}, ${pRgb.g}, ${pRgb.b}, 0.5)`);
+  root.style.setProperty('--cuckoo-overlay-secondary-hover-bg', `rgba(${pRgb.r}, ${pRgb.g}, ${pRgb.b}, 0.28)`);
+  root.style.setProperty('--cuckoo-overlay-secondary-hover-border', `rgba(${pRgb.r}, ${pRgb.g}, ${pRgb.b}, 0.75)`);
+
+  console.log('[Cookie Code] Стили: фон=' + bg + 'px, шапка=' + hdVal + 'px/' + hdOpVal + '%, сайдбар=' + sbVal + 'px/' + sbOpVal + '%, tool=' + tbBlurVal + 'px/' + tbOpVal + '%, оверлей=' + ovBlurVal + 'px/' + ovOpacityVal + '%/' + ovWidthVal + 'px');
 }
 
 /**
@@ -207,6 +259,12 @@ const RESET_DEFAULTS = {
   toolBlockOpacity: 55,
   toolBlockBlur: 0,
   rgbUsername: true,
+  overlayOpacity: 72,
+  overlayBlur: 12,
+  overlayWidth: 300,
+  overlayBgColor: '#111322',
+  overlayPrimaryColor: '#8b93ff',
+  overlayBtnRadius: 10,
 };
 
 /**

@@ -29,6 +29,83 @@ function injectCSS() {
   document.head.appendChild(style);
 }
 
+const OVERLAY_POS_KEY = 'cuckoo-overlay-pos';
+
+/**
+ * Восстановить сохранённую позицию оверлея из localStorage.
+ */
+function restoreOverlayPosition() {
+  const overlay = document.getElementById('cuckoo-overlay');
+  if (!overlay) return;
+  try {
+    const raw = localStorage.getItem(OVERLAY_POS_KEY);
+    if (!raw) return;
+    const pos = JSON.parse(raw);
+    if (typeof pos.left === 'number' && typeof pos.top === 'number') {
+      const maxLeft = Math.max(0, window.innerWidth - 60);
+      const maxTop = Math.max(0, window.innerHeight - 40);
+      const left = Math.max(0, Math.min(maxLeft, pos.left));
+      const top = Math.max(0, Math.min(maxTop, pos.top));
+      overlay.style.left = left + 'px';
+      overlay.style.top = top + 'px';
+      overlay.style.right = 'auto';
+      overlay.style.bottom = 'auto';
+    }
+  } catch (_) {}
+}
+
+/**
+ * Сделать панель оверлея перетаскиваемой за шапку (аналогично todo-panel).
+ */
+function makeOverlayDraggable() {
+  const overlay = document.getElementById('cuckoo-overlay');
+  const handle = document.getElementById('cuckoo-overlay-drag');
+  if (!overlay || !handle) return;
+
+  let dragging = false;
+  let startX = 0, startY = 0, startLeft = 0, startTop = 0;
+
+  const onDown = (e) => {
+    if (e.target.closest('button') || e.target.closest('.cuckoo-btn-icon')) return;
+
+    dragging = true;
+    const rect = overlay.getBoundingClientRect();
+    startLeft = rect.left;
+    startTop = rect.top;
+    startX = e.clientX;
+    startY = e.clientY;
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    e.preventDefault();
+  };
+
+  const onMove = (e) => {
+    if (!dragging) return;
+    let left = startLeft + (e.clientX - startX);
+    let top = startTop + (e.clientY - startY);
+    left = Math.max(0, Math.min(window.innerWidth - 60, left));
+    top = Math.max(0, Math.min(window.innerHeight - 40, top));
+    overlay.style.left = left + 'px';
+    overlay.style.top = top + 'px';
+    overlay.style.right = 'auto';
+    overlay.style.bottom = 'auto';
+  };
+
+  const onUp = () => {
+    if (!dragging) return;
+    dragging = false;
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+    try {
+      const rect = overlay.getBoundingClientRect();
+      localStorage.setItem(OVERLAY_POS_KEY, JSON.stringify({ left: rect.left, top: rect.top }));
+    } catch (_) {}
+  };
+
+  handle.addEventListener('mousedown', onDown);
+}
+
 // ========== 注入覆盖层 HTML ==========
 /**
  * 注入覆盖层 HTML 到页面 body
@@ -45,6 +122,10 @@ function injectOverlay() {
     const fabIcon = container.querySelector('.cuckoo-fab-icon');
     if (fabIcon) fabIcon.innerHTML = DEEPSEEK_LOGO_SVG;
   }
+
+  // Восстанавливаем сохранённую позицию и активируем drag
+  restoreOverlayPosition();
+  makeOverlayDraggable();
 }
 
 // ========== 覆盖层逻辑 ==========
