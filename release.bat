@@ -3,7 +3,7 @@ chcp 65001 > nul
 setlocal
 
 echo ============================================
-echo   Cuckoo Code 一键发布脚本
+echo   Cookie Code 一键发布脚本
 echo ============================================
 echo.
 
@@ -15,7 +15,7 @@ echo 当前版本: %CUR_VER%
 echo.
 
 :: 输入新版本号
-set /p NEW_VER=请输入新版本号 (例如 0.1.5): 
+set /p NEW_VER=请输入新版本号 (例如 0.3.7): 
 
 if "%NEW_VER%"=="" (
   echo 版本号不能为空！
@@ -26,7 +26,7 @@ if "%NEW_VER%"=="" (
 :: 简单校验版本号格式 x.y.z
 echo %NEW_VER% | findstr /r "^[0-9][0-9]*.[0-9][0-9]*.[0-9][0-9]*$" > nul
 if errorlevel 1 (
-  echo 版本号格式错误，应为 x.y.z 格式，例如 0.1.5
+  echo 版本号格式错误，应为 x.y.z 格式，例如 0.3.7
   pause
   exit /b 1
 )
@@ -50,7 +50,7 @@ if errorlevel 1 (
 
 echo.
 echo ==== 3/5 推送代码到 GitHub ====
-git push github master
+git push origin master
 if errorlevel 1 (
   echo 推送失败！请检查网络或代理设置。
   pause
@@ -60,7 +60,7 @@ if errorlevel 1 (
 echo.
 echo ==== 4/5 创建并推送 tag v%NEW_VER% ====
 git tag v%NEW_VER%
-git push github v%NEW_VER%
+git push origin v%NEW_VER%
 if errorlevel 1 (
   echo tag 推送失败！
   pause
@@ -71,7 +71,7 @@ echo.
 echo ==== 5/5 完成！ ====
 echo GitHub Actions 已开始构建，稍后自动发布 Release。
 echo.
-echo 查看进度: https://github.com/wangyongpeng90/cuckoo-code/actions
-echo 下载页面: https://github.com/wangyongpeng90/cuckoo-code/releases
+echo 查看进度: https://github.com/merfiDEV/Cookie-code/actions
+echo 下载页面: https://github.com/merfiDEV/Cookie-code/releases
 echo.
 pause
