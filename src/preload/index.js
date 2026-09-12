@@ -19,6 +19,7 @@ const settingsTab = require('./dom/settings-tab');
 const commands = require('./dom/commands');
 const background = require('./dom/background');
 const reasoningGlass = require('./dom/reasoning-glass');
+const forceDarkTheme = require('./dom/force-dark-theme');
 const i18n = require('./i18n/i18n');
 const state = require('./dom/state');
 const { getProviderByUrl } = require('../providers');
@@ -73,6 +74,9 @@ async function init() {
 
     // Slash-команды: автодополнение и /plan
     commands.start();
+
+    // Принудительно держим тёмную тему DeepSeek
+    try { forceDarkTheme.startWatch(); } catch (e) { console.error('[Cookie Code] force-dark-theme startWatch failed:', e.message); }
 
     // Кнопка экспорта ответа в PDF/DOCX под каждым ответом AI
     try { chatExport.startWatch(); } catch (e) { console.error('[Cookie Code] chat-export startWatch failed:', e.message); }
