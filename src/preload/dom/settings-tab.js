@@ -122,6 +122,16 @@ function buildContentHTML() {
     '                        width: 16px; height: 16px; border-radius: 50%; background: #8b93ff; ' +
     '                        cursor: pointer; transition: transform 0.15s; }' +
     '  .cuckoo-blur-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }' +
+    // Утилитарные кнопки настроек (единый вид)
+    '  .ck-btn { padding: 9px 14px; border-radius: 10px; font-weight: 600; font-size: 13px; cursor: pointer; ' +
+    '            border: 1px solid rgba(139,147,255,0.5); background: rgba(139,147,255,0.12); color: #a8afff; ' +
+    '            transition: all 0.18s ease; white-space: nowrap; }' +
+    '  .ck-btn:hover { background: rgba(139,147,255,0.28); color: #fff; border-color: rgba(139,147,255,0.75); transform: translateY(-1px); }' +
+    '  .ck-btn:active { transform: scale(0.98); }' +
+    '  .ck-btn-danger { border-color: rgba(255,107,122,0.5); background: rgba(255,107,122,0.15); color: #ff9aa5; }' +
+    '  .ck-btn-danger:hover { background: rgba(255,107,122,0.3); color: #fff; border-color: rgba(255,107,122,0.85); }' +
+    '  .ck-btn-row { display: flex; gap: 8px; flex-wrap: wrap; }' +
+    '  .ck-btn-row > .ck-btn { flex: 1 1 auto; }' +
     '</style>' +
     '<div>' +
     '  <div class="cuckoo-settings-title">Cookie Code</div>' +
@@ -239,9 +249,9 @@ function buildContentHTML() {
     '</div>' +
     '<div>' +
     '  <div class="cuckoo-section-title">' + t('settings.section.background') + '</div>' +
-    '  <div style="display:flex;gap:8px;margin-bottom:10px;">' +
-    '    <button id="cuckoo-bg-open-folder" style="flex:1;padding:9px 14px;border-radius:10px;font-weight:600;font-size:13px;cursor:pointer;border:1px solid rgba(139,147,255,0.5);background:rgba(139,147,255,0.12);color:#cfd3ff;">' + t('settings.bg.openFolder') + '</button>' +
-    '    <button id="cuckoo-bg-refresh" style="padding:9px 14px;border-radius:10px;font-weight:600;font-size:13px;cursor:pointer;border:1px solid rgba(139,147,255,0.5);background:rgba(139,147,255,0.12);color:#cfd3ff;">' + t('settings.bg.refresh') + '</button>' +
+    '  <div class="ck-btn-row" style="margin-bottom:10px;">' +
+    '    <button id="cuckoo-bg-open-folder" class="ck-btn">' + t('settings.bg.openFolder') + '</button>' +
+    '    <button id="cuckoo-bg-refresh" class="ck-btn">' + t('settings.bg.refresh') + '</button>' +
     '  </div>' +
     '  <div class="cuckoo-bg-grid" id="cuckoo-bg-grid">' + items + '</div>' +
     '  <div style="font-size:11px;color:#8a90b8;margin-top:8px;line-height:1.5;">' + t('settings.bg.hint') + '</div>' +
@@ -261,28 +271,19 @@ function buildContentHTML() {
     '    <label class="cuckoo-checkbox-row" style="display:flex;align-items:center;gap:10px;cursor:pointer;"><input type="checkbox" id="cuckoo-tg-notify" style="width:16px;height:16px;cursor:pointer;"><span style="font-size:13px;color:#cfd3ff;">' + t('tg.label.notifyTools') + '</span></label>' +
     '    <label class="cuckoo-checkbox-row" style="display:flex;align-items:center;gap:10px;cursor:pointer;"><input type="checkbox" id="cuckoo-tg-feed" style="width:16px;height:16px;cursor:pointer;"><span style="font-size:13px;color:#cfd3ff;">' + t('tg.label.chatFeed') + '</span></label>' +
     '  </div>' +
-    '  <div style="display:flex;gap:8px;margin-top:8px;">' +
-    '    <button id="cuckoo-tg-save" style="flex:1;padding:9px 14px;border-radius:10px;font-weight:600;font-size:13px;cursor:pointer;border:none;background:linear-gradient(135deg,#8b93ff,#6d76ff);color:#fff;">' + t('tg.btn.save') + '</button>' +
-    '    <button id="cuckoo-tg-ping" style="flex:1;padding:9px 14px;border-radius:10px;font-weight:600;font-size:13px;cursor:pointer;border:1px solid rgba(139,147,255,0.5);background:rgba(139,147,255,0.12);color:#a8afff;">' + t('tg.btn.ping') + '</button>' +
-    '    <button id="cuckoo-tg-test" style="flex:1;padding:9px 14px;border-radius:10px;font-weight:600;font-size:13px;cursor:pointer;border:1px solid rgba(139,147,255,0.5);background:rgba(139,147,255,0.12);color:#a8afff;">' + t('tg.btn.test') + '</button>' +
+    '  <div class="ck-btn-row" style="margin-top:8px;">' +
+    '    <button id="cuckoo-tg-save" class="ck-btn">' + t('tg.btn.save') + '</button>' +
+    '    <button id="cuckoo-tg-ping" class="ck-btn">' + t('tg.btn.ping') + '</button>' +
+    '    <button id="cuckoo-tg-test" class="ck-btn">' + t('tg.btn.test') + '</button>' +
     '  </div>' +
     '</div>' +
-    '<div style="display:flex;justify-content:flex-end;gap:10px;margin-top:4px;flex-wrap:wrap;">' +
-    '  <button id="cuckoo-btn-open-config" style="' +
-    '    padding: 9px 18px; border: 1px solid rgba(139,147,255,0.5); border-radius: 10px;' +
-    '    background: rgba(139,147,255,0.12); color: #a8afff; font-weight: 600; font-size: 13px;' +
-    '    cursor: pointer; transition: all 0.18s;' +
-    '  " title="' + t('settings.btn.openConfig.title') + '">' + t('settings.btn.openConfig') + '</button>' +
-    '  <button id="cuckoo-btn-clear-storage" style="' +
-    '    padding: 9px 18px; border: 1px solid rgba(139,147,255,0.5); border-radius: 10px;' +
-    '    background: rgba(139,147,255,0.12); color: #a8afff; font-weight: 600; font-size: 13px;' +
-    '    cursor: pointer; transition: all 0.18s;' +
-    '  " title="' + t('settings.btn.clearStorage.title') + '">' + t('settings.btn.clearStorage') + '</button>' +
-    '  <button id="cuckoo-btn-reset" style="' +
-    '    padding: 9px 18px; border: 1px solid rgba(255,107,122,0.5); border-radius: 10px;' +
-    '    background: rgba(255,107,122,0.15); color: #ff9aa5; font-weight: 600; font-size: 13px;' +
-    '    cursor: pointer; transition: all 0.18s;' +
-    '  ">' + t('settings.btn.reset') + '</button>' +
+    '<div>' +
+    '  <div class="cuckoo-section-title">' + t('settings.section.service') + '</div>' +
+    '  <div class="ck-btn-row">' +
+    '    <button id="cuckoo-btn-open-config" class="ck-btn" title="' + t('settings.btn.openConfig.title') + '">' + t('settings.btn.openConfig') + '</button>' +
+    '    <button id="cuckoo-btn-clear-storage" class="ck-btn" title="' + t('settings.btn.clearStorage.title') + '">' + t('settings.btn.clearStorage') + '</button>' +
+    '    <button id="cuckoo-btn-reset" class="ck-btn ck-btn-danger">' + t('settings.btn.reset') + '</button>' +
+    '  </div>' +
     '</div>';
 }
 

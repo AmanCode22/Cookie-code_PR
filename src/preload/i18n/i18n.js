@@ -131,6 +131,14 @@ const KEYS = {
   'settings.bg.refresh':        { ru: 'Обновить',                  en: 'Refresh' },
   'settings.bg.hint':           { ru: 'Свои картинки: положите файлы (.webp/.jpg/.png/.gif) в папку и нажмите «Обновить».', en: 'Custom images: drop files (.webp/.jpg/.png/.gif) into the folder and click Refresh.' },
   'settings.section.language':  { ru: 'Язык',                      en: 'Language' },
+  // ---- Категории / подвкладки настроек ----
+  'settings.tab.theme':         { ru: '🎨 Тема и стекло',          en: '🎨 Theme & Glass' },
+  'settings.tab.overlay':       { ru: '🪟 Панель Cookie',         en: '🪟 Cookie Panel' },
+  'settings.tab.bg':            { ru: '🖼 Фон страницы',           en: '🖼 Page Background' },
+  'settings.tab.telegram':      { ru: '🤖 Telegram-бот',           en: '🤖 Telegram Bot' },
+  'settings.tab.system':        { ru: '⚙️ Система и безопасность', en: '⚙️ System & Security' },
+  'settings.section.maintenance':{ ru: 'Обслуживание и сброс',    en: 'Maintenance & Reset' },
+  'settings.section.service':    { ru: 'Сервис',                   en: 'Service' },
 
   // ---- Настройки: слайдеры ----
   'settings.blur.bg':           { ru: 'Размытие фонового изображения', en: 'Background image blur' },
