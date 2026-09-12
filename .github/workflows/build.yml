@@ -22,15 +22,20 @@ jobs:
       tag:     ${{ steps.calc.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
 
       - name: Compute next patch version
         id: calc
         run: |
           CUR=$(node -p "require('./package.json').version")
-          NEXT=$(node -e "const v='$CUR'.split('.').map(Number);v[2]++;console.log(v.join('.'))")
+          LAST=$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n1 | sed 's/^v//')
+          BASE=$(node -e "const a='$CUR'.split('.').map(Number),b='${LAST:-0.0.0}'.split('.').map(Number);const m=(x,y)=>(x||0)>(y||0)?(x||0):(y||0);console.log([0,1,2].map(i=>m(a[i],b[i])).join('.'))")
+          NEXT=$(node -e "const v='$BASE'.split('.').map(Number);v[2]++;console.log(v.join('.'))")
           echo "version=$NEXT" >> "$GITHUB_OUTPUT"
           echo "tag=v$NEXT"    >> "$GITHUB_OUTPUT"
-          echo "Bump: $CUR -> $NEXT"
+          echo "Bump: $CUR (last tag: ${LAST:-none}) -> $NEXT"
 
       - name: Update package.json + package-lock.json
         run: |
