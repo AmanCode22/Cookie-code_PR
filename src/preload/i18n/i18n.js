@@ -131,6 +131,14 @@ const KEYS = {
   'settings.bg.refresh':        { ru: 'Обновить',                  en: 'Refresh' },
   'settings.bg.hint':           { ru: 'Свои картинки: положите файлы (.webp/.jpg/.png/.gif) в папку и нажмите «Обновить».', en: 'Custom images: drop files (.webp/.jpg/.png/.gif) into the folder and click Refresh.' },
   'settings.section.language':  { ru: 'Язык',                      en: 'Language' },
+  // ---- Категории / подвкладки настроек ----
+  'settings.tab.theme':         { ru: '🎨 Тема и стекло',          en: '🎨 Theme & Glass' },
+  'settings.tab.overlay':       { ru: '🪟 Панель Cookie',         en: '🪟 Cookie Panel' },
+  'settings.tab.bg':            { ru: '🖼 Фон страницы',           en: '🖼 Page Background' },
+  'settings.tab.telegram':      { ru: '🤖 Telegram-бот',           en: '🤖 Telegram Bot' },
+  'settings.tab.system':        { ru: '⚙️ Система и безопасность', en: '⚙️ System & Security' },
+  'settings.section.maintenance':{ ru: 'Обслуживание и сброс',    en: 'Maintenance & Reset' },
+  'settings.section.service':    { ru: 'Сервис',                   en: 'Service' },
 
   // ---- Настройки: слайдеры ----
   'settings.blur.bg':           { ru: 'Размытие фонового изображения', en: 'Background image blur' },
@@ -140,6 +148,15 @@ const KEYS = {
   'settings.opacity.header':    { ru: 'Прозрачность шапки',        en: 'Header opacity' },
   'settings.opacity.sidebar':   { ru: 'Прозрачность сайдбара',     en: 'Sidebar opacity' },
   'settings.opacity.toolblock': { ru: 'Прозрачность tool-блоков',  en: 'Tool block opacity' },
+
+  // ---- Настройки: панель Cookie Code ----
+  'settings.section.overlay':   { ru: 'Панель Cookie Code',        en: 'Cookie Code Panel' },
+  'settings.overlay.opacity':   { ru: 'Прозрачность фона панели',  en: 'Panel background opacity' },
+  'settings.overlay.blur':      { ru: 'Размытие панели (стекло)',  en: 'Panel blur (glass)' },
+  'settings.overlay.width':     { ru: 'Ширина панели',             en: 'Panel width' },
+  'settings.overlay.bgColor':   { ru: 'Цвет фона панели',          en: 'Panel background color' },
+  'settings.overlay.btnColor':  { ru: 'Основной цвет кнопок',      en: 'Primary button color' },
+  'settings.overlay.btnRadius': { ru: 'Скругление кнопок панели',  en: 'Button corner radius' },
 
   // ---- Настройки: эффекты ----
   'settings.effect.rgb':        { ru: 'RGB-переливание ника',      en: 'RGB animated username' },

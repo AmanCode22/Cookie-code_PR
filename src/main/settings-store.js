@@ -35,6 +35,13 @@ const DEFAULTS = {
   rgbUsername: true,     // RGB-переливание ника пользователя (по умолчанию вкл)
   dangerousPatterns: DEFAULT_DANGEROUS_PATTERNS, // список regex-паттернов опасных команд
   language: 'ru',        // язык UI: 'ru' | 'en'
+  // ===== Панель Cookie Code =====
+  overlayOpacity: 72,        // % — плотность фона панели оверлея
+  overlayBlur: 12,           // px — размытие стекла панели
+  overlayWidth: 300,         // px — ширина панели
+  overlayBgColor: '#111322', // цвет подложки панели
+  overlayPrimaryColor: '#8b93ff', // основной цвет кнопок панели
+  overlayBtnRadius: 10,      // px — скругление кнопок панели
   // ===== Telegram-бот (botsrc/) =====
   telegramEnabled: false,   // включить бота (polling + уведомления)
   telegramBotToken: '',     // токен от @BotFather

@@ -122,6 +122,16 @@ function buildContentHTML() {
     '                        width: 16px; height: 16px; border-radius: 50%; background: #8b93ff; ' +
     '                        cursor: pointer; transition: transform 0.15s; }' +
     '  .cuckoo-blur-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }' +
+    // Утилитарные кнопки настроек (единый вид)
+    '  .ck-btn { padding: 9px 14px; border-radius: 10px; font-weight: 600; font-size: 13px; cursor: pointer; ' +
+    '            border: 1px solid rgba(139,147,255,0.5); background: rgba(139,147,255,0.12); color: #a8afff; ' +
+    '            transition: all 0.18s ease; white-space: nowrap; }' +
+    '  .ck-btn:hover { background: rgba(139,147,255,0.28); color: #fff; border-color: rgba(139,147,255,0.75); transform: translateY(-1px); }' +
+    '  .ck-btn:active { transform: scale(0.98); }' +
+    '  .ck-btn-danger { border-color: rgba(255,107,122,0.5); background: rgba(255,107,122,0.15); color: #ff9aa5; }' +
+    '  .ck-btn-danger:hover { background: rgba(255,107,122,0.3); color: #fff; border-color: rgba(255,107,122,0.85); }' +
+    '  .ck-btn-row { display: flex; gap: 8px; flex-wrap: wrap; }' +
+    '  .ck-btn-row > .ck-btn { flex: 1 1 auto; }' +
     '</style>' +
     '<div>' +
     '  <div class="cuckoo-settings-title">Cookie Code</div>' +
@@ -182,6 +192,39 @@ function buildContentHTML() {
     '  </div>' +
     '</div>' +
     '<div>' +
+    '  <div class="cuckoo-section-title">' + t('settings.section.overlay') + '</div>' +
+    '  <div class="cuckoo-blur-row">' +
+    '    <div class="cuckoo-blur-label"><span>' + t('settings.overlay.opacity') + '</span><span class="cuckoo-blur-value" id="cuckoo-op-overlay-val">72 %</span></div>' +
+    '    <input type="range" id="cuckoo-op-overlay" class="cuckoo-blur-slider" min="10" max="100" step="1" value="72">' +
+    '  </div>' +
+    '  <div class="cuckoo-blur-row">' +
+    '    <div class="cuckoo-blur-label"><span>' + t('settings.overlay.blur') + '</span><span class="cuckoo-blur-value" id="cuckoo-blur-overlay-val">12 px</span></div>' +
+    '    <input type="range" id="cuckoo-blur-overlay" class="cuckoo-blur-slider" min="0" max="30" step="1" value="12">' +
+    '  </div>' +
+    '  <div class="cuckoo-blur-row">' +
+    '    <div class="cuckoo-blur-label"><span>' + t('settings.overlay.width') + '</span><span class="cuckoo-blur-value" id="cuckoo-width-overlay-val">300 px</span></div>' +
+    '    <input type="range" id="cuckoo-width-overlay" class="cuckoo-blur-slider" min="260" max="460" step="10" value="300">' +
+    '  </div>' +
+    '  <div class="cuckoo-blur-row" style="flex-direction:row;justify-content:space-between;align-items:center;">' +
+    '    <span style="font-size:13px;color:#cfd3ff;">' + t('settings.overlay.bgColor') + '</span>' +
+    '    <div style="display:flex;align-items:center;gap:8px;">' +
+    '      <input type="color" id="cuckoo-color-overlay-bg" value="#111322" style="width:32px;height:32px;border:none;border-radius:6px;cursor:pointer;background:transparent;">' +
+    '      <span id="cuckoo-color-overlay-bg-val" class="cuckoo-blur-value">#111322</span>' +
+    '    </div>' +
+    '  </div>' +
+    '  <div class="cuckoo-blur-row" style="flex-direction:row;justify-content:space-between;align-items:center;">' +
+    '    <span style="font-size:13px;color:#cfd3ff;">' + t('settings.overlay.btnColor') + '</span>' +
+    '    <div style="display:flex;align-items:center;gap:8px;">' +
+    '      <input type="color" id="cuckoo-color-overlay-btn" value="#8b93ff" style="width:32px;height:32px;border:none;border-radius:6px;cursor:pointer;background:transparent;">' +
+    '      <span id="cuckoo-color-overlay-btn-val" class="cuckoo-blur-value">#8b93ff</span>' +
+    '    </div>' +
+    '  </div>' +
+    '  <div class="cuckoo-blur-row">' +
+    '    <div class="cuckoo-blur-label"><span>' + t('settings.overlay.btnRadius') + '</span><span class="cuckoo-blur-value" id="cuckoo-radius-overlay-btn-val">10 px</span></div>' +
+    '    <input type="range" id="cuckoo-radius-overlay-btn" class="cuckoo-blur-slider" min="4" max="24" step="1" value="10">' +
+    '  </div>' +
+    '</div>' +
+    '<div>' +
     '  <div class="cuckoo-section-title">' + t('settings.section.effects') + '</div>' +
     '  <label class="cuckoo-checkbox-row" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;cursor:pointer;">' +
     '    <input type="checkbox" id="cuckoo-rgb-username" checked style="width:16px;height:16px;cursor:pointer;">' +
@@ -206,9 +249,9 @@ function buildContentHTML() {
     '</div>' +
     '<div>' +
     '  <div class="cuckoo-section-title">' + t('settings.section.background') + '</div>' +
-    '  <div style="display:flex;gap:8px;margin-bottom:10px;">' +
-    '    <button id="cuckoo-bg-open-folder" style="flex:1;padding:9px 14px;border-radius:10px;font-weight:600;font-size:13px;cursor:pointer;border:1px solid rgba(139,147,255,0.5);background:rgba(139,147,255,0.12);color:#cfd3ff;">' + t('settings.bg.openFolder') + '</button>' +
-    '    <button id="cuckoo-bg-refresh" style="padding:9px 14px;border-radius:10px;font-weight:600;font-size:13px;cursor:pointer;border:1px solid rgba(139,147,255,0.5);background:rgba(139,147,255,0.12);color:#cfd3ff;">' + t('settings.bg.refresh') + '</button>' +
+    '  <div class="ck-btn-row" style="margin-bottom:10px;">' +
+    '    <button id="cuckoo-bg-open-folder" class="ck-btn">' + t('settings.bg.openFolder') + '</button>' +
+    '    <button id="cuckoo-bg-refresh" class="ck-btn">' + t('settings.bg.refresh') + '</button>' +
     '  </div>' +
     '  <div class="cuckoo-bg-grid" id="cuckoo-bg-grid">' + items + '</div>' +
     '  <div style="font-size:11px;color:#8a90b8;margin-top:8px;line-height:1.5;">' + t('settings.bg.hint') + '</div>' +
@@ -228,28 +271,19 @@ function buildContentHTML() {
     '    <label class="cuckoo-checkbox-row" style="display:flex;align-items:center;gap:10px;cursor:pointer;"><input type="checkbox" id="cuckoo-tg-notify" style="width:16px;height:16px;cursor:pointer;"><span style="font-size:13px;color:#cfd3ff;">' + t('tg.label.notifyTools') + '</span></label>' +
     '    <label class="cuckoo-checkbox-row" style="display:flex;align-items:center;gap:10px;cursor:pointer;"><input type="checkbox" id="cuckoo-tg-feed" style="width:16px;height:16px;cursor:pointer;"><span style="font-size:13px;color:#cfd3ff;">' + t('tg.label.chatFeed') + '</span></label>' +
     '  </div>' +
-    '  <div style="display:flex;gap:8px;margin-top:8px;">' +
-    '    <button id="cuckoo-tg-save" style="flex:1;padding:9px 14px;border-radius:10px;font-weight:600;font-size:13px;cursor:pointer;border:none;background:linear-gradient(135deg,#8b93ff,#6d76ff);color:#fff;">' + t('tg.btn.save') + '</button>' +
-    '    <button id="cuckoo-tg-ping" style="flex:1;padding:9px 14px;border-radius:10px;font-weight:600;font-size:13px;cursor:pointer;border:1px solid rgba(139,147,255,0.5);background:rgba(139,147,255,0.12);color:#a8afff;">' + t('tg.btn.ping') + '</button>' +
-    '    <button id="cuckoo-tg-test" style="flex:1;padding:9px 14px;border-radius:10px;font-weight:600;font-size:13px;cursor:pointer;border:1px solid rgba(139,147,255,0.5);background:rgba(139,147,255,0.12);color:#a8afff;">' + t('tg.btn.test') + '</button>' +
+    '  <div class="ck-btn-row" style="margin-top:8px;">' +
+    '    <button id="cuckoo-tg-save" class="ck-btn">' + t('tg.btn.save') + '</button>' +
+    '    <button id="cuckoo-tg-ping" class="ck-btn">' + t('tg.btn.ping') + '</button>' +
+    '    <button id="cuckoo-tg-test" class="ck-btn">' + t('tg.btn.test') + '</button>' +
     '  </div>' +
     '</div>' +
-    '<div style="display:flex;justify-content:flex-end;gap:10px;margin-top:4px;flex-wrap:wrap;">' +
-    '  <button id="cuckoo-btn-open-config" style="' +
-    '    padding: 9px 18px; border: 1px solid rgba(139,147,255,0.5); border-radius: 10px;' +
-    '    background: rgba(139,147,255,0.12); color: #a8afff; font-weight: 600; font-size: 13px;' +
-    '    cursor: pointer; transition: all 0.18s;' +
-    '  " title="' + t('settings.btn.openConfig.title') + '">' + t('settings.btn.openConfig') + '</button>' +
-    '  <button id="cuckoo-btn-clear-storage" style="' +
-    '    padding: 9px 18px; border: 1px solid rgba(139,147,255,0.5); border-radius: 10px;' +
-    '    background: rgba(139,147,255,0.12); color: #a8afff; font-weight: 600; font-size: 13px;' +
-    '    cursor: pointer; transition: all 0.18s;' +
-    '  " title="' + t('settings.btn.clearStorage.title') + '">' + t('settings.btn.clearStorage') + '</button>' +
-    '  <button id="cuckoo-btn-reset" style="' +
-    '    padding: 9px 18px; border: 1px solid rgba(255,107,122,0.5); border-radius: 10px;' +
-    '    background: rgba(255,107,122,0.15); color: #ff9aa5; font-weight: 600; font-size: 13px;' +
-    '    cursor: pointer; transition: all 0.18s;' +
-    '  ">' + t('settings.btn.reset') + '</button>' +
+    '<div>' +
+    '  <div class="cuckoo-section-title">' + t('settings.section.service') + '</div>' +
+    '  <div class="ck-btn-row">' +
+    '    <button id="cuckoo-btn-open-config" class="ck-btn" title="' + t('settings.btn.openConfig.title') + '">' + t('settings.btn.openConfig') + '</button>' +
+    '    <button id="cuckoo-btn-clear-storage" class="ck-btn" title="' + t('settings.btn.clearStorage.title') + '">' + t('settings.btn.clearStorage') + '</button>' +
+    '    <button id="cuckoo-btn-reset" class="ck-btn ck-btn-danger">' + t('settings.btn.reset') + '</button>' +
+    '  </div>' +
     '</div>';
 }
 
@@ -343,37 +377,50 @@ function bindBackgroundFolderButtons() {
  * На input — мгновенно применяем и обновляем подпись.
  * На change — сохраняем в settings.json.
  */
+function collectCurrentBlurSettings() {
+  return {
+    backgroundBlur:      Number((document.getElementById('cuckoo-blur-bg') || {}).value) || 0,
+    headerBlur:          Number((document.getElementById('cuckoo-blur-header') || {}).value),
+    sidebarBlur:         Number((document.getElementById('cuckoo-blur-sidebar') || {}).value),
+    headerOpacity:       Number((document.getElementById('cuckoo-op-header') || {}).value),
+    sidebarOpacity:      Number((document.getElementById('cuckoo-op-sidebar') || {}).value),
+    toolBlockOpacity:    Number((document.getElementById('cuckoo-op-toolblock') || {}).value),
+    toolBlockBlur:       Number((document.getElementById('cuckoo-blur-toolblock') || {}).value),
+    overlayOpacity:      Number((document.getElementById('cuckoo-op-overlay') || {}).value),
+    overlayBlur:         Number((document.getElementById('cuckoo-blur-overlay') || {}).value),
+    overlayWidth:        Number((document.getElementById('cuckoo-width-overlay') || {}).value),
+    overlayBgColor:      (document.getElementById('cuckoo-color-overlay-bg') || {}).value || '#111322',
+    overlayPrimaryColor: (document.getElementById('cuckoo-color-overlay-btn') || {}).value || '#8b93ff',
+    overlayBtnRadius:    Number((document.getElementById('cuckoo-radius-overlay-btn') || {}).value),
+  };
+}
+
 function bindBlurSliders() {
   const sliders = [
-    { inputId: 'cuckoo-blur-bg',      valId: 'cuckoo-blur-bg-val',      key: 'backgroundBlur', def: 0 },
-    { inputId: 'cuckoo-blur-header',  valId: 'cuckoo-blur-header-val',  key: 'headerBlur',     def: 12 },
-    { inputId: 'cuckoo-blur-sidebar', valId: 'cuckoo-blur-sidebar-val', key: 'sidebarBlur',    def: 12 },
-    { inputId: 'cuckoo-op-header',    valId: 'cuckoo-op-header-val',    key: 'headerOpacity',   def: 45 },
-    { inputId: 'cuckoo-op-sidebar',   valId: 'cuckoo-op-sidebar-val',   key: 'sidebarOpacity',  def: 45 },
-    { inputId: 'cuckoo-op-toolblock', valId: 'cuckoo-op-toolblock-val', key: 'toolBlockOpacity', def: 55 },
-    { inputId: 'cuckoo-blur-toolblock', valId: 'cuckoo-blur-toolblock-val', key: 'toolBlockBlur', def: 0 },
+    { inputId: 'cuckoo-blur-bg',          valId: 'cuckoo-blur-bg-val',          key: 'backgroundBlur',   unit: ' px' },
+    { inputId: 'cuckoo-blur-header',      valId: 'cuckoo-blur-header-val',      key: 'headerBlur',       unit: ' px' },
+    { inputId: 'cuckoo-blur-sidebar',     valId: 'cuckoo-blur-sidebar-val',     key: 'sidebarBlur',      unit: ' px' },
+    { inputId: 'cuckoo-op-header',        valId: 'cuckoo-op-header-val',        key: 'headerOpacity',    unit: ' %' },
+    { inputId: 'cuckoo-op-sidebar',       valId: 'cuckoo-op-sidebar-val',       key: 'sidebarOpacity',   unit: ' %' },
+    { inputId: 'cuckoo-op-toolblock',     valId: 'cuckoo-op-toolblock-val',     key: 'toolBlockOpacity', unit: ' %' },
+    { inputId: 'cuckoo-blur-toolblock',   valId: 'cuckoo-blur-toolblock-val',   key: 'toolBlockBlur',    unit: ' px' },
+    // Панель Cookie Code
+    { inputId: 'cuckoo-op-overlay',         valId: 'cuckoo-op-overlay-val',         key: 'overlayOpacity',     unit: ' %' },
+    { inputId: 'cuckoo-blur-overlay',       valId: 'cuckoo-blur-overlay-val',       key: 'overlayBlur',        unit: ' px' },
+    { inputId: 'cuckoo-width-overlay',      valId: 'cuckoo-width-overlay-val',      key: 'overlayWidth',       unit: ' px' },
+    { inputId: 'cuckoo-radius-overlay-btn', valId: 'cuckoo-radius-overlay-btn-val', key: 'overlayBtnRadius',  unit: ' px' },
   ];
 
-  sliders.forEach(({ inputId, valId, key, def }) => {
+  sliders.forEach(({ inputId, valId, key, unit }) => {
     const input = document.getElementById(inputId);
     const label = document.getElementById(valId);
     if (!input || !label) return;
-    const updateLabel = (v) => { label.textContent = v + ' px'; };
+    const updateLabel = (v) => { label.textContent = v + unit; };
 
     input.addEventListener('input', () => {
       const v = Number(input.value);
       updateLabel(v);
-      // Мгновенно применяем — собираем текущие значения и вызываем applyBlur
-      const settings = {
-        backgroundBlur:   Number((document.getElementById('cuckoo-blur-bg') || {}).value) || 0,
-        headerBlur:       Number((document.getElementById('cuckoo-blur-header') || {}).value),
-        sidebarBlur:      Number((document.getElementById('cuckoo-blur-sidebar') || {}).value),
-        headerOpacity:    Number((document.getElementById('cuckoo-op-header') || {}).value),
-        sidebarOpacity:   Number((document.getElementById('cuckoo-op-sidebar') || {}).value),
-        toolBlockOpacity: Number((document.getElementById('cuckoo-op-toolblock') || {}).value),
-        toolBlockBlur:    Number((document.getElementById('cuckoo-blur-toolblock') || {}).value),
-      };
-      background.applyBlur(settings);
+      background.applyBlur(collectCurrentBlurSettings());
     });
 
     input.addEventListener('change', async () => {
@@ -388,6 +435,40 @@ function bindBlurSliders() {
       }
     });
   });
+
+  // Цвет фона панели
+  const bgInput = document.getElementById('cuckoo-color-overlay-bg');
+  const bgLabel = document.getElementById('cuckoo-color-overlay-bg-val');
+  if (bgInput) {
+    bgInput.addEventListener('input', () => {
+      if (bgLabel) bgLabel.textContent = bgInput.value;
+      background.applyBlur(collectCurrentBlurSettings());
+    });
+    bgInput.addEventListener('change', async () => {
+      try {
+        await window.electronAPI.setCuckooSetting('overlayBgColor', bgInput.value);
+      } catch (err) {
+        console.error('[Cookie Code] Ошибка сохранения overlayBgColor:', err.message);
+      }
+    });
+  }
+
+  // Цвет кнопок оверлея
+  const btnInput = document.getElementById('cuckoo-color-overlay-btn');
+  const btnLabel = document.getElementById('cuckoo-color-overlay-btn-val');
+  if (btnInput) {
+    btnInput.addEventListener('input', () => {
+      if (btnLabel) btnLabel.textContent = btnInput.value;
+      background.applyBlur(collectCurrentBlurSettings());
+    });
+    btnInput.addEventListener('change', async () => {
+      try {
+        await window.electronAPI.setCuckooSetting('overlayPrimaryColor', btnInput.value);
+      } catch (err) {
+        console.error('[Cookie Code] Ошибка сохранения overlayPrimaryColor:', err.message);
+      }
+    });
+  }
 }
 
 /**
@@ -676,20 +757,35 @@ async function refreshRgbCheckbox() {
 async function refreshBlurValues() {
   try {
     const s = await window.electronAPI.getCuckooSettings();
-    const setSlider = (id, valId, v) => {
+    const setSlider = (id, valId, v, unit = ' px') => {
       const input = document.getElementById(id);
       const label = document.getElementById(valId);
       if (!input || !label) return;
       input.value = String(v);
-      label.textContent = v + ' px';
+      label.textContent = v + unit;
     };
-    setSlider('cuckoo-blur-bg',      'cuckoo-blur-bg-val',      Number(s && s.backgroundBlur) || 0);
-    setSlider('cuckoo-blur-header',  'cuckoo-blur-header-val',  Number(s && s.headerBlur != null ? s.headerBlur : 12));
-    setSlider('cuckoo-blur-sidebar', 'cuckoo-blur-sidebar-val', Number(s && s.sidebarBlur != null ? s.sidebarBlur : 12));
-    setSlider('cuckoo-op-header',    'cuckoo-op-header-val',    Number(s && s.headerOpacity != null ? s.headerOpacity : 45));
-    setSlider('cuckoo-op-sidebar',   'cuckoo-op-sidebar-val',   Number(s && s.sidebarOpacity != null ? s.sidebarOpacity : 45));
-    setSlider('cuckoo-op-toolblock', 'cuckoo-op-toolblock-val', Number(s && s.toolBlockOpacity != null ? s.toolBlockOpacity : 55));
-    setSlider('cuckoo-blur-toolblock','cuckoo-blur-toolblock-val', Number(s && s.toolBlockBlur != null ? s.toolBlockBlur : 0));
+    setSlider('cuckoo-blur-bg',          'cuckoo-blur-bg-val',          Number(s && s.backgroundBlur) || 0, ' px');
+    setSlider('cuckoo-blur-header',      'cuckoo-blur-header-val',      Number(s && s.headerBlur != null ? s.headerBlur : 12), ' px');
+    setSlider('cuckoo-blur-sidebar',     'cuckoo-blur-sidebar-val',     Number(s && s.sidebarBlur != null ? s.sidebarBlur : 12), ' px');
+    setSlider('cuckoo-op-header',        'cuckoo-op-header-val',        Number(s && s.headerOpacity != null ? s.headerOpacity : 45), ' %');
+    setSlider('cuckoo-op-sidebar',       'cuckoo-op-sidebar-val',       Number(s && s.sidebarOpacity != null ? s.sidebarOpacity : 45), ' %');
+    setSlider('cuckoo-op-toolblock',     'cuckoo-op-toolblock-val',     Number(s && s.toolBlockOpacity != null ? s.toolBlockOpacity : 55), ' %');
+    setSlider('cuckoo-blur-toolblock',   'cuckoo-blur-toolblock-val',   Number(s && s.toolBlockBlur != null ? s.toolBlockBlur : 0), ' px');
+
+    // Панель Cookie Code
+    setSlider('cuckoo-op-overlay',         'cuckoo-op-overlay-val',         Number(s && s.overlayOpacity != null ? s.overlayOpacity : 72), ' %');
+    setSlider('cuckoo-blur-overlay',       'cuckoo-blur-overlay-val',       Number(s && s.overlayBlur != null ? s.overlayBlur : 12), ' px');
+    setSlider('cuckoo-width-overlay',      'cuckoo-width-overlay-val',      Number(s && s.overlayWidth != null ? s.overlayWidth : 300), ' px');
+    setSlider('cuckoo-radius-overlay-btn', 'cuckoo-radius-overlay-btn-val', Number(s && s.overlayBtnRadius != null ? s.overlayBtnRadius : 10), ' px');
+
+    const setColor = (inputId, valId, v) => {
+      const input = document.getElementById(inputId);
+      const label = document.getElementById(valId);
+      if (input) input.value = v;
+      if (label) label.textContent = v;
+    };
+    setColor('cuckoo-color-overlay-bg',  'cuckoo-color-overlay-bg-val',  (s && s.overlayBgColor) || '#111322');
+    setColor('cuckoo-color-overlay-btn', 'cuckoo-color-overlay-btn-val', (s && s.overlayPrimaryColor) || '#8b93ff');
   } catch (err) {
     console.error('[Cookie Code] Не удалось загрузить значения блюра:', err.message);
   }
