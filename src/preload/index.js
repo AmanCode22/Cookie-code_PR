@@ -14,6 +14,7 @@ const bindEvents = require('./overlay/events');
 const observer = require('./dom/observer');
 const chatExport = require('./dom/chat-export');
 const chatInput = require('./dom/chat-input');
+const askUserQuestion = require('./dom/ask-user-question');
 const settingsTab = require('./dom/settings-tab');
 const commands = require('./dom/commands');
 const background = require('./dom/background');
@@ -23,6 +24,7 @@ const { getProviderByUrl } = require('../providers');
 
 // 注册主进程消息监听（与原 preload.js 顶层注册时机一致）
 chatInput.registerIpcListeners();
+askUserQuestion.registerAskUserQuestionListener();
 
 // ========== 初始化 ==========
 

@@ -27,6 +27,7 @@ const { InjectJSTool } = require('./InjectJSTool');
 const { McpCallTool } = require('./McpCallTool');
 const { McpListServersTool, McpGetToolsTool } = require('./McpQueryTools');
 const { SkillListTool, SkillLoadTool, SkillExecuteTool } = require('./SkillTools');
+const { AskUserQuestionTool } = require('./AskUserQuestionTool');
 
 // 创建全局工具注册表
 const registry = new ToolRegistry();
@@ -60,6 +61,7 @@ registry.register(new McpGetToolsTool());
 registry.register(new SkillListTool());
 registry.register(new SkillLoadTool());
 registry.register(new SkillExecuteTool());
+registry.register(new AskUserQuestionTool());
 
 // 导出
 module.exports = {
@@ -90,6 +92,7 @@ module.exports = {
   SkillListTool,
   SkillLoadTool,
   SkillExecuteTool,
+  AskUserQuestionTool,
   // 便捷方法
   getAllTools: () => registry,
   getToolDescriptions: () => registry.getDescriptions(),

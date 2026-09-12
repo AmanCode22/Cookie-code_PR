@@ -63,3 +63,15 @@ test('JsRunner passes senderId to todo tools', async () => {
   assert.strictEqual(todos[0].status, 'in_progress');
   todoStore.clear(senderId);
 });
+
+test('JsRunner поддерживает ask_user_question в snake_case', async () => {
+  const runner = new JsRunner(registry);
+  const r = await runner.run(
+    'const result = await ask_user_question([{ question: "Как продолжить?", options: [{ label: "A" }, { label: "B" }, { label: "C" }] }]); return result.answers[0].answer;',
+    process.cwd(),
+    'test-js-runner-question',
+    async (questions) => [{ question: questions[0].question, answer: 'A' }]
+  );
+  assert.strictEqual(r.success, true);
+  assert.ok(r.output.includes('A'));
+});

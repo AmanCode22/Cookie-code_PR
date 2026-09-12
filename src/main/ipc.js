@@ -21,6 +21,18 @@ const todoStore = require('./todo-store');
  * Набор id-шников, для которых уже пинговали, чтобы не спамить при повторных вызовах.
  */
 const _todoAllDoneNotified = new Set();
+const pendingUserQuestions = new Map();
+let userQuestionCounter = 0;
+
+function requestUserQuestion(sender, questions) {
+  const requestId = `question_${Date.now()}_${++userQuestionCounter}`;
+  return new Promise((resolve, reject) => {
+    const key = `${sender.id}:${requestId}`;
+    pendingUserQuestions.set(key, { resolve, reject });
+    sender.send('ask-user-question', { requestId, questions });
+  });
+}
+
 function maybeNotifyAllDone(senderId) {
   try {
     const todos = todoStore.getList(senderId);
@@ -37,6 +49,19 @@ function maybeNotifyAllDone(senderId) {
 }
 
 function registerIpcHandlers() {
+  ipcMain.on('ask-user-question-response', (event, { requestId, answers, canceled } = {}) => {
+    if (!requestId) return;
+    const key = `${event.sender.id}:${requestId}`;
+    const pending = pendingUserQuestions.get(key);
+    if (!pending) return;
+    pendingUserQuestions.delete(key);
+    if (canceled) {
+      pending.reject(new Error('Пользователь отменил вопрос'));
+      return;
+    }
+    pending.resolve(Array.isArray(answers) ? answers : []);
+  });
+
   // 初始化项目
   ipcMain.handle('init-project', async (event, { skipPrompt = false } = {}) => {
     const ctx = windowState.getContextByWebContents(event.sender);
@@ -184,7 +209,12 @@ function registerIpcHandlers() {
     const store = ctx ? ctx.sessionStore : null;
     const selectedDir = store ? store.state.selectedProjectDir : null;
     try {
-      const result = await toolRegistry.execute(toolName, { ...params, projectDir: selectedDir, senderId: event.sender.id });
+      const result = await toolRegistry.execute(toolName, {
+        ...params,
+        projectDir: selectedDir,
+        senderId: event.sender.id,
+        askUserQuestion: (questions) => requestUserQuestion(event.sender, questions),
+      });
       // Если менялся todo-список — пушим обновление в окно
       if (toolName === 'todo_write' || toolName === 'todo_edit' || toolName === 'todo_delete') {
         try { event.sender.send('todo-updated', { todos: todoStore.getList(event.sender.id) }); } catch (_) {}
@@ -272,7 +302,12 @@ function registerIpcHandlers() {
     const selectedDir = store ? store.state.selectedProjectDir : null;
     try {
       const before = JSON.stringify(todoStore.getList(event.sender.id));
-      const result = await jsRunner.run(code, selectedDir, event.sender.id);
+      const result = await jsRunner.run(
+        code,
+        selectedDir,
+        event.sender.id,
+        (questions) => requestUserQuestion(event.sender, questions)
+      );
       const after = JSON.stringify(todoStore.getList(event.sender.id));
       if (before !== after) {
         try { event.sender.send('todo-updated', { todos: todoStore.getList(event.sender.id) }); } catch (_) {}

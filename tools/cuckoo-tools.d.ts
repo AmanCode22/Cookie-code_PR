@@ -202,6 +202,31 @@ interface TodoItem {
  */
 declare function todoWrite(todos: TodoItem[]): Promise<string>;
 
+/** Вопрос пользователю с тремя вариантами и возможностью ввести свой ответ. */
+interface AskUserQuestionOption {
+  label: string;
+  description?: string;
+}
+
+interface AskUserQuestionItem {
+  question: string;
+  /** Ровно три варианта: первый рекомендуемый, остальные альтернативные. */
+  options: [AskUserQuestionOption, AskUserQuestionOption, AskUserQuestionOption];
+}
+
+/**
+ * Задать от 1 до 5 вопросов. Выполнение продолжится после ответа пользователя.
+ * Пользователь может выбрать вариант или указать свой ответ.
+ */
+declare function askUserQuestion(questions: AskUserQuestionItem[]): Promise<{
+  answers: Array<{ question: string; answer: string }>;
+}>;
+
+/** Совместимое имя инструмента в snake_case. */
+declare function ask_user_question(questions: AskUserQuestionItem[]): Promise<{
+  answers: Array<{ question: string; answer: string }>;
+}>;
+
 // ================= 删除 =================
 
 /** deleteFile 的返回值 */
