@@ -1,77 +1,62 @@
 @echo off
-chcp 65001 > nul
+chcp 1251 > nul
 setlocal
 
 echo ============================================
-echo   Cookie Code 一键发布脚本
+echo   Cuckoo Code - Publikatsiya obnovleniya
 echo ============================================
+echo.
+echo  Versiya budet avtomaticheski uvelichena CI.
+echo  Prosto vvedite kommentariy k izmeneniyam.
 echo.
 
 cd /d "%~dp0"
 
-:: 获取当前版本号
-for /f "tokens=2 delims=:," %%a in ('node -p "require('./package.json').version"') do set CUR_VER=%%~a
-echo 当前版本: %CUR_VER%
+:: Proverit chto est izmeneniya
+git status --short
 echo.
 
-:: 输入新版本号
-set /p NEW_VER=请输入新版本号 (例如 0.3.7): 
+:: Vvesti soobshchenie kommita
+set /p MSG=Kommentariy k komitu (Enter = "update"): 
 
-if "%NEW_VER%"=="" (
-  echo 版本号不能为空！
-  pause
-  exit /b 1
-)
-
-:: 简单校验版本号格式 x.y.z
-echo %NEW_VER% | findstr /r "^[0-9][0-9]*.[0-9][0-9]*.[0-9][0-9]*$" > nul
-if errorlevel 1 (
-  echo 版本号格式错误，应为 x.y.z 格式，例如 0.3.7
-  pause
-  exit /b 1
-)
+if "%MSG%"=="" set MSG=update
 
 echo.
-echo ==== 1/5 更新版本号到 %NEW_VER% ====
-node -e "const fs=require('fs');const p=require('./package.json');p.version='%NEW_VER%';fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n');const l=JSON.parse(fs.readFileSync('package-lock.json','utf8'));l.version='%NEW_VER%';if(l.packages&&l.packages[''])l.packages[''].version='%NEW_VER%';fs.writeFileSync('package-lock.json',JSON.stringify(l,null,2)+'\n');console.log('版本已更新');"
+echo ==== 1/3 Dobavit vse izmeneniya ====
+git add -A
 if errorlevel 1 (
-  echo 版本号更新失败！
+  echo Oshibka git add!
   pause
   exit /b 1
 )
 
 echo.
-echo ==== 2/5 提交代码到本地 ====
-git add package.json package-lock.json
-git commit -m "chore: 升级版本到 %NEW_VER%"
+echo ==== 2/3 Commit: %MSG% ====
+git commit -m "%MSG%"
 if errorlevel 1 (
-  echo 提交失败（可能没有改动或已提交）
+  echo Nechego kommitit - net izmeneniy!
+  pause
+  exit /b 1
 )
 
 echo.
-echo ==== 3/5 推送代码到 GitHub ====
+echo ==== 3/3 Push na GitHub (master) ====
 git push origin master
 if errorlevel 1 (
-  echo 推送失败！请检查网络或代理设置。
+  echo Push ne udalsya! Proverte set ili proksi.
   pause
   exit /b 1
 )
 
 echo.
-echo ==== 4/5 创建并推送 tag v%NEW_VER% ====
-git tag v%NEW_VER%
-git push origin v%NEW_VER%
-if errorlevel 1 (
-  echo tag 推送失败！
-  pause
-  exit /b 1
-)
-
+echo ============================================
+echo  Uspeshno! GitHub Actions avtomaticheski:
+echo    1. Uvelichit patch-versiyu (+1)
+echo    2. Sozdat tag vX.Y.Z
+echo    3. Soberet i opublikuet reliz
 echo.
-echo ==== 5/5 完成！ ====
-echo GitHub Actions 已开始构建，稍后自动发布 Release。
-echo.
-echo 查看进度: https://github.com/merfiDEV/Cookie-code/actions
-echo 下载页面: https://github.com/merfiDEV/Cookie-code/releases
+echo  Progress: https://github.com/merfiDEV/Cookie-code/actions
+echo  Relizy:   https://github.com/merfiDEV/Cookie-code/releases
+echo ============================================
 echo.
 pause

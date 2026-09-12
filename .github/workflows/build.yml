@@ -1,95 +1,133 @@
-name: Build and Release
+name: CI: Bump, Build & Release
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
+
+# Не запускаться на авто-коммите bump'а версии
+concurrency:
+  group: ci-release
+  cancel-in-progress: true
 
 permissions:
   contents: write
 
 jobs:
-  prepare:
+  # ── 1. Вычислить следующую версию ────────────────────────────────────────
+  bump:
+    if: "!startsWith(github.event.head_commit.message, 'chore: bump version to')"
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.bump.outputs.version }}
-      tag: ${{ steps.bump.outputs.tag }}
+      version: ${{ steps.calc.outputs.version }}
+      tag:     ${{ steps.calc.outputs.tag }}
     steps:
-      - uses: actions/checkout@v5
-      - name: Compute next version
-        id: bump
+      - uses: actions/checkout@v4
+
+      - name: Compute next patch version
+        id: calc
         run: |
           CUR=$(node -p "require('./package.json').version")
-          NEXT=$(node -e "const v=process.argv[1].split('.').map(Number); v[2]=(v[2]||0)+1; console.log(v.join('.'))" "$CUR")
+          NEXT=$(node -e "const v='$CUR'.split('.').map(Number);v[2]++;console.log(v.join('.'))")
           echo "version=$NEXT" >> "$GITHUB_OUTPUT"
-          echo "tag=v$NEXT" >> "$GITHUB_OUTPUT"
-          echo "Current: $CUR -> Next: $NEXT"
+          echo "tag=v$NEXT"    >> "$GITHUB_OUTPUT"
+          echo "Bump: $CUR -> $NEXT"
 
-  build-win:
-    needs: prepare
-    runs-on: windows-latest
+      - name: Update package.json + package-lock.json
+        run: |
+          VER="${{ steps.calc.outputs.version }}"
+          node -e "
+            const fs=require('fs');
+            const p=JSON.parse(fs.readFileSync('package.json','utf8'));
+            p.version='$VER';
+            fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n');
+          "
+          node -e "
+            const fs=require('fs');
+            if(!fs.existsSync('package-lock.json'))process.exit(0);
+            const l=JSON.parse(fs.readFileSync('package-lock.json','utf8'));
+            if(l.version)l.version='$VER';
+            if(l.packages&&l.packages[''])l.packages[''].version='$VER';
+            fs.writeFileSync('package-lock.json',JSON.stringify(l,null,2)+'\n');
+          "
+
+      - name: Commit & push version bump
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          git commit -m "chore: bump version to ${{ steps.calc.outputs.version }}" || echo "Nothing to commit"
+          git push origin master
+
+  # ── 2. Собрать под Windows и macOS ──────────────────────────────────────
+  build:
+    needs: bump
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            command: build:win:local
+            artifact: Windows-build
+            paths: |
+              dist/*.exe
+              dist/*.exe.blockmap
+              dist/*.zip
+              dist/latest.yml
+          - os: macos-latest
+            command: build:mac:local
+            artifact: macOS-build
+            paths: |
+              dist/*.dmg
+              dist/*.zip
+              dist/*.blockmap
+              dist/latest-mac.yml
+    runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
         with:
-          node-version: 20
-      - run: npm install
-      - name: Sync version
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Sync version from computed tag
         run: node scripts/sync-version.js
         env:
-          APP_VERSION: ${{ needs.prepare.outputs.tag }}
-      - run: npm run build:win:local
-      - uses: actions/upload-artifact@v5
-        with:
-          name: Windows-build
-          path: |
-            dist/*.exe
-            dist/*.zip
-            dist/*.blockmap
-            dist/latest.yml
+          APP_VERSION: ${{ needs.bump.outputs.tag }}
 
-  build-mac:
-    needs: prepare
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 20
-      - run: npm install
-      - name: Sync version
-        run: node scripts/sync-version.js
-        env:
-          APP_VERSION: ${{ needs.prepare.outputs.tag }}
-      - run: npm run build:mac:local
-      - uses: actions/upload-artifact@v5
-        with:
-          name: macOS-build
-          path: |
-            dist/*.dmg
-            dist/*.zip
-            dist/*.blockmap
-            dist/latest-mac.yml
+      - run: npm ci
 
+      - name: Build
+        run: npm run ${{ matrix.command }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.paths }}
+          retention-days: 7
+
+  # ── 3. Опубликовать GitHub Release ───────────────────────────────────────
   release:
-    needs: [prepare, build-win, build-mac]
+    needs: [bump, build]
     runs-on: ubuntu-latest
     steps:
       - name: Download Windows artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v4
         with:
           name: Windows-build
           path: artifacts/win
+
       - name: Download macOS artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v4
         with:
           name: macOS-build
           path: artifacts/mac
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          tag_name: ${{ needs.prepare.outputs.tag }}
-          name: ${{ needs.prepare.outputs.tag }}
+          tag_name: ${{ needs.bump.outputs.tag }}
+          name: ${{ needs.bump.outputs.tag }}
           generate_release_notes: true
           files: |
             artifacts/win/*

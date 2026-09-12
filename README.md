@@ -1,7 +1,7 @@
 # Cookie Code
 
 <p align="center">
-  <a href="https://github.com/merfiDEV/Cookie-code/releases/latest"><img src="https://img.shields.io/github/v/release/wangyongpeng90/cuckoo-code?style=flat-square&color=8b93ff" alt="Latest Release"></a>
+  <a href="https://github.com/merfiDEV/Cookie-code/releases/latest"><img src="https://img.shields.io/github/v/release/merfiDEV/Cookie-code?style=flat-square&color=8b93ff" alt="Latest Release"></a>
   <a href="https://github.com/merfiDEV/Cookie-code/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue?style=flat-square" alt="License"></a>
   <a href="https://github.com/merfiDEV/Cookie-code"><img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS-8b93ff?style=flat-square" alt="Platform"></a>
   <a href="https://github.com/merfiDEV/Cookie-code"><img src="https://img.shields.io/badge/Electron-33-47848f?style=flat-square&logo=electron&logoColor=white" alt="Electron"></a>
@@ -10,6 +10,10 @@
 
 <p align="center">
   <strong>English</strong> · <a href="README.ru.md">Русский</a>
+</p>
+
+<p align="center">
+  <img src="assets/photo_1_2026-09-12_19-02-00.jpg" alt="Cookie Code — main window" width="900">
 </p>
 
 **Cookie Code** is a zero-token-cost AI Agent for your desktop.
@@ -39,7 +43,13 @@ Web chats are great at *thinking*, but they cannot *act* on your machine. Cookie
 
 ### Inline tool blocks
 
-Every `cuckoo` block in the chat is decorated into a collapsible card:
+Every `cuckoo` block in the chat is decorated into a collapsible card with the tool name, file hint, and execution time:
+
+<p align="center">
+  <img src="assets/photo_3_2026-09-12_19-02-00.jpg" alt="Inline tool block — Read" width="800">
+  <br>
+  <img src="assets/photo_4_2026-09-12_19-02-00.jpg" alt="Inline tool block — Glob" width="800">
+</p>
 
 - ▼ icon + tool name (Read / Write / Edit / Bash / Glob / Grep / PowerShell / Todo / WebFetch / MCP / MySQL / …)
 - File hint derived from the first argument
@@ -62,9 +72,13 @@ Under each AI reply you get an automatic badge:
 
 ### Backgrounds
 
-- 27 hand-picked wallpapers shipped with the app
-- Picked from a preview grid in **Settings → Cookie Code**
-- Change instantly, no reload required
+27 hand-picked wallpapers shipped with the app. Pick from a preview grid in **Settings → Cookie Code**:
+
+<p align="center">
+  <img src="assets/photo_5_2026-09-12_19-02-00.jpg" alt="Background picker — wallpaper grid" width="500">
+</p>
+
+Change instantly, no reload required.
 
 ### Blur & transparency
 
@@ -85,11 +99,15 @@ The username in the sidebar has an animated rainbow gradient (enabled by default
 
 Control and monitor Cookie Code from your phone:
 
+<p align="center">
+  <img src="assets/photo_6_2026-09-12_19-02-00.jpg" alt="Telegram bot settings" width="420">
+</p>
+
 - **Tool notifications** — every tool call (success/failure, name, arguments, result) is sent to your Telegram chat. For `edit`, the new code is shown (up to 2000 chars).
 - **AI replies** — every AI text response is mirrored to Telegram (human-readable text, code blocks stripped).
 - **Incoming messages** — send a message to the bot and it lands in the DeepSeek chat as if you typed it.
 - **`/todos` command** — get the current task list of the active window from Telegram.
-- **All-done notification** — when every task in the list becomes `completed`, the bot sends a one-time "🎉 All tasks completed" message with the list below it (fires again after the list changes).
+- **All-done notification** — when every task in the list becomes `completed`, the bot sends a one-time "🎉 All tasks completed" message (fires again after the list changes).
 - Lightweight, **dependency-free** client (long-polling, no VPS or webhook needed).
 - Configured in **Settings → Cookie Code → Telegram bot** (token from @BotFather + chat ID).
 
