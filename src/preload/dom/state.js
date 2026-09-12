@@ -13,4 +13,7 @@ module.exports = {
   sendDelayMax: 4000,
   // 当前项目目录（null 表示未初始化）
   currentProjectDir: null,
+  // Включена ли кастомизация (визуальный рендеринг tool-блоков и эффектов).
+  // Парсинг и выполнение tool-вызовов работают независимо от этого флага.
+  customizationEnabled: true,
 };

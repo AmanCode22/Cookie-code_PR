@@ -181,6 +181,23 @@ async function resetAll() {
 }
 
 /**
+ * Применить состояние кастомизации.
+ * Если enabled=false — на <html> вешается класс cuckoo-customization-off,
+ * который снимает базовый цвет фона и ::before-слой (см. template.js).
+ */
+function applyCustomizationEnabled(enabled) {
+  try {
+    if (enabled === false) {
+      document.documentElement.classList.add('cuckoo-customization-off');
+    } else {
+      document.documentElement.classList.remove('cuckoo-customization-off');
+    }
+  } catch (err) {
+    console.error('[Cookie Code] Не удалось применить состояние кастомизации:', err.message);
+  }
+}
+
+/**
  * Применить настройку RGB-переливания ника.
  * Если enabled=false — на <body> вешается класс cuckoo-rgb-off.
  */
@@ -223,6 +240,7 @@ module.exports = {
   apply,
   applyBlur,
   applyRgbUsername,
+  applyCustomizationEnabled,
   loadAndApply,
   getPreviewUri,
   resetAll,

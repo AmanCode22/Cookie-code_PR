@@ -492,7 +492,9 @@ const OVERLAY_CSS = [
 '  --cuckoo-toolblock-blur: 0px;',    // стекло tool-блоков
 '}',
 // ========== 页面背景：базовый цвет + стили (картинка ставится через JS) ==========
-'html, body {',
+// При выключенной кастомизации (класс cuckoo-customization-off на <html>)
+// правила не применяются, и фон остаётся родным фоном страницы DeepSeek.
+'html:not(.cuckoo-customization-off), body:not(.cuckoo-customization-off) {',
 '  background-color: #0f1220 !important;',
 '  background-size: cover !important;',
 '  background-position: center center !important;',
@@ -501,7 +503,7 @@ const OVERLAY_CSS = [
 '}',
 // ========== Размытие самой фоновой картинки (--cuckoo-bg-blur) ==========
 // Отдельный fixed-слой поверх body, чтобы фильтр не затрагивал контент.
-'html::before {',
+'html:not(.cuckoo-customization-off)::before {',
 '  content: "";',
 '  position: fixed;',
 '  inset: 0;',
@@ -601,7 +603,13 @@ const OVERLAY_CSS = [
 '  backdrop-filter: blur(var(--cuckoo-toolblock-blur)) !important;',
 '  -webkit-backdrop-filter: blur(var(--cuckoo-toolblock-blur)) !important;',
 '  overflow: hidden;',
+      '  min-height: 0 !important;',
 '  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;',
+'}',
+'.cuckoo-tool-block[data-expanded="false"] > .md-code-block {',
+'  display: none !important;',
+'  height: 0 !important;',
+'  min-height: 0 !important;',
 '}',
 '.cuckoo-tool-header {',
 '  display: flex; align-items: center; gap: 8px;',

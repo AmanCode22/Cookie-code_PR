@@ -11,16 +11,12 @@ const { getJsCodeBlocksFromMarkdown, looksLikeIncompleteCodeError, FENCE } = req
 const toolRender = require('./tool-render');
 const responseMeta = require('./response-meta');
 
-// Запускаем устойчивый watcher для оборачивания cuckoo-блоков
-try { toolRender.startWatch(); } catch (e) { console.error('[Cookie Code] tool-render startWatch failed:', e.message); }
-
-// Watcher меты (время + токены под ответом AI)
-try { responseMeta.startWatch(); } catch (e) { console.error('[Cookie Code] response-meta startWatch failed:', e.message); }
 const { sendToolResultToChat, sendCombinedJsResultsToChat, sendMessageToChat } = require('./chat-input');
 const { isAIResponseComplete } = require('./ai-response');
 const { getProviderByUrl } = require('../../../src/providers');
 const { hasTool, toolNamesList } = require('../tool-names');
 const { t } = require('../i18n/i18n');
+const state = require('./state');
 
 /**
  * 手动解析按钮点击处理
@@ -371,8 +367,11 @@ function processLatestAIResponse(retryCount = 0, force = false) {
   console.log('[DEBUG][processLatest] text长度=' + text.length + ' 前60字符=' + JSON.stringify(text.slice(0, 60)));
   console.log(text);
 
-  // Декорируем cuckoo-блоки в чате (раскрывающиеся tool-блоки)
-  try { toolRender.decorate(markdown); } catch (e) { /* не критично */ }
+  // Декорируем cuckoo-блоки в чате (раскрывающиеся tool-блоки) —
+  // только при включённой кастомизации; парсинг ниже работает всегда.
+  if (state.customizationEnabled !== false) {
+    try { toolRender.decorate(markdown); } catch (e) { /* не критично */ }
+  }
 
   // 是否为疑似工具内容（用于控制详细日志与提示文案）
   const looksToolish = text.includes(FENCE) ||
@@ -537,6 +536,11 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 function startObserver() {
+  if (state.customizationEnabled !== false) {
+    try { toolRender.startWatch(); } catch (e) { console.error('[Cookie Code] tool-render startWatch failed:', e.message); }
+  }
+  try { responseMeta.startWatch(); } catch (e) { console.error('[Cookie Code] response-meta startWatch failed:', e.message); }
+
   const observer = new MutationObserver((mutations) => {
     // 节流：避免页面高频 DOM 变化导致日志与检测刷屏。
     // 800ms 平衡响应速度与 CPU：завершение ответа дублируется childList-мутацией

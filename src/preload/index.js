@@ -20,11 +20,8 @@ const commands = require('./dom/commands');
 const background = require('./dom/background');
 const reasoningGlass = require('./dom/reasoning-glass');
 const i18n = require('./i18n/i18n');
+const state = require('./dom/state');
 const { getProviderByUrl } = require('../providers');
-
-// 注册主进程消息监听（与原 preload.js 顶层注册时机一致）
-chatInput.registerIpcListeners();
-askUserQuestion.registerAskUserQuestionListener();
 
 // ========== 初始化 ==========
 
@@ -37,6 +34,21 @@ async function init() {
     // Загружаем язык до инъекции HTML — тексты в template.js строятся через t()
     try { await i18n.loadLanguage(); } catch (_) {}
 
+    let customizationEnabled = true;
+    try {
+      const settings = await window.electronAPI.getCuckooSettings();
+      customizationEnabled = !settings || settings.customizationEnabled !== false;
+    } catch (_) {}
+
+    // Прокидываем флаг в shared state: парсинг работает всегда,
+    // а визуальный рендеринг tool-блоков гейтится этим флагом.
+    state.customizationEnabled = customizationEnabled;
+
+    // Регистрируем IPC-листенеры всегда — от них зависит ввод и парсинг tool-блоков
+    chatInput.registerIpcListeners();
+    askUserQuestion.registerAskUserQuestionListener();
+
+    // Базовая UI-инфраструктура нужна всегда: оверлей (кнопка), стили, события
     ui.injectCSS();
     ui.injectOverlay();
     projectDir.initProjectDirSection();
@@ -65,11 +77,22 @@ async function init() {
     // Кнопка экспорта ответа в PDF/DOCX под каждым ответом AI
     try { chatExport.startWatch(); } catch (e) { console.error('[Cookie Code] chat-export startWatch failed:', e.message); }
 
-    // Загружаем настройки и применяем фон
-    background.loadAndApply();
+    // Визуальные эффекты применяем только при включённой кастомизации
+    if (customizationEnabled) {
+      // Загружаем настройки и применяем фон
+      background.loadAndApply();
 
-    // Матовое стекло для плашки «Размышление N секунд»
-    reasoningGlass.startWatch();
+      // Матовое стекло для плашки «Размышление N секунд»
+      reasoningGlass.startWatch();
+    } else {
+      // Сбрасываем возможные визуальные эффекты (фон, блюры, RGB-ник)
+      background.apply('none');
+      background.applyBlur({ backgroundBlur: 0, headerBlur: 0, sidebarBlur: 0, headerOpacity: 0, sidebarOpacity: 0, toolBlockOpacity: 0, toolBlockBlur: 0 });
+      background.applyRgbUsername(false);
+    }
+
+    // Снимаем базовый цвет фона/::before-слой при выключенной кастомизации
+    background.applyCustomizationEnabled(customizationEnabled);
   } catch (err) {
     console.error('[Cookie Code] init() 出错:', err);
     // 兜底：即使出错也强制显示面板
