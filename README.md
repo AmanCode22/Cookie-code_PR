@@ -100,6 +100,8 @@ The username in the sidebar has an animated rainbow gradient (enabled by default
 Control and monitor Cookie Code from your phone:
 
 <p align="center">
+  <img src="assets/photo_6_2026-09-12_19-02-00.jpg" alt="Telegram bot settings" width="420">
+  <br>
   <img src="assets/photo_1_2026-09-12_19-08-16.jpg" alt="Telegram bot — settings" width="420">
   <img src="assets/photo_2_2026-09-12_19-08-16.jpg" alt="Telegram bot — notifications" width="420">
 </p>

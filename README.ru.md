@@ -86,6 +86,8 @@
 Управляйте Cookie Code и следите за ним с телефона:
 
 <p align="center">
+  <img src="assets/photo_6_2026-09-12_19-02-00.jpg" alt="Telegram-бот — настройки" width="420">
+  <br>
   <img src="assets/photo_1_2026-09-12_19-08-16.jpg" alt="Telegram-бот — настройки" width="420">
   <img src="assets/photo_2_2026-09-12_19-08-16.jpg" alt="Telegram-бот — уведомления" width="420">
 </p>
