@@ -74,6 +74,7 @@
         "portable",
         "zip"
       ],
+      "icon": "build/icon.ico",
       "artifactName": "cuckoo-code-win-v${version}-${arch}.${ext}"
     },
     "mac": {
@@ -93,6 +94,7 @@
           ]
         }
       ],
+      "icon": "build/icon.png",
       "artifactName": "cuckoo-code-mac-v${version}-${arch}.${ext}"
     },
     "nsis": {

@@ -109,6 +109,13 @@ let electronAPI = {
   openCuckooSettingsFile: () => {
     return ipcRenderer.invoke('cuckoo-settings-open-file');
   },
+  // ========== Пользовательские фоны (userData/backgrounds) ==========
+  listCustomBackgrounds: () => {
+    return ipcRenderer.invoke('cuckoo-backgrounds-list');
+  },
+  openCustomBackgroundsFolder: () => {
+    return ipcRenderer.invoke('cuckoo-backgrounds-open-folder');
+  },
   // ========== Todo-задачи ==========
   getTodos: () => {
     return ipcRenderer.invoke('todo-get');

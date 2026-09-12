@@ -4,6 +4,7 @@
  */
 const { app, dialog, ipcMain, Notification, shell } = require('electron');
 const { exec } = require('child_process');
+const path = require('path');
 
 const windowState = require('./window');
 const profileManager = require('./profile-manager');
@@ -513,6 +514,52 @@ function registerIpcHandlers() {
       return { success: true, path: file };
     } catch (err) {
       console.error('[Cookie Code] 打开 settings.json 失败:', err.message);
+      return { success: false, error: err.message };
+    }
+  });
+
+  // ========== Пользовательские фоны (userData/backgrounds) ==========
+  // Папка: <userData>/backgrounds — пользователь кладёт туда картинки,
+  // они автоматически появляются в выборе фонов в настройках.
+  const CUSTOM_BG_EXT = ['.webp', '.jpg', '.jpeg', '.png', '.gif'];
+  const getCustomBackgroundsDir = () => path.join(app.getPath('userData'), 'backgrounds');
+
+  ipcMain.handle('cuckoo-backgrounds-list', async () => {
+    try {
+      const fs = require('fs');
+      const dir = getCustomBackgroundsDir();
+      fs.mkdirSync(dir, { recursive: true });
+      const files = fs.readdirSync(dir).filter((f) => {
+        return CUSTOM_BG_EXT.includes(path.extname(f).toLowerCase());
+      });
+      const list = files.map((f) => {
+        const ext = path.extname(f);
+        const base = f.slice(0, -ext.length);
+        return {
+          id: 'custom:' + base,
+          label: base,
+          file: path.join(dir, f),
+          custom: true,
+        };
+      });
+      return { success: true, dir, backgrounds: list };
+    } catch (err) {
+      console.error('[Cookie Code] 读取 пользовательских фонов失败:', err.message);
+      return { success: false, error: err.message, dir: getCustomBackgroundsDir(), backgrounds: [] };
+    }
+  });
+
+  // Открыть папку с пользовательскими фонами в системном проводнике.
+  ipcMain.handle('cuckoo-backgrounds-open-folder', async () => {
+    try {
+      const fs = require('fs');
+      const dir = getCustomBackgroundsDir();
+      fs.mkdirSync(dir, { recursive: true });
+      const errMsg = await shell.openPath(dir);
+      if (errMsg) return { success: false, error: errMsg };
+      return { success: true, path: dir };
+    } catch (err) {
+      console.error('[Cookie Code] 打开 папку фонов失败:', err.message);
       return { success: false, error: err.message };
     }
   });

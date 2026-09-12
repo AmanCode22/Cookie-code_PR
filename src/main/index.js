@@ -17,6 +17,11 @@ const SESSION_DIR = process.env.CUCKOO_SESSION_DIR || 'cuckoo-ai-pro-session';
 app.setPath('userData', path.join(app.getPath('appData'), SESSION_DIR));
 console.log('[Cookie Code] Session 数据目录:', app.getPath('userData'));
 
+// Папка для пользовательских фонов: <userData>/backgrounds
+// Пользователь кладёт туда картинки — они появляются в выборе фонов в настройках.
+const CUSTOM_BACKGROUNDS_DIR = path.join(app.getPath('userData'), 'backgrounds');
+fs.mkdirSync(CUSTOM_BACKGROUNDS_DIR, { recursive: true });
+
 // Имя приложения в системных уведомлениях Windows (иначе показывается electron.app.Electron)
 app.setAppUserModelId('Cookie Code');
 

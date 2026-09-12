@@ -127,6 +127,9 @@ const KEYS = {
   'settings.section.effects':   { ru: 'Эффекты',                   en: 'Effects' },
   'settings.section.dangerous': { ru: 'Опасные команды (regex, по одной на строку)', en: 'Dangerous commands (regex, one per line)' },
   'settings.section.background':{ ru: 'Фон страницы',              en: 'Page background' },
+  'settings.bg.openFolder':     { ru: 'Открыть папку фонов',       en: 'Open backgrounds folder' },
+  'settings.bg.refresh':        { ru: 'Обновить',                  en: 'Refresh' },
+  'settings.bg.hint':           { ru: 'Свои картинки: положите файлы (.webp/.jpg/.png/.gif) в папку и нажмите «Обновить».', en: 'Custom images: drop files (.webp/.jpg/.png/.gif) into the folder and click Refresh.' },
   'settings.section.language':  { ru: 'Язык',                      en: 'Language' },
 
   // ---- Настройки: слайдеры ----

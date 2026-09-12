@@ -13,10 +13,10 @@ const path = require('path');
 const BACKGROUNDS_DIR = path.join(__dirname, '..', '..', 'ui', 'backgrounds');
 
 /**
- * Список доступных фонов — синхронизирован с src/ui/backgrounds/registry.json.
+ * Список встроенных фонов — синхронизирован с src/ui/backgrounds/registry.json.
  * id = имя файла без расширения.
  */
-const BACKGROUNDS = [
+const BUILTIN_BACKGROUNDS = [
   { id: 'miku',             label: 'Мику',                       file: 'miku.webp' },
   { id: 'miku-light',       label: 'Мику (светлая)',             file: 'miku-light.jpg' },
   { id: 'abyssal-dark',     label: 'Бездна (тёмная)',            file: 'abyssal-dark.webp' },
@@ -48,16 +48,59 @@ const BACKGROUNDS = [
 
 const DEFAULT_ID = 'miku';
 
+// Пользовательские фоны из <userData>/backgrounds (заполняется асинхронно
+// через window.electronAPI.listCustomBackgrounds()).
+// Каждый элемент: { id: 'custom:<base>', label, file: <абсолютный путь>, custom: true }
+let customBackgrounds = [];
+// Абсолютный путь к папке с пользовательскими фонами (для UI).
+let customBackgroundsDir = '';
+
 // Кэш data-URI: file → data:image/...;base64,...
 const dataUriCache = new Map();
 
 /**
+ * Полный список фонов: встроенные + пользовательские.
+ * id пользовательских — 'custom:<имя-файла-без-расширения>'.
+ */
+function getAllBackgrounds() {
+  return BUILTIN_BACKGROUNDS.concat(customBackgrounds);
+}
+
+/**
+ * Найти запись фона по id во всём списке (встроенные + пользовательские).
+ */
+function findBackground(id) {
+  return getAllBackgrounds().find(b => b.id === id) || null;
+}
+
+/**
+ * Загрузить список пользовательских фонов из main-процесса.
+ * Вызывается при старте и при открытии вкладки настроек.
+ */
+async function loadCustomBackgrounds() {
+  try {
+    const res = await window.electronAPI.listCustomBackgrounds();
+    if (res && res.success) {
+      customBackgrounds = res.backgrounds || [];
+      customBackgroundsDir = res.dir || '';
+    } else {
+      customBackgrounds = [];
+    }
+  } catch (err) {
+    console.error('[Cookie Code] Не удалось загрузить пользовательские фоны:', err.message);
+    customBackgrounds = [];
+  }
+  return customBackgrounds;
+}
+
+/**
  * Прочитать файл фона и вернуть data-URI (с кэшированием).
+ * file — либо имя файла во встроенной папке, либо абсолютный путь (кастомный фон).
  */
 function getDataUri(file) {
   if (dataUriCache.has(file)) return dataUriCache.get(file);
   try {
-    const fullPath = path.join(BACKGROUNDS_DIR, file);
+    const fullPath = path.isAbsolute(file) ? file : path.join(BACKGROUNDS_DIR, file);
     const buf = fs.readFileSync(fullPath);
     const ext = path.extname(file).toLowerCase();
     const mime = {
@@ -81,7 +124,7 @@ function getDataUri(file) {
  * Пустая строка / 'none' / null → очистить (только базовый цвет).
  */
 function apply(id) {
-  const entry = BACKGROUNDS.find(b => b.id === id);
+  const entry = findBackground(id);
   const uri = entry ? getDataUri(entry.file) : '';
   const value = uri ? 'url("' + uri + '")' : 'none';
   try {
@@ -135,6 +178,9 @@ function applyBlur(settings) {
  */
 async function loadAndApply() {
   try {
+    // Сначала подтягиваем пользовательские фоны, чтобы выбранный кастомный фон
+    // нашёлся по id при применении.
+    await loadCustomBackgrounds();
     const settings = await window.electronAPI.getCuckooSettings();
     const bgId = (settings && settings.background) || DEFAULT_ID;
     apply(bgId);
@@ -246,7 +292,12 @@ module.exports = {
   resetAll,
   clearLocalStorage,
   RESET_DEFAULTS,
-  BACKGROUNDS,
+  // Список фонов: встроенные + пользовательские (динамически).
+  getAllBackgrounds,
+  findBackground,
+  loadCustomBackgrounds,
+  getCustomBackgroundsDir: () => customBackgroundsDir,
+  BUILTIN_BACKGROUNDS,
   DEFAULT_ID,
   BACKGROUNDS_DIR,
 };

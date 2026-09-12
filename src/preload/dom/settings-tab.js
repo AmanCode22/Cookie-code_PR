@@ -57,6 +57,8 @@ function activateCuckooTab() {
 
     // Вешаем обработчики на превью фонов
     bindBackgroundGrid();
+    // Кнопки «Открыть папку фонов» и «Обновить»
+    bindBackgroundFolderButtons();
     // Вешаем обработчики на слайдеры размытия
     bindBlurSliders();
     // Чекбокс RGB-переливания
@@ -90,16 +92,7 @@ function activateCuckooTab() {
  * HTML-содержимое вкладки настроек Cookie Code.
  */
 function buildContentHTML() {
-  const items = background.BACKGROUNDS.map(b => {
-    const uri = background.getPreviewUri(b.file);
-    const styleAttr = uri ? ' style="background-image: url(\'' + uri + '\');"' : '';
-    return (
-      '<div class="cuckoo-bg-item" data-bg-id="' + b.id + '" title="' + escapeHtml(b.label) + '">' +
-      '  <div class="cuckoo-bg-preview"' + styleAttr + '></div>' +
-      '  <div class="cuckoo-bg-label">' + escapeHtml(b.label) + '</div>' +
-      '</div>'
-    );
-  }).join('');
+  const items = background.getAllBackgrounds().map(backgroundItemHTML).join('');
 
   return '' +
     '<style>' +
@@ -213,7 +206,12 @@ function buildContentHTML() {
     '</div>' +
     '<div>' +
     '  <div class="cuckoo-section-title">' + t('settings.section.background') + '</div>' +
-    '  <div class="cuckoo-bg-grid">' + items + '</div>' +
+    '  <div style="display:flex;gap:8px;margin-bottom:10px;">' +
+    '    <button id="cuckoo-bg-open-folder" style="flex:1;padding:9px 14px;border-radius:10px;font-weight:600;font-size:13px;cursor:pointer;border:1px solid rgba(139,147,255,0.5);background:rgba(139,147,255,0.12);color:#cfd3ff;">' + t('settings.bg.openFolder') + '</button>' +
+    '    <button id="cuckoo-bg-refresh" style="padding:9px 14px;border-radius:10px;font-weight:600;font-size:13px;cursor:pointer;border:1px solid rgba(139,147,255,0.5);background:rgba(139,147,255,0.12);color:#cfd3ff;">' + t('settings.bg.refresh') + '</button>' +
+    '  </div>' +
+    '  <div class="cuckoo-bg-grid" id="cuckoo-bg-grid">' + items + '</div>' +
+    '  <div style="font-size:11px;color:#8a90b8;margin-top:8px;line-height:1.5;">' + t('settings.bg.hint') + '</div>' +
     '</div>' +
     '<div>' +
     '  <div class="cuckoo-section-title">' + t('tg.title') + '</div>' +
@@ -288,6 +286,56 @@ function bindBackgroundGrid() {
       }
     });
   });
+}
+
+/**
+ * Собрать HTML одного превью фона.
+ */
+function backgroundItemHTML(b) {
+  const uri = background.getPreviewUri(b.file);
+  const styleAttr = uri ? ' style="background-image: url(\'' + uri + '\');"' : '';
+  return (
+    '<div class="cuckoo-bg-item" data-bg-id="' + b.id + '" title="' + escapeHtml(b.label) + '">' +
+    '  <div class="cuckoo-bg-preview"' + styleAttr + '></div>' +
+    '  <div class="cuckoo-bg-label">' + escapeHtml(b.label) + '</div>' +
+    '</div>'
+  );
+}
+
+/**
+ * Перерисовать сетку фонов (встроенные + пользовательские).
+ * Повторно навешивает обработчики клика и подсвечивает текущий фон.
+ */
+async function refreshBackgroundGrid() {
+  const gridEl = document.querySelector('#' + TAB_CONTENT_ID + ' #cuckoo-bg-grid');
+  if (!gridEl) return;
+  // Перечитываем пользовательские фоны с диска
+  await background.loadCustomBackgrounds();
+  gridEl.innerHTML = background.getAllBackgrounds().map(backgroundItemHTML).join('');
+  bindBackgroundGrid();
+  await refreshBackgroundSelection();
+}
+
+/**
+ * Кнопки «Открыть папку фонов» и «Обновить».
+ */
+function bindBackgroundFolderButtons() {
+  const openBtn = document.querySelector('#' + TAB_CONTENT_ID + ' #cuckoo-bg-open-folder');
+  if (openBtn) {
+    openBtn.addEventListener('click', async () => {
+      try {
+        await window.electronAPI.openCustomBackgroundsFolder();
+      } catch (err) {
+        console.error('[Cookie Code] Не удалось открыть папку фонов:', err.message);
+      }
+    });
+  }
+  const refreshBtn = document.querySelector('#' + TAB_CONTENT_ID + ' #cuckoo-bg-refresh');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', () => {
+      refreshBackgroundGrid();
+    });
+  }
 }
 
 /**
