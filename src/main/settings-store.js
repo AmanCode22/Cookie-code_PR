@@ -51,16 +51,34 @@ function getSettingsPath() {
   return cachedPath;
 }
 
+/**
+ * Язык системы в виде 'ru' | 'en'.
+ * Русскоязычные и близкие локали → 'ru', всё остальное → 'en'.
+ * Используется как дефолт, если пользователь ещё не выбрал язык явно.
+ */
+function getSystemLanguage() {
+  let locale = '';
+  try {
+    locale = (app.getLocale && app.getLocale()) || '';
+  } catch (_) { /* app может быть недоступен в тестах */ }
+  const lang = String(locale).toLowerCase().split(/[-_]/)[0];
+  const RU_LIKE = ['ru', 'uk', 'be', 'kk', 'ky', 'uz', 'tg', 'hy', 'az', 'mo'];
+  return RU_LIKE.includes(lang) ? 'ru' : 'en';
+}
+
 function readSettings() {
   try {
     const file = getSettingsPath();
-    if (!fs.existsSync(file)) return { ...DEFAULTS };
+    if (!fs.existsSync(file)) return { ...DEFAULTS, language: getSystemLanguage() };
     const raw = fs.readFileSync(file, 'utf-8');
     const parsed = JSON.parse(raw);
-    return { ...DEFAULTS, ...parsed };
+    const merged = { ...DEFAULTS, ...parsed };
+    // Пользователь ещё не выбирал язык — подтягиваем язык системы.
+    if (!parsed || parsed.language == null) merged.language = getSystemLanguage();
+    return merged;
   } catch (err) {
     console.error('[Cookie Code] 读取 settings.json 失败:', err.message);
-    return { ...DEFAULTS };
+    return { ...DEFAULTS, language: getSystemLanguage() };
   }
 }
 
@@ -97,6 +115,7 @@ function getSetting(key) {
 module.exports = {
   DEFAULTS,
   DEFAULT_DANGEROUS_PATTERNS,
+  getSystemLanguage,
   readSettings,
   writeSettings,
   getSetting,

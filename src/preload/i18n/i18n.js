@@ -174,8 +174,15 @@ const KEYS = {
 // ========== Состояние ==========
 let currentLang = 'ru';
 
+const RU_LIKE = ['ru', 'uk', 'be', 'kk', 'ky', 'uz', 'tg', 'hy', 'az', 'mo'];
+
+/**
+ * Привести произвольную локаль ('ru-RU', 'uk', 'en-US', ...) к 'ru' | 'en'.
+ * Русскоязычные и близкие локали → 'ru', всё остальное → 'en'.
+ */
 function normalizeLang(lang) {
-  return lang === 'en' ? 'en' : 'ru';
+  const code = String(lang || '').toLowerCase().split(/[-_]/)[0];
+  return RU_LIKE.includes(code) ? 'ru' : 'en';
 }
 
 /**
