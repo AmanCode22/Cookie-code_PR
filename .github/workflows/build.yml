@@ -1,4 +1,4 @@
-name: CI: Bump, Build & Release
+name: "CI: Bump, Build & Release"
 
 on:
   push:
