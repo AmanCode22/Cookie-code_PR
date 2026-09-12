@@ -90,7 +90,7 @@ function render(items, highlight) {
     ].join(';');
 
     const name = document.createElement('div');
-    name.textContent = state.prefix + item.name;
+    name.textContent = (item.isDir ? '📁 ' : '') + state.prefix + item.name + (item.isDir ? '/' : '');
     name.style.cssText = 'font-weight:600;color:#c8ccff;' + (state.monospace ? 'font-family:Consolas,monospace;' : '');
     row.appendChild(name);
 

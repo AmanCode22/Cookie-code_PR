@@ -54,10 +54,33 @@ function registerIpcHandlers() {
         .split(/\r?\n/)
         .map((p) => p.replace(/\\/g, '/').replace(/^\.\//, ''))
         .filter((p) => p.length > 0)
-        .sort((a, b) => a.localeCompare(b))
-        .slice(0, 100)
-        .map((rel) => ({ rel, abs: path.join(projectDir, rel) }));
-      return { success: true, files };
+        .map((rel) => ({ rel, abs: path.join(projectDir, rel), isDir: false }));
+
+      // Дополнительно собираем директории проекта (ripgrep их не отдаёт).
+      const IGNORE_DIRS = new Set(['node_modules', '.git', '.svn', '.hg', 'dist', 'build', 'out', 'coverage', '.next', '.cache', '.vscode', '.idea']);
+      const dirs = [];
+      (function walk(absDir, relDir) {
+        let entries;
+        try { entries = require('fs').readdirSync(absDir, { withFileTypes: true }); } catch (_) { return; }
+        for (const e of entries) {
+          if (!e.isDirectory()) continue;
+          if (IGNORE_DIRS.has(e.name)) continue;
+          const rel = relDir ? relDir + '/' + e.name : e.name;
+          if (safeQuery && !rel.includes(safeQuery)) { /* всё равно заходим глубже */ }
+          dirs.push({ rel, abs: path.join(projectDir, rel), isDir: true });
+          walk(path.join(absDir, e.name), rel);
+        }
+      })(projectDir, '');
+
+      const q = safeQuery.toLowerCase();
+      const matchDir = (d) => !q || d.rel.toLowerCase().includes(q);
+      const matchFile = (f) => !q || f.rel.toLowerCase().includes(q);
+
+      const dirList = dirs.filter(matchDir).sort((a, b) => a.rel.localeCompare(b.rel));
+      const fileList = files.filter(matchFile).sort((a, b) => a.rel.localeCompare(b.rel));
+
+      const merged = dirList.concat(fileList).slice(0, 100);
+      return { success: true, files: merged };
     } catch (err) {
       return { success: false, error: err.message, files: [] };
     }

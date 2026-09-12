@@ -124,7 +124,7 @@ function scheduleFileSearch(field, query) {
 
     const wasOpen = menuOpen && activeKind === 'file';
     const prevHighlight = wasOpen ? menu.getState().highlight : 0;
-    currentItems = files.map((f) => ({ name: f.rel, abs: f.abs, description: '' }));
+    currentItems = files.map((f) => ({ name: f.rel, abs: f.abs, isDir: !!f.isDir, description: '' }));
     activeKind = 'file';
     menu.show(
       currentItems,
