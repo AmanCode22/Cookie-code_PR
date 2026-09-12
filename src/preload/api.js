@@ -109,6 +109,13 @@ let electronAPI = {
   openCuckooSettingsFile: () => {
     return ipcRenderer.invoke('cuckoo-settings-open-file');
   },
+  // ========== Git diff (панель «Изменения») ==========
+  gitStatus: () => {
+    return ipcRenderer.invoke('git-status');
+  },
+  gitDiffFile: (filePath, status) => {
+    return ipcRenderer.invoke('git-diff-file', { filePath, status });
+  },
   exportChat: (payload) => {
     return ipcRenderer.invoke('cuckoo-chat-export', payload);
   },

@@ -13,6 +13,7 @@ const { isDangerous } = require('./dangerous-commands');
 const settingsStore = require('./settings-store');
 const chatExport = require('./chat-export');
 const { decodeOutput, normalizeCommand } = require('../../tools/decodeOutput');
+const gitDiff = require('./git-diff');
 
 function registerIpcHandlers() {
   // 初始化项目
@@ -315,6 +316,32 @@ function registerIpcHandlers() {
     } catch (err) {
       console.error('[Cookie Code] chat-export error:', err.message, err.stack);
       return { success: false, error: err.message };
+    }
+  });
+
+  // ========== Git diff (панель «Изменения») ==========
+  // Список изменённых файлов в текущем проекте (git status).
+  ipcMain.handle('git-status', async (event) => {
+    try {
+      const ctx = windowState.getContextByWebContents(event.sender);
+      const projectDir = ctx && ctx.sessionStore && ctx.sessionStore.state.selectedProjectDir;
+      if (!projectDir) return { success: false, reason: 'git не найден: проект не инициализирован' };
+      return await gitDiff.getStatus(projectDir);
+    } catch (err) {
+      return { success: false, reason: err.message };
+    }
+  });
+
+  // Unified diff одного файла.
+  ipcMain.handle('git-diff-file', async (event, { filePath, status } = {}) => {
+    try {
+      const ctx = windowState.getContextByWebContents(event.sender);
+      const projectDir = ctx && ctx.sessionStore && ctx.sessionStore.state.selectedProjectDir;
+      if (!projectDir) return { success: false, reason: 'git не найден: проект не инициализирован' };
+      if (!filePath) return { success: false, reason: 'filePath is required' };
+      return await gitDiff.getFileDiff(projectDir, filePath, status);
+    } catch (err) {
+      return { success: false, reason: err.message };
     }
   });
 

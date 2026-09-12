@@ -4,6 +4,7 @@
  */
 const state = require('../dom/state');
 const { hideOverlay, showOverlay, renderHistory, commandHistory, showToast, showConfirmDialog, hideFirstTimeDialog, handleKillProcess } = require('./ui');
+const { toggleDiffPanel, closeDiffPanel, renderDiffList, closeDiffViewer } = require('./diff-panel');
 const { handleInitProject, renderSessions } = require('../dom/session-list');
 const { handleManualParse } = require('../dom/observer');
 const { sendToChat } = require('../dom/chat-input');
@@ -277,6 +278,22 @@ function bindEvents() {
   const mcpCloseBtn = document.getElementById('cuckoo-mcp-close');
   mcpCloseBtn?.addEventListener('click', closeMcpManager);
 
+  // Diff-панель: кнопка в overlay (toggle)
+  const diffBtn = document.getElementById('cuckoo-btn-diff');
+  diffBtn?.addEventListener('click', toggleDiffPanel);
+
+  // Diff-панель: закрыть
+  const diffCloseBtn = document.getElementById('cuckoo-diff-close');
+  diffCloseBtn?.addEventListener('click', closeDiffPanel);
+
+  // Diff-панель: обновить
+  const diffRefreshBtn = document.getElementById('cuckoo-diff-refresh');
+  diffRefreshBtn?.addEventListener('click', renderDiffList);
+
+  // Diff-viewer: закрыть
+  const diffViewerCloseBtn = document.getElementById('cuckoo-diff-viewer-close');
+  diffViewerCloseBtn?.addEventListener('click', closeDiffViewer);
+
   // MCP 面板：刷新
   const mcpRefreshBtn = document.getElementById('cuckoo-mcp-refresh');
   mcpRefreshBtn?.addEventListener('click', renderMcpList);
@@ -481,6 +498,8 @@ function bindEvents() {
       hideOverlay();
       closeWindowManager();
       closeMcpManager();
+      closeDiffViewer();
+      closeDiffPanel();
       hideFirstTimeDialog();
     }
   });
