@@ -13,6 +13,7 @@ const responseMeta = require('./response-meta');
 
 const { sendToolResultToChat, sendCombinedJsResultsToChat, sendMessageToChat } = require('./chat-input');
 const { isAIResponseComplete } = require('./ai-response');
+const approval = require('./approval');
 const { getProviderByUrl } = require('../../../src/providers');
 const { hasTool, toolNamesList } = require('../tool-names');
 const { t } = require('../i18n/i18n');
@@ -228,9 +229,11 @@ function ensureStabilityTimer() {
 
 /**
  * 回复结束后，获取最新一条 AI 回复的内容并解析工具调用
+ * 改为 async：执行前可能需要等待用户确认（approval gate）。
+ * 调用方均为 fire-and-forget，不依赖返回值。
  * @param {number} retryCount 当前重试次数（内容不完整时延迟重试）
  */
-function processLatestAIResponse(retryCount = 0, force = false) {
+async function processLatestAIResponse(retryCount = 0, force = false) {
   const messages = getMessageCandidates();
   if (messages.length === 0) {
     return;
@@ -420,6 +423,30 @@ function processLatestAIResponse(retryCount = 0, force = false) {
     }
     console.log('[Cookie Code] ✅ 工具存在: ' + toolCall.toolName + ', 开始执行');
     notifyToolCallDetected(toolCall);
+
+    // ===== Approval gate：按 toolApprovalMode 在执行前请求用户确认 =====
+    let verdict = { approved: true };
+    try {
+      verdict = await approval.requestApprovalIfNeeded({
+        kind: 'tool',
+        toolName: toolCall.toolName,
+        params: toolCall.params,
+      });
+    } catch (err) {
+      console.error('[Cookie Code] approval gate error:', err.message);
+      verdict = { approved: false };
+    }
+    if (!verdict.approved) {
+      console.log('[Cookie Code] ⛔ 工具被用户拒绝: ' + toolCall.toolName);
+      // 回传 AI（经隐身通道），告知调用被拒绝，不要盲目重试
+      sendToolResultToChat(toolCall, {
+        success: false,
+        denied: true,
+        error: approval.DENIED_TOOL_ERROR,
+      });
+      return;
+    }
+
     handleToolCall(toolCall);
   } else {
     // JSON 工具调用未解析到，再检测 XML 格式的工具调用
@@ -658,6 +685,20 @@ function notifyJsScriptDetected(code) {
  * 执行检测到的 JS 工具脚本（带双通道去重）
  */
 async function handleJsToolScript(code) {
+  // ===== Approval gate：JS 块同样按 toolApprovalMode 请求用户确认 =====
+  let verdict = { approved: true };
+  try {
+    verdict = await approval.requestApprovalIfNeeded({ kind: 'js', code });
+  } catch (err) {
+    console.error('[Cookie Code] approval gate error:', err.message);
+    verdict = { approved: false };
+  }
+  if (!verdict.approved) {
+    console.log('[Cookie Code] ⛔ JS 脚本被用户拒绝');
+    // 作为失败结果合并回传 AI（denied=true → 不提示“修正后重试”）
+    return { code, result: { success: false, denied: true, error: approval.DENIED_JS_ERROR } };
+  }
+
   // 方向 C：不强制弹面板
   isExecuting = true;
   notifyJsScriptDetected(code);
