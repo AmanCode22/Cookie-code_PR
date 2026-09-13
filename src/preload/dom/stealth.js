@@ -38,31 +38,63 @@ const SERVICE_MARKERS = [
 ];
 
 /**
+ * Окно поиска маркера от начала сообщения (в символах).
+ * Все служебные сообщения Cookie Code начинаются с маркера в первых
+ * символах (самый «глубокий» случай — подсказка про XML-формат,
+ * маркер на ~26-й позиции). Ограничение окна защищает от ложного
+ * скрытия ответов AI, цитирующих маркер в середине длинной реплики.
+ */
+const MARKER_WINDOW = 200;
+
+/**
  * Проверить, является ли текст служебным сообщением Cookie Code.
+ * Маркер должен встретиться в первых MARKER_WINDOW символах.
  * @param {string} text
  * @returns {boolean}
  */
 function isServiceText(text) {
   if (!text || typeof text !== 'string') return false;
-  return SERVICE_MARKERS.some((m) => text.indexOf(m) !== -1);
+  const head = text.slice(0, MARKER_WINDOW);
+  return SERVICE_MARKERS.some((m) => head.indexOf(m) !== -1);
 }
 
 /**
  * Является ли элемент пользовательским «пузырём» (а не ответом AI).
- * У ответов AI на DeepSeek внутри есть .ds-markdown; у пользовательских
- * сообщений его нет. Дополнительно проверяем явные role-атрибуты.
+ *
+ * Логика повторяет канонический детектор provider.isUserMessage
+ * (src/providers/deepseek.js): role-атрибуты, классы user-message /
+ * message-user / human и легаси-текстовые маркеры. ВАЖНО: признаком AI
+ * считается только .ds-markdown, являющийся ПРЯМЫМ дочерним узлом реплики
+ * (как в provider.getMessageMarkdown — `:scope > .ds-markdown`). Поиск по
+ * всем потомкам (`el.querySelector('.ds-markdown')`) в новых версиях
+ * DeepSeek давал ложные срабатывания: пользовательские пузыри (особенно
+ * результаты инструментов с JSON-нагрузкой) тоже рендерятся с markdown-
+ * контейнерами внутри, из-за чего служебные сообщения не скрывались.
  * @param {Element} el
  * @returns {boolean}
  */
 function isUserBubble(el) {
   if (!el || typeof el.querySelector !== 'function') return false;
   try {
-    if (el.querySelector('.ds-markdown')) return false; // ответ AI
+    // Ответ AI: .ds-markdown — прямой потомок реплики (канонический признак)
+    if (el.querySelector(':scope > .ds-markdown')) return false;
   } catch (_) { /* мок в тестах без querySelector — считаем пузырём */ }
   for (let n = el; n; n = n.parentElement) {
     const role = n.getAttribute && (n.getAttribute('data-role') || n.getAttribute('data-author'));
-    if (role === 'user' || role === 'human') return true;
+    const roleLc = String(role || '').toLowerCase();
+    if (roleLc === 'user' || roleLc === 'human') return true;
+    if (roleLc === 'assistant' || roleLc === 'ai' || roleLc === 'bot') return false;
+    const cls = typeof n.className === 'string' ? n.className.toLowerCase() : '';
+    if (cls) {
+      if (cls.indexOf('user-message') !== -1 || cls.indexOf('message-user') !== -1 || cls.indexOf('human') !== -1) return true;
+      if (cls.indexOf('ai-message') !== -1 || cls.indexOf('assistant') !== -1) return false;
+    }
   }
+  // Легаси-инициализация: текстовые маркеры (как в provider.isUserMessage)
+  try {
+    const head = String(el.textContent || '').trim().slice(0, 200);
+    if (head.indexOf('我已选择目录：') !== -1 || head.indexOf('系统提示词：') !== -1 || head.indexOf('工具使用规则：') !== -1) return true;
+  } catch (_) { /* без textContent — пропускаем */ }
   return true;
 }
 
@@ -104,7 +136,16 @@ function hideMessageEl(el) {
 }
 
 /**
+ * Селекторы кандидатов: основная реплика DeepSeek (.ds-message) плюс
+ * специализированные контейнеры пользовательских сообщений, которые
+ * встречаются в новых версиях UI (role-атрибуты и классы user-message).
+ */
+const CANDIDATE_SELECTORS = ['.ds-message', '[data-role="user"]', '[class*="user-message"]'];
+
+/**
  * Найти служебные пользовательские пузыри внутри root.
+ * Кандидаты собираются по всем CANDIDATE_SELECTORS с дедупликацией;
+ * вложенные кандидаты, чей предок уже выбран, пропускаются.
  * @param {Document|Element} [root]
  * @returns {Element[]}
  */
@@ -112,19 +153,35 @@ function findServiceBubbles(root) {
   const doc = root || (typeof document !== 'undefined' ? document : null);
   if (!doc || typeof doc.querySelectorAll !== 'function') return [];
   const out = [];
-  let candidates = [];
-  try {
-    candidates = Array.from(doc.querySelectorAll('.ds-message'));
-  } catch (_) {
-    return out;
+  const acceptedSet = new Set();
+  const seen = new Set();
+  const candidates = [];
+  for (const sel of CANDIDATE_SELECTORS) {
+    let found = null;
+    try {
+      found = doc.querySelectorAll(sel);
+    } catch (_) { continue; } // селектор не поддержан — пробуем следующий
+    if (!found) continue;
+    for (const el of found) {
+      if (!el || seen.has(el)) continue;
+      seen.add(el);
+      candidates.push(el);
+    }
   }
   for (const el of candidates) {
     if (el.classList && el.classList.contains('cuckoo-hidden-msg')) continue;
+    // вложенный кандидат, чей предок уже выбран, — пропускаем
+    let covered = false;
+    for (let p = el.parentElement || el.parentNode; p; p = p.parentElement || p.parentNode) {
+      if (acceptedSet.has(p)) { covered = true; break; }
+    }
+    if (covered) continue;
     const text = (el.textContent || '').trim();
     if (!text) continue;
     if (!isServiceText(text)) continue;
     if (!isUserBubble(el)) continue;
     out.push(el);
+    acceptedSet.add(el);
   }
   return out;
 }

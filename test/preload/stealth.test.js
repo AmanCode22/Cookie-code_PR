@@ -21,6 +21,7 @@ function mkNode(opts = {}) {
     tagName: opts.tagName || 'DIV',
     nodeType: 1,
     textContent: opts.textContent || '',
+    className: opts.className || '',
     classList: mkClassList(opts.classes),
     attributes: {},
     children: opts.children || [],
@@ -68,9 +69,44 @@ test('isServiceText: обычные сообщения не считаются �
 
 // ===== isUserBubble =====
 
-test('isUserBubble: ответ AI (есть .ds-markdown) не пользовательский', () => {
-  const ai = mkNode({ querySelector: (sel) => (sel === '.ds-markdown' ? { tagName: 'DIV' } : null) });
+test('isUserBubble: ответ AI (.ds-markdown — прямой потомок) не пользовательский', () => {
+  const ai = mkNode({ querySelector: (sel) => (sel === ':scope > .ds-markdown' ? { tagName: 'DIV' } : null) });
   assert.strictEqual(stealth.isUserBubble(ai), false);
+});
+
+test('isUserBubble: роль assistant/ai/bot — не пользовательский', () => {
+  const aiRole = mkNode({ attrs: { 'data-role': 'assistant' } });
+  const aiBot = mkNode({ attrs: { 'data-author': 'bot' } });
+  assert.strictEqual(stealth.isUserBubble(aiRole), false);
+  assert.strictEqual(stealth.isUserBubble(aiBot), false);
+});
+
+test('isUserBubble: классы ai-message/assistant — не пользовательский', () => {
+  const aiCls = mkNode({ className: 'ds-message ai-message__body' });
+  assert.strictEqual(stealth.isUserBubble(aiCls), false);
+});
+
+test('isUserBubble: вложенный .ds-markdown (НЕ прямой потомок) — всё ещё пользовательский', () => {
+  // Регрессия: в новых версиях DeepSeek пользовательские пузыри (особенно
+  // результаты инструментов с JSON) рендерятся с markdown-контейнерами
+  // внутри. Поиск по всем потомкам считал их ответами AI и не скрывал.
+  const user = mkNode({
+    textContent: '【工具执行结果】bash 执行成功',
+    querySelector: (sel) => (sel === '.ds-markdown' ? { tagName: 'DIV' } : null), // вложенный
+  });
+  assert.strictEqual(stealth.isUserBubble(user), true);
+});
+
+test('isUserBubble: класс user-message на предке — пользовательский', () => {
+  const parent = mkNode({ className: 'chat-item user-message__container' });
+  const child = mkNode({});
+  child.parentElement = parent;
+  assert.strictEqual(stealth.isUserBubble(child), true);
+});
+
+test('isUserBubble: легаси-инициализация по тексту — пользовательский', () => {
+  const legacy = mkNode({ textContent: '系统提示词：' + 'x'.repeat(300) });
+  assert.strictEqual(stealth.isUserBubble(legacy), true);
 });
 
 test('isUserBubble: пузырь без .ds-markdown — пользовательский', () => {
@@ -78,13 +114,24 @@ test('isUserBubble: пузырь без .ds-markdown — пользовател�
   assert.strictEqual(stealth.isUserBubble(user), true);
 });
 
-test('isUserBubble: role-атрибут user/human — пользовательский', () => {
+test('isUserBubble: роль-атрибут user/human — пользовательский', () => {
   const withRole = mkNode({ attrs: { 'data-role': 'user' } });
   const parent = mkNode({ attrs: { 'data-author': 'human' } });
   const child = mkNode({});
   child.parentElement = parent;
   assert.strictEqual(stealth.isUserBubble(withRole), true);
   assert.strictEqual(stealth.isUserBubble(child), true);
+});
+
+// ===== Маркер должен быть в начале сообщения (окно 200 символов) =====
+
+test('isServiceText: маркер глубоко в длинном тексте (цитата AI) не совпадает', () => {
+  const longPrefix = 'Отвечаю на вопрос. '.repeat(15); // ~300 символов до маркера
+  assert.strictEqual(stealth.isServiceText(longPrefix + 'из 【工具执行结果】 видно, что...'), false);
+});
+
+test('isServiceText: подсказка про XML-формат (маркер на ~26-й позиции) совпадает', () => {
+  assert.strictEqual(stealth.isServiceText('请使用```cuckoo``` 代码块进行工具调用，不要使用 XML invoke 格式。'), true);
 });
 
 // ===== hideMessageEl =====
@@ -133,7 +180,11 @@ test('findServiceBubbles: находит только служебные пол�
   const service = mkNode({ textContent: '【工具执行结果】read 执行成功' });
   const serviceAiLike = mkNode({
     textContent: '【工具执行结果】read 执行成功',
-    querySelector: (sel) => (sel === '.ds-markdown' ? {} : null), // ответ AI, цитирующий маркер
+    querySelector: (sel) => (sel === ':scope > .ds-markdown' ? {} : null), // ответ AI, цитирующий маркер
+  });
+  const nestedMarkdownUser = mkNode({
+    textContent: '【工具执行结果】bash 执行成功',
+    querySelector: (sel) => (sel === '.ds-markdown' ? {} : null), // пользовательский с вложенным markdown
   });
   const normal = mkNode({ textContent: 'Привет, напиши тесты' });
   const alreadyHidden = mkNode({
@@ -141,16 +192,31 @@ test('findServiceBubbles: находит только служебные пол�
     classes: ['cuckoo-hidden-msg'],
   });
 
+  const all = [service, serviceAiLike, nestedMarkdownUser, normal, alreadyHidden];
   const fakeDocument = {
-    querySelectorAll: (sel) => {
-      assert.strictEqual(sel, '.ds-message');
-      return [service, serviceAiLike, normal, alreadyHidden];
-    },
+    querySelectorAll: (sel) => all, // дедупликация по селекторам — внутри
+  };
+
+  const found = stealth.findServiceBubbles(fakeDocument);
+  assert.strictEqual(found.length, 2);
+  assert.strictEqual(found[0], service);
+  assert.strictEqual(found[1], nestedMarkdownUser);
+});
+
+test('findServiceBubbles: находит через [data-role="user"], вложенные кандидаты пропускаются', () => {
+  // Внешняя реплика — .ds-message с data-role="user" (совпадает и по role-селектору),
+  // внутренний узел с классом user-message — вложенный кандидат.
+  const outer = mkNode({ textContent: '【JS 执行结果汇总】(共 1 个脚本)', attrs: { 'data-role': 'user' } });
+  const inner = mkNode({ textContent: '【JS 执行结果汇总】(共 1 个脚本)', className: 'user-message__text' });
+  inner.parentElement = outer;
+
+  const fakeDocument = {
+    querySelectorAll: (sel) => (sel === '.ds-message' ? [outer] : [inner]),
   };
 
   const found = stealth.findServiceBubbles(fakeDocument);
   assert.strictEqual(found.length, 1);
-  assert.strictEqual(found[0], service);
+  assert.strictEqual(found[0], outer);
 });
 
 test('findServiceBubbles: без document возвращает пустой список', () => {
