@@ -155,6 +155,9 @@ const BOOTSTRAP = [
   "    return await __call('ask_user_question', { questions: questions });",
   "  };",
   "  globalThis.ask_user_question = globalThis.askUserQuestion;",
+  "  globalThis.read_photo = async function (filePath, caption, send) {",
+  "    return await __call('read_photo', { file_path: filePath, caption: caption || '', send: send !== false });",
+  "  };",
 "  globalThis.openBrowserWindow = async function (url, options) {",
 "    options = options || {};",
 "    return await __call('open_browser_window', {",
@@ -278,7 +281,7 @@ class JsRunner {
    * @param {string|null} projectDir - 当前项目目录（相对路径基准）
    * @returns {Promise<{success: boolean, output?: string, error?: string}>}
    */
-  async run(code, projectDir, senderId, askUserQuestion) {
+  async run(code, projectDir, senderId, askUserQuestion, pasteImage) {
     if (!code || typeof code !== 'string' || !code.trim()) {
       return { success: false, error: '无效的 JS 代码' };
     }
@@ -309,7 +312,7 @@ class JsRunner {
           result = { success: false, error: '未知工具: ' + op };
         } else {
           try {
-            result = await tool.execute(Object.assign({}, args, { projectDir, senderId, askUserQuestion }));
+            result = await tool.execute(Object.assign({}, args, { projectDir, senderId, askUserQuestion, pasteImage }));
           } catch (err) {
             result = { success: false, error: '工具 ' + op + ' 执行异常: ' + (err.message || String(err)) };
           }
