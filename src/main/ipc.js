@@ -27,11 +27,40 @@ let userQuestionCounter = 0;
 
 function requestUserQuestion(sender, questions) {
   const requestId = `question_${Date.now()}_${++userQuestionCounter}`;
+  const key = `${sender.id}:${requestId}`;
   return new Promise((resolve, reject) => {
-    const key = `${sender.id}:${requestId}`;
     pendingUserQuestions.set(key, { resolve, reject });
-    sender.send('ask-user-question', { requestId, questions });
+    // Показываем диалог в окне (как раньше).
+    try { sender.send('ask-user-question', { requestId, questions }); } catch (_) {}
+
+    // Дублируем вопрос в Telegram с inline-клавиатурой (если бот включён).
+    // Кто ответит первым — окно или TG — тот и резолвит promise.
+    try {
+      const bot = require('../../botsrc');
+      bot.askQuestion(requestId, questions).catch(() => {});
+    } catch (_) {}
   });
+}
+
+/**
+ * Резолв вопроса, отвеченного в Telegram (вызывается из botsrc).
+ * @returns {boolean} true, если нашли ожидающий вопрос.
+ */
+function resolveUserQuestionFromTelegram(requestId, answers) {
+  for (const [key, pending] of pendingUserQuestions) {
+    if (key.endsWith(':' + requestId)) {
+      pendingUserQuestions.delete(key);
+      // Просим окно закрыть диалог, если он ещё открыт.
+      try {
+        const senderId = Number(key.split(':')[0]);
+        const wc = require('electron').webContents.fromId(senderId);
+        if (wc && !wc.isDestroyed()) wc.send('ask-user-question-resolved', { requestId });
+      } catch (_) {}
+      pending.resolve(Array.isArray(answers) ? answers : []);
+      return true;
+    }
+  }
+  return false;
 }
 
 function maybeNotifyAllDone(senderId) {
@@ -120,6 +149,16 @@ async function insertImageToChat(sender, filePath, caption, send) {
 }
 
 function registerIpcHandlers() {
+  // Мост Telegram → окно: ответ на вопрос из TG резолвит тот же promise.
+  try {
+    const bot = require('../../botsrc');
+    if (typeof bot.setOnQuestionAnswered === 'function') {
+      bot.setOnQuestionAnswered((requestId, answers) => {
+        resolveUserQuestionFromTelegram(requestId, answers);
+      });
+    }
+  } catch (_) {}
+
   ipcMain.on('ask-user-question-response', (event, { requestId, answers, canceled } = {}) => {
     if (!requestId) return;
     const key = `${event.sender.id}:${requestId}`;
@@ -643,4 +682,4 @@ function registerIpcHandlers() {
   });
 }
 
-module.exports = { registerIpcHandlers };
+module.exports = { registerIpcHandlers, resolveUserQuestionFromTelegram };
