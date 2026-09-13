@@ -221,6 +221,26 @@ Full TypeScript declarations are shipped at `tools/cuckoo-tools.d.ts`.
 
 ---
 
+## Customization
+
+Cookie Code is built to be reshaped: swap wallpapers, tune the glass effect, change the accent color, write your own skills, or extend the tool set.
+
+<p align="center">
+  <img src="assets/photo_1_2026-09-13_13-16-57.jpg" alt="Cookie Code — customization settings" width="800">
+  <br>
+  <img src="assets/photo_2_2026-09-13_13-16-57.jpg" alt="Cookie Code — custom theme" width="800">
+</p>
+
+### Appearance
+
+Everything visual lives in **Settings → Cookie Code** and persists in `cuckoo-settings.json`:
+
+- **Backgrounds** — 27 built-in wallpapers, or drop your own image into `src/ui/backgrounds/` and register it in `registry.json`.
+- **Glass effect** — background / header / sidebar blur, opacity, and tool-block glass blur.
+- **RGB username** — animated rainbow gradient in the sidebar, toggled under **Effects**.
+
+---
+
 ## Safety
 
 - 30 s command timeout, 60 s sandbox timeout
