@@ -145,6 +145,11 @@ function registerAskUserQuestionListener() {
       ipcRenderer.send('ask-user-question-response', { requestId: payload.requestId, answers });
     });
   });
+  // Вопрос был отвечен в Telegram — просто закрываем диалог в окне.
+  ipcRenderer.on('ask-user-question-resolved', () => {
+    const dialog = document.getElementById(DIALOG_ID);
+    if (dialog) dialog.remove();
+  });
 }
 
 module.exports = { askUserQuestion, registerAskUserQuestionListener };

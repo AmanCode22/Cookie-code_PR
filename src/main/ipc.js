@@ -27,11 +27,40 @@ let userQuestionCounter = 0;
 
 function requestUserQuestion(sender, questions) {
   const requestId = `question_${Date.now()}_${++userQuestionCounter}`;
+  const key = `${sender.id}:${requestId}`;
   return new Promise((resolve, reject) => {
-    const key = `${sender.id}:${requestId}`;
     pendingUserQuestions.set(key, { resolve, reject });
-    sender.send('ask-user-question', { requestId, questions });
+    // Показываем диалог в окне (как раньше).
+    try { sender.send('ask-user-question', { requestId, questions }); } catch (_) {}
+
+    // Дублируем вопрос в Telegram с inline-клавиатурой (если бот включён).
+    // Кто ответит первым — окно или TG — тот и резолвит promise.
+    try {
+      const bot = require('../../botsrc');
+      bot.askQuestion(requestId, questions).catch(() => {});
+    } catch (_) {}
   });
+}
+
+/**
+ * Резолв вопроса, отвеченного в Telegram (вызывается из botsrc).
+ * @returns {boolean} true, если нашли ожидающий вопрос.
+ */
+function resolveUserQuestionFromTelegram(requestId, answers) {
+  for (const [key, pending] of pendingUserQuestions) {
+    if (key.endsWith(':' + requestId)) {
+      pendingUserQuestions.delete(key);
+      // Просим окно закрыть диалог, если он ещё открыт.
+      try {
+        const senderId = Number(key.split(':')[0]);
+        const wc = require('electron').webContents.fromId(senderId);
+        if (wc && !wc.isDestroyed()) wc.send('ask-user-question-resolved', { requestId });
+      } catch (_) {}
+      pending.resolve(Array.isArray(answers) ? answers : []);
+      return true;
+    }
+  }
+  return false;
 }
 
 function maybeNotifyAllDone(senderId) {
@@ -49,7 +78,87 @@ function maybeNotifyAllDone(senderId) {
   } catch (_) {}
 }
 
+/**
+ * Вставить изображение в поле чата активного окна.
+ * Использует Electron clipboard.writeImage + Ctrl+V.
+ * @param {Electron.WebContents} sender
+ * @param {string} filePath  абсолютный путь к файлу изображения
+ * @param {string} caption   текст перед отправкой (вставляется в textarea)
+ * @param {boolean} send     нажать Enter после вставки
+ */
+async function insertImageToChat(sender, filePath, caption, send) {
+  try {
+    const { clipboard, nativeImage } = require('electron');
+    const fs = require('fs');
+
+    if (!filePath || !fs.existsSync(filePath)) {
+      return { success: false, error: `Файл не найден: ${filePath}` };
+    }
+
+    // Загружаем изображение в nativeImage и кладём в clipboard
+    const img = nativeImage.createFromPath(filePath);
+    if (img.isEmpty()) {
+      return { success: false, error: `Не удалось загрузить изображение: ${filePath}` };
+    }
+    clipboard.writeImage(img);
+
+    // Если есть подпись — вставляем текст в textarea
+    if (caption && caption.trim()) {
+      const safe = JSON.stringify(String(caption));
+      const script = `(function(){
+        const ta = document.querySelector('textarea[placeholder], textarea[name="search"], textarea.ds-scroll-area');
+        if (!ta) return { ok: false, error: 'textarea not found' };
+        const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set;
+        setter.call(ta, ${safe});
+        ta.dispatchEvent(new Event('input', { bubbles: true }));
+        ta.focus();
+        return { ok: true };
+      })()`;
+      await sender.executeJavaScript(script, true);
+      await new Promise((r) => setTimeout(r, 100));
+    } else {
+      // Фокусируем textarea без текста
+      const script = `(function(){
+        const ta = document.querySelector('textarea[placeholder], textarea[name="search"], textarea.ds-scroll-area');
+        if (ta) ta.focus();
+        return true;
+      })()`;
+      await sender.executeJavaScript(script, true);
+      await new Promise((r) => setTimeout(r, 100));
+    }
+
+    // Вставляем изображение из clipboard через Ctrl+V
+    sender.sendInputEvent({ type: 'keyDown', keyCode: 'V', modifiers: ['control'] });
+    sender.sendInputEvent({ type: 'keyUp', keyCode: 'V', modifiers: ['control'] });
+    // Даём React обработать вставку
+    await new Promise((r) => setTimeout(r, 300));
+
+    // Если нужно отправить — жмём Enter
+    if (send) {
+      await new Promise((r) => setTimeout(r, 200));
+      sender.sendInputEvent({ type: 'keyDown', keyCode: 'Return', key: 'Enter' });
+      sender.sendInputEvent({ type: 'char', keyCode: 'Return', key: '\r' });
+      sender.sendInputEvent({ type: 'keyUp', keyCode: 'Return', key: 'Enter' });
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error('[Cookie Code] insertImageToChat error:', err.message);
+    return { success: false, error: err.message };
+  }
+}
+
 function registerIpcHandlers() {
+  // Мост Telegram → окно: ответ на вопрос из TG резолвит тот же promise.
+  try {
+    const bot = require('../../botsrc');
+    if (typeof bot.setOnQuestionAnswered === 'function') {
+      bot.setOnQuestionAnswered((requestId, answers) => {
+        resolveUserQuestionFromTelegram(requestId, answers);
+      });
+    }
+  } catch (_) {}
+
   ipcMain.on('ask-user-question-response', (event, { requestId, answers, canceled } = {}) => {
     if (!requestId) return;
     const key = `${event.sender.id}:${requestId}`;
@@ -215,6 +324,7 @@ function registerIpcHandlers() {
         projectDir: selectedDir,
         senderId: event.sender.id,
         askUserQuestion: (questions) => requestUserQuestion(event.sender, questions),
+        pasteImage: (filePath, caption, send) => insertImageToChat(event.sender, filePath, caption, send),
       });
       // Если менялся todo-список — пушим обновление в окно
       if (toolName === 'todo_write' || toolName === 'todo_edit' || toolName === 'todo_delete') {
@@ -238,6 +348,12 @@ function registerIpcHandlers() {
       } catch (_) {}
       return { callId, success: false, error: err.message };
     }
+  });
+
+  // ========== Вставка изображения в поле чата (read_photo) ==========
+  // IPC-хэндлер, вызываемый рендер-процессом (для будущего использования из overlay).
+  ipcMain.handle('chat-insert-image', async (event, { filePath, caption, send } = {}) => {
+    return insertImageToChat(event.sender, filePath, String(caption || ''), send !== false);
   });
 
   // AI 回复完成时：窗口已聚焦则不打扰；否则弹通知并让任务栏/Dock 闪烁
@@ -307,7 +423,8 @@ function registerIpcHandlers() {
         code,
         selectedDir,
         event.sender.id,
-        (questions) => requestUserQuestion(event.sender, questions)
+        (questions) => requestUserQuestion(event.sender, questions),
+        (filePath, caption, send) => insertImageToChat(event.sender, filePath, caption, send)
       );
       const after = JSON.stringify(todoStore.getList(event.sender.id));
       if (before !== after) {
@@ -565,4 +682,4 @@ function registerIpcHandlers() {
   });
 }
 
-module.exports = { registerIpcHandlers };
+module.exports = { registerIpcHandlers, resolveUserQuestionFromTelegram };

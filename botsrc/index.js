@@ -86,6 +86,159 @@ function formatTodos(todos) {
   return '☑ Задачи (' + done + '/' + items.length + '):\n' + lines.join('\n');
 }
 
+/**
+ * Реестр активных вопросов, отправленных в Telegram.
+ * key = requestId, value = { questions, answers: [], messageId, resolve }
+ * Ответ из TG резолвит promise и вызывает onAnswered(requestId, answers).
+ */
+const _pendingQuestions = new Map();
+/**
+ * Карта callback_data → { requestId, qi, oi }.
+ * callback_data ограничен 64 байтами, поэтому вместо requestId
+ * используем короткий числовой токен.
+ */
+const _callbackTokens = new Map();
+let _cbTokenCounter = 0;
+let _onQuestionAnswered = null;
+
+/** Установить колбэк, вызываемый при ответе на вопрос из TG. */
+function setOnQuestionAnswered(fn) {
+  _onQuestionAnswered = typeof fn === 'function' ? fn : null;
+}
+
+/** Экранирование для HTML в тексте вопроса. */
+function _qEsc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+/**
+ * Отправить вопросы в Telegram с inline-клавиатурой.
+ * Все вопросы — одним сообщением; кнопки callback_data = q<idx>_o<opt>.
+ * @param {string} requestId  идентификатор запроса из ipc.js
+ * @param {Array<{question: string, options: Array<{label: string, description?: string}>}>} questions
+ * @returns {Promise<{success: boolean, error?: string, skipped?: boolean}>}
+ */
+async function askQuestion(requestId, questions) {
+  const cfg = _read();
+  if (!cfg.enabled || !cfg.token || !cfg.chatId) return { success: false, skipped: true };
+  const items = Array.isArray(questions) ? questions : [];
+  if (items.length === 0) return { success: false, skipped: true };
+
+  const lines = ['❓ <b>Вопрос от ИИ</b>'];
+  items.forEach((q, qi) => {
+    lines.push('');
+    lines.push((qi + 1) + '. ' + _qEsc(q.question));
+  });
+  lines.push('');
+  lines.push('<i>Выберите вариант кнопкой ниже.</i>');
+  const text = lines.join('\n');
+
+  const entry = { questions: items, answers: new Array(items.length).fill(null), messageId: null, tokens: [] };
+  _pendingQuestions.set(requestId, entry);
+
+  // Клавиатура: по строке на каждый вариант каждого вопроса.
+  // callback_data — короткий токен 't<number>', привязанный к (requestId, qi, oi).
+  const keyboard = [];
+  items.forEach((q, qi) => {
+    const opts = Array.isArray(q.options) ? q.options : [];
+    entry.tokens[qi] = [];
+    opts.forEach((o, oi) => {
+      const label = String(o.label || '').slice(0, 60);
+      const token = 't' + (++_cbTokenCounter);
+      _callbackTokens.set(token, { requestId, qi, oi });
+      entry.tokens[qi][oi] = token;
+      keyboard.push([{ text: (qi + 1) + ') ' + label, callback_data: token }]);
+    });
+  });
+
+  const res = await telegramBot.sendMessage(text, {
+    parseMode: 'HTML',
+    replyMarkup: { inline_keyboard: keyboard },
+  });
+  if (!res.success) {
+    _pendingQuestions.delete(requestId);
+    return res;
+  }
+  entry.messageId = res.messageId || null;
+  return { success: true };
+}
+
+/** Обработать нажатие inline-кнопки с ответом на вопрос. */
+async function _handleCallback(chatId, data, cbq) {
+  const token = String(data || '');
+  const ref = _callbackTokens.get(token);
+  if (!ref) {
+    await telegramBot.answerCallbackQuery(cbq.id);
+    return;
+  }
+  const { requestId, qi, oi } = ref;
+  const entry = _pendingQuestions.get(requestId);
+  if (!entry || entry.answers[qi] != null) {
+    _callbackTokens.delete(token);
+    await telegramBot.answerCallbackQuery(cbq.id, { text: 'Вопрос уже закрыт' });
+    return;
+  }
+
+  const q = entry.questions[qi];
+  const opt = (q.options || [])[oi];
+  if (!opt) {
+    await telegramBot.answerCallbackQuery(cbq.id, { text: 'Вариант не найден' });
+    return;
+  }
+
+  entry.answers[qi] = { question: q.question, answer: String(opt.label || '') };
+  await telegramBot.answerCallbackQuery(cbq.id, { text: 'Принято: ' + String(opt.label || '').slice(0, 40) });
+
+  // Обновляем сообщение: показываем выбранные ответы, убираем использованные кнопки.
+  _refreshQuestionMessage(requestId, entry);
+
+  // Если все вопросы отвечены — резолвим и чистим токены.
+  if (entry.answers.every((a) => a && a.answer)) {
+    _pendingQuestions.delete(requestId);
+    for (const row of entry.tokens) {
+      for (const t of (row || [])) _callbackTokens.delete(t);
+    }
+    if (typeof _onQuestionAnswered === 'function') {
+      try { _onQuestionAnswered(requestId, entry.answers.slice()); } catch (err) {
+        _log('error', 'onQuestionAnswered error:', err.message);
+      }
+    }
+  }
+}
+
+/** Перерисовать сообщение с вопросами: отметить выбранное, убрать лишние кнопки. */
+async function _refreshQuestionMessage(requestId, entry) {
+  if (!entry.messageId) return;
+  const lines = ['❓ <b>Вопрос от ИИ</b>'];
+  entry.questions.forEach((q, qi) => {
+    lines.push('');
+    const chosen = entry.answers[qi];
+    lines.push((qi + 1) + '. ' + _qEsc(q.question));
+    if (chosen) lines.push('✅ ' + _qEsc(chosen.answer));
+  });
+
+  // Оставляем кнопки только для неотвеченных вопросов.
+  const keyboard = [];
+  entry.questions.forEach((q, qi) => {
+    if (entry.answers[qi]) return;
+    const opts = Array.isArray(q.options) ? q.options : [];
+    opts.forEach((o, oi) => {
+      const label = String(o.label || '').slice(0, 60);
+      const token = (entry.tokens[qi] && entry.tokens[qi][oi]) || ('t' + (++_cbTokenCounter));
+      if (!_callbackTokens.has(token)) _callbackTokens.set(token, { requestId, qi, oi });
+      keyboard.push([{ text: (qi + 1) + ') ' + label, callback_data: token }]);
+    });
+  });
+
+  await telegramBot.editMessageText(entry.messageId, lines.join('\n'), {
+    parseMode: 'HTML',
+    replyMarkup: keyboard.length ? { inline_keyboard: keyboard } : { inline_keyboard: [] },
+  });
+}
+
 /** Входящее из TG → в чат DeepSeek (или команда). */
 async function _handleIncoming(chatId, text) {
   const cfg = _read();
@@ -239,7 +392,7 @@ async function applySettings() {
   telegramBot.configure(cfg.token, cfg.chatId);
 
   if (cfg.enabled && cfg.token) {
-    telegramBot.startPolling(_handleIncoming);
+    telegramBot.startPolling(_handleIncoming, _handleCallback);
     started = true;
   } else {
     telegramBot.stopPolling();
@@ -288,6 +441,9 @@ module.exports = {
   notifyToolResult,
   notifyAIResponse,
   notifyAllDone,
+  askQuestion,
+  setOnQuestionAnswered,
   _handleIncoming,
+  _handleCallback,
   _sendToChat,
 };
