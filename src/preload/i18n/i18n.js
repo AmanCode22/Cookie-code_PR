@@ -66,6 +66,9 @@ const KEYS = {
   'overlay.output.scriptDone':   { ru: '(скрипт выполнен, без вывода)', en: '(script finished, no output)' },
   'overlay.output.unknownError': { ru: 'Неизвестная ошибка',       en: 'Unknown error' },
   'overlay.output.execFailed':   { ru: 'Ошибка выполнения',        en: 'Execution failed' },
+  'toolResult.success':          { ru: 'Результат',                en: 'Result' },
+  'toolResult.error':            { ru: 'Ошибка выполнения',        en: 'Execution error' },
+  'toolResult.denied':           { ru: 'Отклонено пользователем',  en: 'Denied by user' },
   'overlay.output.systemException': { ru: 'Системное исключение: {msg}', en: 'System exception: {msg}' },
 
   // ---- Оверлей: сессии ----

@@ -73,6 +73,7 @@ Each pending call shows a modal card with the tool name and a params/code previe
 Service traffic — tool result payloads, JS result digests, the initial system prompt, XML-format hints — still reaches the AI, but is no longer displayed in the chat window:
 
 - After being sent, such user messages are automatically hidden in the DOM (`.cuckoo-hidden-msg`), leaving only the real conversation visible.
+- **Tool results are shown inline**: each ```cuckoo tool call card gets a collapsible **Result** section right below the call code — expand the card to see the raw output (`✓ Result`), execution error (`⚠ Execution error`) or a user denial (`⛔ Denied by user`). Results survive page reloads (persisted in `localStorage`) and re-attach to their cards automatically.
 - Messages remain in the DOM (just `display: none`), so history parsing, reload restoration, and AI context detection keep working.
 - Hidden messages are re-hidden after page reloads via a lightweight observer + periodic rescan.
 - Toggle in **Settings → Cookie Code → Agent & Privacy → Hide service messages in chat** (applies instantly, no reload needed).

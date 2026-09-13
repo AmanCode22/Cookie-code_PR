@@ -9,6 +9,7 @@ const { scanForCommands } = require('./detector');
 const { tryParseToolCall } = require('./tool-parser');
 const { getJsCodeBlocksFromMarkdown, looksLikeIncompleteCodeError, FENCE } = require('./js-detector');
 const toolRender = require('./tool-render');
+const toolResultInline = require('./tool-result-inline');
 const responseMeta = require('./response-meta');
 
 const { sendToolResultToChat, sendCombinedJsResultsToChat, sendMessageToChat } = require('./chat-input');
@@ -194,7 +195,14 @@ async function executeJsBlocksWithRetry(initialBlocks, markdown, force) {
   if (stillIncomplete) {
     console.log('[' + new Date().toISOString() + '] [Cookie Code] ⚠️ 代码不完整，已重试 ' + MAX_JS_RETRY + ' 次仍失败，将报错回传 AI');
   }
-  if (results.length > 0) sendCombinedJsResultsToChat(results);
+  if (results.length > 0) {
+    // Инлайн: прикрепляем каждый результат прямо в его карточку вызова,
+    // чтобы пользователь видел результат под кодом, а не отдельным сообщением.
+    for (const item of results) {
+      try { toolResultInline.markToolBlockResult(item.code, item.result); } catch (_) {}
+    }
+    sendCombinedJsResultsToChat(results);
+  }
 }
 /**
  * 稳定性 interval 兜底：mutation 驱动可能因 SPA 宏任务风暴而漏触发，
